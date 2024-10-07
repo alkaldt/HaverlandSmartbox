@@ -4,13 +4,14 @@
     "documentation": "https://github.com/ajtudela/hass-smartbox",
     "issue_tracker": "https://github.com/ajtudela/hass-smartbox/issues",
     "dependencies": [],
-    "version": "2.0.0-beta.2",
+    "version": "2.0.0-beta.3",
     "config_flow": false,
     "codeowners": [
         "@graham33"
     ],
     "requirements": [
-        "smartbox==2.0.0b2"
+    "smartbox @ git+https://github.com/holdness/smartbox.git@update_to_new_credentails"
     ],
+
     "iot_class": "cloud_polling"
 }
