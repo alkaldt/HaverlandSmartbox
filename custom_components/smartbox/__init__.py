@@ -8,13 +8,15 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.discovery import async_load_platform
 
-from smartbox import __version__ as SMARTBOX_VERSION
+# from smartbox import __version__ as SMARTBOX_VERSION
 
 from .const import (
     DOMAIN,
     CONF_ACCOUNTS,
     CONF_API_NAME,
     CONF_BASIC_AUTH_CREDS,
+    CONF_X_REFERER,
+    CONF_X_SERIALID,
     CONF_DEVICE_IDS,
     CONF_PASSWORD,
     CONF_SESSION_RETRY_ATTEMPTS,
@@ -31,7 +33,7 @@ from .const import (
 )
 from .model import get_devices, is_supported_node
 
-__version__ = "2.0.0-beta.2"
+__version__ = "3.0"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -50,12 +52,14 @@ ACCOUNT_SCHEMA = vol.Schema(
         vol.Required(
             CONF_SESSION_BACKOFF_FACTOR, default=DEFAULT_SESSION_BACKOFF_FACTOR
         ): cv.small_float,
-        vol.Required(
+                vol.Required(
             CONF_SOCKET_RECONNECT_ATTEMPTS, default=DEFAULT_SOCKET_RECONNECT_ATTEMPTS
         ): cv.positive_int,
         vol.Required(
             CONF_SOCKET_BACKOFF_FACTOR, default=DEFAULT_SOCKET_BACKOFF_FACTOR
         ): cv.small_float,
+
+
     }
 )
 
@@ -65,6 +69,8 @@ CONFIG_SCHEMA = vol.Schema(
             {
                 vol.Required(CONF_ACCOUNTS): vol.All(cv.ensure_list, [ACCOUNT_SCHEMA]),
                 vol.Required(CONF_BASIC_AUTH_CREDS): cv.string,
+                vol.Required(CONF_X_REFERER): cv.string,
+                vol.Required(CONF_X_SERIALID): cv.string
             }
         )
     },
@@ -80,13 +86,17 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
 
     _LOGGER.info(
         f"Setting up Smartbox integration v{__version__}"
-        f" (using smartbox v{SMARTBOX_VERSION})"
+ #       f" (using smartbox v{SMARTBOX_VERSION})"
     )
 
     accounts_cfg = config[DOMAIN][CONF_ACCOUNTS]
     _LOGGER.debug(f"accounts: {accounts_cfg}")
     basic_auth_creds = config[DOMAIN][CONF_BASIC_AUTH_CREDS]
     _LOGGER.debug(f"basic_auth_creds: {basic_auth_creds}")
+    x_referer = config[DOMAIN][CONF_X_REFERER]
+    _LOGGER.debug(f"x_referer: {x_referer}")
+    x_serialid = config[DOMAIN][CONF_X_SERIALID]
+    _LOGGER.debug(f" x_serialid: {x_serialid}")
 
     hass.data[DOMAIN][SMARTBOX_DEVICES] = []
     hass.data[DOMAIN][SMARTBOX_NODES] = []
@@ -96,12 +106,12 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
             hass,
             account[CONF_API_NAME],
             basic_auth_creds,
+            x_referer, 
+            x_serialid, 
             account[CONF_USERNAME],
             account[CONF_PASSWORD],
             account[CONF_SESSION_RETRY_ATTEMPTS],
             account[CONF_SESSION_BACKOFF_FACTOR],
-            account[CONF_SOCKET_RECONNECT_ATTEMPTS],
-            account[CONF_SOCKET_BACKOFF_FACTOR],
         )
 
         found_dev_ids = frozenset(dev.dev_id for dev in devices)
