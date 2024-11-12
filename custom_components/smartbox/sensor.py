@@ -1,4 +1,3 @@
-
 from datetime import datetime, timedelta
 from homeassistant.const import (
     ATTR_LOCKED,
@@ -265,7 +264,7 @@ class SamplesSensor(SmartboxSensorBase):
     Represents the temperture and electrity consumed by the heater for each hour for the day.
     """
 
-    device_class = SensorDeviceClass.SAMPLES
+    device_class = SensorDeviceClass.ENERGY
     native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
     state_class = SensorStateClass.TOTAL
 
@@ -316,3 +315,4 @@ class ChargeLevelSensor(SmartboxSensorBase):
     @property
     def native_value(self) -> int:
         return self._status["charge_level"]
+
