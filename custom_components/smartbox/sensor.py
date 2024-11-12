@@ -1,3 +1,4 @@
+
 from datetime import datetime, timedelta
 from homeassistant.const import (
     ATTR_LOCKED,
@@ -76,7 +77,7 @@ async def async_setup_platform(
         True,
     )
     # to collect the records for temperture and electricty consumption
-        async_add_entities(
+    async_add_entities(
         [
             SamplesSensor(node)
             for node in hass.data[DOMAIN][SMARTBOX_NODES]
@@ -315,4 +316,3 @@ class ChargeLevelSensor(SmartboxSensorBase):
     @property
     def native_value(self) -> int:
         return self._status["charge_level"]
-
