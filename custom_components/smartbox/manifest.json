@@ -3,14 +3,14 @@
     "name": "Smartbox",
     "documentation": "https://github.com/holdness/hass-smartbox",
     "issue_tracker": "https://github.com/holdness/hass-smartbox/issues",
-    "version": "3.0",
+    "version": "3.0.3",
     "dependencies": [],
     "config_flow": false,
     "codeowners": [
         "@graham33"
     ],
     "requirements": [
-    "git+https://github.com/holdness/smartbox.git@main#smartbox==3.0"
+    "git+https://github.com/holdness/smartbox.git@main#smartbox==3.0.3"
     ],
 
     "iot_class": "cloud_polling"
