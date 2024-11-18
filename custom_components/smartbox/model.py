@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import time
 
 from homeassistant.const import (
     UnitOfTemperature,
@@ -66,6 +67,10 @@ class SmartboxDevice(object):
             setup = await hass.async_add_executor_job(
                 self._session.get_setup, self._dev_id, node_info
             )
+            samples = await hass hass.async_add_executor_job(
+                self._session.get_device_samples, self._dev_id, node_info
+            )
+                
             node = SmartboxNode(self, node_info, self._session, status, setup)
             self._nodes[(node.node_type, node.addr)] = node
 
