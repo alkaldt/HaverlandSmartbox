@@ -67,8 +67,8 @@ class SmartboxDevice(object):
             setup = await hass.async_add_executor_job(
                 self._session.get_setup, self._dev_id, node_info
             )
-            samples = await hass hass.async_add_executor_job(
-                self._session.get_device_samples, self._dev_id, node_info
+            samples = await hass.async_add_executor_job(
+                self._session.get_device_samples, self._dev_id, node_info, time.time()-3600, time.time()+3600
             )
                 
             node = SmartboxNode(self, node_info, self._session, status, setup)
