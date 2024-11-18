@@ -49,6 +49,7 @@ class SmartboxDevice(object):
         self._dev_id = dev_id
         self._name = name
         self._session = session
+        self._samples: Any
         self._socket_reconnect_attempts = socket_reconnect_attempts
         self._socket_backoff_factor = socket_backoff_factor
         self._away = False
@@ -75,9 +76,11 @@ class SmartboxDevice(object):
             self._nodes[(node.node_type, node.addr)] = node
 
         _LOGGER.debug(f"Creating SocketSession for device {self._dev_id}")
+        _LOGGER.debug(f"Samples: {self._samples}")
         self._update_manager = UpdateManager(
             self._session,
             self._dev_id,
+            self._samples,
             reconnect_attempts=self._socket_reconnect_attempts,
             backoff_factor=self._socket_backoff_factor,
         )
