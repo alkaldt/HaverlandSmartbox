@@ -73,7 +73,7 @@ class SmartboxDevice(object):
                 self._session.get_device_samples, self._dev_id, node_info,  (time.time() - time.time() % 3600) - 3600 , time.time() - time.time() % 3600
             )
                 
-            node = SmartboxNode(self, node_info, self._session, status, setup)
+            node = SmartboxNode(self, node_info, self._session, status, setup, samples)
             self._nodes[(node.node_type, node.addr)] = node
 
         _LOGGER.debug(f"Creating SocketSession for device {self._dev_id}")
@@ -159,12 +159,14 @@ class SmartboxNode(object):
         session: Union[Session, MagicMock],
         status: Dict[str, Any],
         setup: Dict[str, Any],
+        samples: Dict[str, Any]
     ) -> None:
         self._device = device
         self._node_info = node_info
         self._session = session
         self._status = status
         self._setup = setup
+       
 
     @property
     def node_id(self) -> str:
@@ -183,6 +185,7 @@ class SmartboxNode(object):
     @property
     def addr(self) -> int:
         return self._node_info["addr"]
+    
     
     @property
     def status(self) -> StatusDict:
