@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import time
+import datetime
 
 from homeassistant.const import (
     UnitOfTemperature,
@@ -69,14 +70,14 @@ class SmartboxDevice(object):
                 self._session.get_setup, self._dev_id, node_info
             )
             samples = await hass.async_add_executor_job(
-                self._session.get_device_samples, self._dev_id, node_info, time.time()-3600, time.time()+3600
+                self._session.get_device_samples, self._dev_id, node_info,  (time.time() - time.time() % 3600) - 3600 , time.time() - time.time() % 3600
             )
                 
             node = SmartboxNode(self, node_info, self._session, status, setup)
             self._nodes[(node.node_type, node.addr)] = node
 
         _LOGGER.debug(f"Creating SocketSession for device {self._dev_id}")
-   #    _LOGGER.debug(f"Samples: {self._samples}")
+        _LOGGER.debug(f"Samples: {samples}")
         self._update_manager = UpdateManager(
             self._session,
             self._dev_id,
