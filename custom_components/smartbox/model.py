@@ -1,7 +1,8 @@
 import asyncio
 import logging
 import time
-import datetime
+import json
+
 
 from homeassistant.const import (
     UnitOfTemperature,
@@ -50,6 +51,7 @@ class SmartboxDevice(object):
         self._dev_id = dev_id
         self._name = name
         self._session = session
+        self._samples: Dict[str, Any] = {}
         self._socket_reconnect_attempts = socket_reconnect_attempts
         self._socket_backoff_factor = socket_backoff_factor
         self._away = False
@@ -69,8 +71,8 @@ class SmartboxDevice(object):
             setup = await hass.async_add_executor_job(
                 self._session.get_setup, self._dev_id, node_info
             )
-            samples = await hass.async_add_executor_job(
-                self._session.get_device_samples, self._dev_id, node_info,  (time.time() - time.time() % 3600) - 3600 , time.time() - time.time() % 3600
+            samples: dict[str,Any] = await hass.async_add_executor_job(
+                self._session.get_device_samples, self._dev_id, node_info,  (time.time() - time.time() % 3600) - 3600 , (time.time() - time.time() % 3600) + 1800
             )
                 
             node = SmartboxNode(self, node_info, self._session, status, setup, samples)
@@ -81,7 +83,6 @@ class SmartboxDevice(object):
         self._update_manager = UpdateManager(
             self._session,
             self._dev_id,
-
             reconnect_attempts=self._socket_reconnect_attempts,
             backoff_factor=self._socket_backoff_factor,
         )
@@ -90,6 +91,7 @@ class SmartboxDevice(object):
         self._update_manager.subscribe_to_device_power_limit(self._power_limit_update)
         self._update_manager.subscribe_to_node_status(self._node_status_update)
         self._update_manager.subscribe_to_node_setup(self._node_setup_update)
+       # self._update_manager.subscribe_to_device_samples(self._)
 
         _LOGGER.debug(f"Starting UpdateManager task for device {self._dev_id}")
         asyncio.create_task(self._update_manager.run())
@@ -150,7 +152,10 @@ class SmartboxDevice(object):
         self._session.set_device_power_limit(self.dev_id, power_limit)
         self._power_limit = power_limit
 
-
+    @property
+    def samples(self) -> Dict[str, Any] :
+        return self._samples
+    
 class SmartboxNode(object):
     def __init__(
         self,
@@ -159,15 +164,22 @@ class SmartboxNode(object):
         session: Union[Session, MagicMock],
         status: Dict[str, Any],
         setup: Dict[str, Any],
-        samples: Dict[str, Any]
+        samples: Dict[str, Any] 
     ) -> None:
         self._device = device
         self._node_info = node_info
         self._session = session
         self._status = status
         self._setup = setup
+        self._samples: Any = samples
        
 
+    @property
+    def samples(self) -> Dict[str, Any] :
+        return self._samples
+
+
+    
     @property
     def node_id(self) -> str:
         # TODO: are addrs only unique among node types, or for the whole device?
@@ -195,6 +207,7 @@ class SmartboxNode(object):
         _LOGGER.debug(f"Updating node {self.name} status: {status}")
         self._status = status
 
+  
     @property
     def setup(self) -> SetupDict:
         return self._setup
@@ -256,7 +269,7 @@ def is_supported_node(node: Union[SmartboxNode, MagicMock]) -> bool:
     return is_heater_node(node)
 
 
-def get_temperature_unit(status):
+def get_temperature_unit(status) -> None | Any:
     if "units" not in status:
         return None
     unit = status["units"]
@@ -266,6 +279,8 @@ def get_temperature_unit(status):
         return UnitOfTemperature.FAHRENHEIT
     else:
         raise ValueError(f"Unknown temp unit {unit}")
+    
+
 
 
 async def get_devices(
@@ -537,3 +552,40 @@ def window_mode_available(node: Union[SmartboxNode, MagicMock]) -> bool:
 
 def true_radiant_available(node: Union[SmartboxNode, MagicMock]) -> bool:
     return get_factory_options(node).get("true_radiant_available", False)
+
+
+    
+def get_energy_used(samples) -> None | Any:
+        _LOGGER.debug(f"Model: Samples: {samples}" )
+        startKWh: int=0
+        endKWh: int=0
+        kwh: int=0
+        count: int=0
+        sample : Dict[str, int]  = samples['samples']
+        
+        
+        _LOGGER.debug(f"Model: Temp2 {sample}" )
+        
+        if len(sample) == 1:
+            return kwh
+        else:
+        
+            for counter in sample:
+                temp2 = str(counter).split(',')
+                _LOGGER.debug(f"{temp2[2]}")            
+           
+                if count == 0:
+                    lenCount: int = len(temp2[2])
+                    _LOGGER.debug(f"LenCount:{lenCount}")
+
+                    startKwh =  int(temp2[2][12:lenCount-1])
+                    _LOGGER.debug(f"StartKwh:{startKwh}")
+                    count = count + 1
+                else:
+                    lenCount: int = len(temp2[2])
+                    endKwh =  int(temp2[2][12:lenCount-1])
+        
+        kwh = endKWh-startKWh               
+        
+        _LOGGER.debug(f"Model: KWH: {kwh}" )
+        return kwh   
