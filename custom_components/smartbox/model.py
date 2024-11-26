@@ -34,7 +34,7 @@ from .const import (
     PRESET_SCHEDULE,
     PRESET_SELF_LEARN,
 )
-from .types import FactoryOptionsDict, SetupDict, StatusDict
+from .types import FactoryOptionsDict, SetupDict, StatusDict, SamplesDict
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -91,7 +91,7 @@ class SmartboxDevice(object):
         self._update_manager.subscribe_to_device_power_limit(self._power_limit_update)
         self._update_manager.subscribe_to_node_status(self._node_status_update)
         self._update_manager.subscribe_to_node_setup(self._node_setup_update)
-       # self._update_manager.subscribe_to_device_samples(self._)
+        self._update_manager.subscribe_to_node_samples(self._node_samples_update)
 
         _LOGGER.debug(f"Starting UpdateManager task for device {self._dev_id}")
         asyncio.create_task(self._update_manager.run())
@@ -121,6 +121,16 @@ class SmartboxDevice(object):
         node = self._nodes.get((node_type, addr), None)
         if node is not None:
             node.update_setup(node_setup)
+        else:
+            _LOGGER.error(f"Received setup update for unknown node {node_type} {addr}")
+            
+    def _node_samples_update(
+        self, node_type: str, addr: int, node_samples: SamplesDict
+    ) -> None:
+        _LOGGER.debug(f"Node samples update: {node_samples}")
+        node = self._nodes.get((node_type, addr), None)
+        if node is not None:
+            node.update_setup(node_samples)
         else:
             _LOGGER.error(f"Received setup update for unknown node {node_type} {addr}")
 
@@ -173,13 +183,6 @@ class SmartboxNode(object):
         self._setup = setup
         self._samples: Any = samples
        
-
-    @property
-    def samples(self) -> Dict[str, Any] :
-        return self._samples
-
-
-    
     @property
     def node_id(self) -> str:
         # TODO: are addrs only unique among node types, or for the whole device?
@@ -222,6 +225,22 @@ class SmartboxNode(object):
         self._status |= {**status_args}
         return self._status
 
+
+    @property
+    def samples(self) -> SamplesDict:
+        return self._samples
+
+    def update_samples(self, samples: SamplesDict) -> None:
+        _LOGGER.debug(f"Updating node {self.name} samples: {samples}")
+        self._samples = samples
+
+    def set_samples(self, **samples_args) -> SamplesDict:
+        self._session.set_samples(self._device.dev_id, self._node_info, samples_args)
+        # update our status samples locally until we get an update
+        self._samples |= {**samples_args}
+        return self._samples
+
+
     @property
     def away(self):
         return self._device.away
@@ -238,7 +257,7 @@ class SmartboxNode(object):
             raise KeyError(
                 "window_mode_enabled not present in setup for node {self.name}"
             )
-        return self._setup["window_mode_enabled"]
+        return True #self._setup["window_mode_enabled"]
 
     def set_window_mode(self, window_mode: bool):
         self._session.set_setup(
@@ -252,7 +271,7 @@ class SmartboxNode(object):
             raise KeyError(
                 "true_radiant_enabled not present in setup for node {self.name}"
             )
-        return self._setup["true_radiant_enabled"]
+        return True #self._setup["true_radiant_enabled"]
 
     def set_true_radiant(self, true_radiant: bool):
         self._session.set_setup(
@@ -578,12 +597,12 @@ def get_energy_used(samples) -> None | Any:
                     lenCount: int = len(temp2[2])
                     _LOGGER.debug(f"LenCount:{lenCount}")
 
-                    startKwh =  int(temp2[2][12:lenCount-1])
-                    _LOGGER.debug(f"StartKwh:{startKwh}")
+                    startKWh =  int(temp2[2][12:lenCount-1])
+                    _LOGGER.debug(f"StartKwh:{startKWh}")
                     count = count + 1
                 else:
                     lenCount: int = len(temp2[2])
-                    endKwh =  int(temp2[2][12:lenCount-1])
+                    endKWh =  int(temp2[2][12:lenCount-1])
         
         kwh = endKWh-startKWh               
         
