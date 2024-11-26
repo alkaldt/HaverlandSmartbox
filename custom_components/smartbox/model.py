@@ -235,7 +235,7 @@ class SmartboxNode(object):
         self._samples = samples
 
     def set_samples(self, **samples_args) -> SamplesDict:
-        self._session.set_samples(self._device.dev_id, self._node_info, samples_args)
+        self._session.get_device_samples(self._device.dev_id, self._node_info,  (time.time() - time.time() % 3600) - 3600 , (time.time() - time.time() % 3600) + 1800)
         # update our status samples locally until we get an update
         self._samples |= {**samples_args}
         return self._samples
