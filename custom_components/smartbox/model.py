@@ -130,7 +130,7 @@ class SmartboxDevice(object):
         _LOGGER.debug(f"Node samples update: {node_samples}")
         node = self._nodes.get((node_type, addr), None)
         if node is not None:
-            node.update_setup(node_samples)
+            node.update_samples(self)
         else:
             _LOGGER.error(f"Received setup update for unknown node {node_type} {addr}")
 
@@ -230,14 +230,17 @@ class SmartboxNode(object):
     def samples(self) -> SamplesDict:
         return self._samples
 
-    def update_samples(self, samples: SamplesDict) -> None:
+  #  def update_samples(self, samples: SamplesDict) -> None:
         _LOGGER.debug(f"Updating node {self.name} samples: {samples}")
-        self._samples = samples
+  #      self._samples = samples
 
-    def set_samples(self, **samples_args) -> SamplesDict:
+  #  def update_samples(self, **samples_args) -> SamplesDict:
+    def update_samples(self) -> SamplesDict:
+           
         self._session.get_device_samples(self._device.dev_id, self._node_info,  (time.time() - time.time() % 3600) - 3600 , (time.time() - time.time() % 3600) + 1800)
         # update our status samples locally until we get an update
-        self._samples |= {**samples_args}
+       # self._samples |= {**samples_args}
+        _LOGGER.debug(f"Updating node {self.name} samples: {self._samples}")
         return self._samples
 
 
