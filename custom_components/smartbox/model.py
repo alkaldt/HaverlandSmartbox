@@ -126,7 +126,7 @@ class SmartboxDevice(object):
             _LOGGER.error(f"Received setup update for unknown node {node_type} {addr}")
              
     def _node_samples_update(
-        self, node_type: str, addr: int, node_samples: SamplesDict
+        self, node_type: str, addr: int, node_samples: SamplesDict, start: int = round(time.time() - time.time() % 3600) - 3600, end: int =  round(time.time() - time.time() % 3600) + 1800
     ) -> None:
         _LOGGER.debug(f"Node samples update: {node_samples}")
         node = self._nodes.get((node_type, addr), None)
