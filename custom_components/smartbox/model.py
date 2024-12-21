@@ -52,13 +52,12 @@ class SmartboxDevice(object):
         self._dev_id = dev_id
         self._name = name
         self._session = session
-        self._samples: Dict[str, Any] = {}
+        self._samples: Dict[str, Any]
         self._socket_reconnect_attempts = socket_reconnect_attempts
         self._socket_backoff_factor = socket_backoff_factor
         self._away = False
         self._power_limit: int = 0
-
-
+        
     async def initialise_nodes(self, hass: HomeAssistant) -> None:
         # Would do in __init__, but needs to be a coroutine
         session_nodes = await hass.async_add_executor_job(
@@ -126,15 +125,10 @@ class SmartboxDevice(object):
             _LOGGER.error(f"Received setup update for unknown node {node_type} {addr}")
              
     def _node_samples_update(
-        self, node_type: str, addr: int, node_samples: SamplesDict, start: int = round(time.time() - time.time() % 3600) - 3600, end: int =  round(time.time() - time.time() % 3600) + 1800
-    ) -> None:
-        _LOGGER.debug(f"Node samples update: {node_samples}")
+        self, node_type: str, addr: int) -> None:
         node = self._nodes.get((node_type, addr), None)
-        
-        _LOGGER.debug(f"Node: {node}")
         if node is not None:
-             
-             node.update_samples(node_samples)
+            node.update_samples(self)
         else:
             _LOGGER.error(f"Received setup update for unknown node {node_type} {addr}")
 
@@ -165,7 +159,15 @@ class SmartboxDevice(object):
     def set_power_limit(self, power_limit: int) -> None:
         self._session.set_device_power_limit(self.dev_id, power_limit)
         self._power_limit = power_limit
-
+        
+   # @property
+   # def samples(self) -> Dict[str, Any]:
+   #     return self._samples
+    
+    #def get_samples(self) -> None:
+    #    _LOGGER.debug("Get Samples")
+    #    self._samples=self._session.get_device_samples(self._dev_id, self._nodes,  (time.time() - time.time() % 3600) - 3600 , (time.time() - time.time() % 3600) + 1800, 0)
+           
    
 class SmartboxNode(object):
     def __init__(
@@ -183,7 +185,8 @@ class SmartboxNode(object):
         self._status = status
         self._setup = setup
         self._samples: Dict[str, Any] = samples
-        
+        self._start_date: int = round(time.time() - time.time() % 3600) - 3600 
+        self._end_date: int = round(time.time() - time.time() % 3600) + 1800        
        
     @property
     def node_id(self) -> str:
@@ -229,44 +232,29 @@ class SmartboxNode(object):
 
 
     @property
-    def samples(self) -> SamplesDict:
+    def samples(self) -> Dict[str, Any]: 
         return self._samples
     
-    #def update_samples(self, samples: SamplesDict) -> None:
-    #    _LOGGER.debug(f"Updating node {self.name} samples: {samples}")
-    #    self._samples = samples
-        
-    def  update_samples(self, samples: SamplesDict) -> None:
-        _LOGGER.debug(f"Self: {self}  samples: {samples}")
-        _LOGGER.debug(f"Dev ID: {self._device.dev_id}  and Node Info: {self._node_info}") 
-        _LOGGER.debug(f"Updating node {self.name} samples: {samples}")
-    #    self._samples = self._session.get_device_samples(self._device.dev_id, self._node_info,  (time.time() - time.time() % 3600) - 3600 , (time.time() - time.time() % 3600) + 1800, 0)
-        self._samples = samples  
+    @property
+    def start_date(self) -> int:
+        return self._start_date
     
-    #def update_samples(self, node_type, addr, node_samples) -> None:
+    @property
+    def end_date(self) -> int:
+        return self._end_date
+    
+    
+     
+    def update_samples(self) :
+        self._start_date = round((time.time() - time.time() % 3600) - 3600)
+        self._end_date = round((time.time() - time.time() % 3600) + 1800)
+        _LOGGER.debug(f"Self: {self}")
+        _LOGGER.debug(f"Dev ID: {self._device.dev_id}  and Node Info: {self._node_info}") 
+     #   _LOGGER.debug(f"Updating node {self.name} samples: {samples}")
+        self._samples = self._session.get_device_samples(self._device.dev_id, self._node_info, self._start_date , self._end_date, 0)
+        return self._samples 
+    
         
-    #    _LOGGER.debug(f"Updating node {self.name} samples: {node_samples}")
-    #    _LOGGER.debug(f"Device:  {self._device.dev_id} , Node Info: {self._node_info}")
-    #    loop = asyncio.get_event_loop()
-    #    node_samples = loop.run_until_complete(self._session.get_device_samples(self._device.dev_id, self._node_info,  (time.time() - time.time() % 3600) - 3600 , (time.time() - time.time() % 3600) + 1800, 0)
-    #    )
-    #   _LOGGER.debug(f"Nodes Samples: {node_samples}")
-    #    self._samples = node_samples
-        
-        
-
-   # def update_samples(self, **samples_args) -> SamplesDict:
-    #def  update_samples(self, any, boo, boo1) -> SamplesDict:
-    #    _LOGGER.debug(f"Self: {self}  any: {any} boo: {boo} boo1: {boo1}")
-    #    _LOGGER.debug(f"Dev ID: {self._device.dev_id}  and Node Info: {self._node_info}")   
-         
-        #self._session.get_device_samples(self._device.dev_id, self._node_info,  round((time.time() - time.time() % 3600) - 3600) , round((time.time() - time.time() % 3600) + 1800))
-        # update our status samples locally until we get an update
-       # self._samples |= {**samples_args}
-    #    _LOGGER.debug(f"Updating node {self.name} samples: {self._samples}")
-       # return self._samples
-
-
     @property
     def away(self):
         return self._device.away
