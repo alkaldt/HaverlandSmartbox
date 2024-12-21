@@ -75,7 +75,8 @@ class SmartboxDevice(object):
                 self._session.get_device_samples, self._dev_id, node_info,  (time.time() - time.time() % 3600) - 3600 , (time.time() - time.time() % 3600) + 1800, 0
             )
                 
-            node = SmartboxNode(self, node_info, self._session, status, setup, samples)
+            node = SmartboxNode(self, node_info, self._session, status, setup, samples, start_date = round(time.time() - time.time() % 3600) - 3600 , end_date = round(time.time() - time.time() % 3600) + 1800) 
+            
             self._nodes[(node.node_type, node.addr)] = node
 
         _LOGGER.debug(f"Creating SocketSession for device {self._dev_id}")
@@ -128,6 +129,7 @@ class SmartboxDevice(object):
     def _node_samples_update(
         self, type: str, addr: int, start: int, end: int) -> None:
         node = self._nodes.get((type, addr), None)
+       
         if node is not None:
             node.update_samples(self, type, addr, start, end)
         else:
@@ -178,7 +180,9 @@ class SmartboxNode(object):
         session: Union[Session, MagicMock],
         status: Dict[str, Any],
         setup: Dict[str, Any],
-        samples: Dict[str, Any]
+        samples: Dict[str, Any],
+        start_date: int,
+        end_date: int
          ) -> None:
         self._device = device
         self._node_info = node_info
@@ -186,8 +190,8 @@ class SmartboxNode(object):
         self._status = status
         self._setup = setup
         self._samples: Dict[str, Any] = samples
-        self._start_date: int = round(time.time() - time.time() % 3600) - 3600 
-        self._end_date: int = round(time.time() - time.time() % 3600) + 1800        
+        self._start_date: int = start_date
+        self._end_date: int = end_date      
        
     @property
     def node_id(self) -> str:
