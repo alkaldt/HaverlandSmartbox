@@ -52,7 +52,6 @@ class SmartboxDevice(object):
         self._dev_id = dev_id
         self._name = name
         self._session = session
-        self._samples: Dict[str, Any]
         self._socket_reconnect_attempts = socket_reconnect_attempts
         self._socket_backoff_factor = socket_backoff_factor
         self._away = False
@@ -75,7 +74,7 @@ class SmartboxDevice(object):
                 self._session.get_device_samples, self._dev_id, node_info,  (time.time() - time.time() % 3600) - 3600 , (time.time() - time.time() % 3600) + 1800, 0
             )
                 
-            node = SmartboxNode(self, node_info, self._session, status, setup, samples, start_date = round(time.time() - time.time() % 3600) - 3600 , end_date = round(time.time() - time.time() % 3600) + 1800) 
+            node = SmartboxNode(self, node_info, self._session, status, setup, samples) 
             
             self._nodes[(node.node_type, node.addr)] = node
 
@@ -97,7 +96,7 @@ class SmartboxDevice(object):
         _LOGGER.debug(f"Starting UpdateManager task for device {self._dev_id}")
         asyncio.create_task(self._update_manager.run())
 
-    def _away_status_update(self, away_status: Dict[str, bool]) -> None:
+    def _away_status_update(self, away_status: Dict[str, bool]) -> None: 
         _LOGGER.debug(f"Away status update: {away_status}")
         self._away = away_status["away"]
 
@@ -163,10 +162,7 @@ class SmartboxDevice(object):
         self._session.set_device_power_limit(self.dev_id, power_limit)
         self._power_limit = power_limit
         
-    @property
-    def samples(self) -> Dict[str, Any]:
-        return self._samples
-    
+   
     #def get_samples(self) -> None:
     #    _LOGGER.debug("Get Samples")
     #    self._samples=self._session.get_device_samples(self._dev_id, self._nodes,  (time.time() - time.time() % 3600) - 3600 , (time.time() - time.time() % 3600) + 1800, 0)
@@ -181,17 +177,14 @@ class SmartboxNode(object):
         status: Dict[str, Any],
         setup: Dict[str, Any],
         samples: Dict[str, Any],
-        start_date: int,
-        end_date: int
-         ) -> None:
+        ) -> None:
         self._device = device
         self._node_info = node_info
         self._session = session
         self._status = status
         self._setup = setup
         self._samples: Dict[str, Any] = samples
-        self._start_date: int = start_date
-        self._end_date: int = end_date      
+    
        
     @property
     def node_id(self) -> str:
@@ -239,17 +232,9 @@ class SmartboxNode(object):
     @property
     def samples(self) -> Dict[str, Any]: 
         return self._samples
+     
     
-    @property
-    def start_date(self) -> int:
-        return self._start_date
-    
-    @property
-    def end_date(self) -> int:
-        return self._end_date
-    
-    
-    def update_samples(self, samples: Dict[str, Any]) -> None:
+    def update_samples(self, samples: SamplesDict) -> None:
         _LOGGER.debug(f"Updating node {self.name} samples: {samples}")
         self._samples = samples
      
