@@ -127,11 +127,11 @@ class SmartboxDevice(object):
            
 
     def _node_samples_update(
-        self, type: str, addr: int, start: int=round(time.time() - time.time() % 3600) - 3600 , end: int=round(time.time() - time.time() % 3600) + 1800) -> None:
+        self, type: str, addr: int, start: int, end: int, node_samples: Dict[str, Any]) -> None:
         node = self._nodes.get((type, addr), None)
        
         if node is not None:
-            node.update_samples(self, type, addr, start, end)
+            node.update_samples(self, type, addr, start, end, node_samples)
         else:
             _LOGGER.error(f"Received setup update for unknown node {type} {addr}")
 
@@ -163,9 +163,9 @@ class SmartboxDevice(object):
         self._session.set_device_power_limit(self.dev_id, power_limit)
         self._power_limit = power_limit
         
-   # @property
-   # def samples(self) -> Dict[str, Any]:
-   #     return self._samples
+    @property
+    def samples(self) -> Dict[str, Any]:
+        return self._samples
     
     #def get_samples(self) -> None:
     #    _LOGGER.debug("Get Samples")
@@ -249,14 +249,16 @@ class SmartboxNode(object):
         return self._end_date
     
     
+    def update_samples(self, samples: Dict[str, Any]) -> None:
+        _LOGGER.debug(f"Updating node {self.name} samples: {samples}")
+        self._samples = samples
      
-    def update_samples(self, node_type, addr, start_date, end_date) :
-        _LOGGER.debug(f"Self: {self}")
-        _LOGGER.debug(f"Dev ID: {self._device.dev_id}  and Node Info: {self._node_info}") 
+    #async def update_samples(self, node_type, addr, start_date, end_date, data, boo) :
+    #    _LOGGER.debug(f"Self: {self}")
+    #    _LOGGER.debug(f"Dev ID: {self._device.dev_id}  and Self Start: {self._start_date} and Passed in Start {start_date}") 
      #   _LOGGER.debug(f"Updating node {self.name} samples: {samples}")
-        self._samples = self._session.get_device_samples(self._device.dev_id, self._node_info, start_date , end_date, 0)
-        return self._samples 
-    
+     #   self._samples: Any = await HomeAssistant.async_add_executor_job(self._session.get_device_samples(self._device.dev_id, self._node_info, round(time.time() - time.time() % 3600) - 3600 , round(time.time() - time.time() % 3600) + 1800, 0))
+        
         
     @property
     def away(self):
