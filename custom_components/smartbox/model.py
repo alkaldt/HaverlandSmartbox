@@ -124,15 +124,16 @@ class SmartboxDevice(object):
         else:
             _LOGGER.error(f"Received setup update for unknown node {node_type} {addr}")
            
-
     def _node_samples_update(
-        self, type: str, addr: int, start: int, end: int, node_samples: Dict[str, Any]) -> None:
-        node = self._nodes.get((type, addr), None)
-       
+        self, node_type: str, addr: int, node_samples: SamplesDict
+    ) -> None:
+        _LOGGER.debug(f"Node samples update: {node_samples}")
+        node = self._nodes.get((node_type, addr), None)
         if node is not None:
-            node.update_samples(self, type, addr, start, end, node_samples)
+            node.update_samples(node_samples)
         else:
-            _LOGGER.error(f"Received setup update for unknown node {type} {addr}")
+            _LOGGER.error(f"Received setup update for unknown node {node_type} {addr}")
+
 
    
     @property
@@ -161,12 +162,8 @@ class SmartboxDevice(object):
     def set_power_limit(self, power_limit: int) -> None:
         self._session.set_device_power_limit(self.dev_id, power_limit)
         self._power_limit = power_limit
-        
    
-    #def get_samples(self) -> None:
-    #    _LOGGER.debug("Get Samples")
-    #    self._samples=self._session.get_device_samples(self._dev_id, self._nodes,  (time.time() - time.time() % 3600) - 3600 , (time.time() - time.time() % 3600) + 1800, 0)
-           
+     
    
 class SmartboxNode(object):
     def __init__(
@@ -183,7 +180,7 @@ class SmartboxNode(object):
         self._session = session
         self._status = status
         self._setup = setup
-        self._samples: Dict[str, Any] = samples
+        self._samples = samples
     
        
     @property
@@ -230,7 +227,7 @@ class SmartboxNode(object):
 
 
     @property
-    def samples(self) -> Dict[str, Any]: 
+    def samples(self) -> SamplesDict: 
         return self._samples
      
     
