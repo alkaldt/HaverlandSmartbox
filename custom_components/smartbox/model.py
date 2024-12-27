@@ -56,6 +56,8 @@ class SmartboxDevice(object):
         self._socket_backoff_factor = socket_backoff_factor
         self._away = False
         self._power_limit: int = 0
+        self._start: int = int(time.time() - time.time() % 3600) - 3600
+        self._end: int = int(time.time() - time.time() % 3600) + 1800
         
     async def initialise_nodes(self, hass: HomeAssistant) -> None:
         # Would do in __init__, but needs to be a coroutine
@@ -64,6 +66,7 @@ class SmartboxDevice(object):
         )
         self._nodes = {}
         for node_info in session_nodes:
+            
             status = await hass.async_add_executor_job(
                 self._session.get_status, self._dev_id, node_info
             )
@@ -71,9 +74,10 @@ class SmartboxDevice(object):
                 self._session.get_setup, self._dev_id, node_info
             )
             samples: Any = await hass.async_add_executor_job(
-                self._session.get_device_samples, self._dev_id, node_info,  (time.time() - time.time() % 3600) - 3600 , (time.time() - time.time() % 3600) + 1800, 0
+                self._session.get_device_samples, self._dev_id, node_info, self._start  , self._end, 0
             )
-                
+            
+     
             node = SmartboxNode(self, node_info, self._session, status, setup, samples) 
             
             self._nodes[(node.node_type, node.addr)] = node
@@ -231,15 +235,17 @@ class SmartboxNode(object):
         return self._samples
      
     
-    def update_samples(self, node_type, addr, start, end) -> None:
+    async def update_samples(self, node_type, addr, start, end, data) -> None:
         _LOGGER.debug(f"Updating node {self.name} samples: {start}")
-        self._samples = self._session.get_device_samples(self._device.dev_id, self._node_info, start, end, 0)
+        
+        #self._samples = self._session.get_device_samples(self._device.dev_id, self._node_info, start, end, 0)
      
     #async def update_samples(self, node_type, addr, start_date, end_date, data, boo) :
     #    _LOGGER.debug(f"Self: {self}")
     #    _LOGGER.debug(f"Dev ID: {self._device.dev_id}  and Self Start: {self._start_date} and Passed in Start {start_date}") 
      #   _LOGGER.debug(f"Updating node {self.name} samples: {samples}")
-     #   self._samples: Any = await HomeAssistant.async_add_executor_job(self._session.get_device_samples(self._device.dev_id, self._node_info, round(time.time() - time.time() % 3600) - 3600 , round(time.time() - time.time() % 3600) + 1800, 0))
+     
+        self._samples: Any = asyncio.run(self._session.get_device_samples(self._device.dev_id, self._node_info, start , end, 0))
         
         
     @property
@@ -576,15 +582,12 @@ def true_radiant_available(node: Union[SmartboxNode, MagicMock]) -> bool:
 
     
 def get_energy_used(samples) -> None | Any:
-        _LOGGER.debug(f"Model: Samples: {samples}" )
+        _LOGGER.debug(f"get_energy_used: Model: Samples: {samples}" )
         startKWh: int=0
         endKWh: int=0
         kwh: int=0
         count: int=0
         sample : Dict[str, int]  = samples['samples']
-        
-        
-        _LOGGER.debug(f"Model: Temp2 {sample}" )
         
         if len(sample) == 1:
             return kwh
