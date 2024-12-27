@@ -128,13 +128,13 @@ class SmartboxDevice(object):
         else:
             _LOGGER.error(f"Received setup update for unknown node {node_type} {addr}")
            
-    def _node_samples_update(
+    async def _node_samples_update(
         self, node_type: str, addr: int, data: Dict[str, Any]
     ) -> None:
         _LOGGER.debug(f"Node samples update")
         node = self._nodes.get((node_type, addr), None)
         if node is not None:
-            node.update_samples(node_type, addr, data)
+            await node.update_samples(node_type, addr, data)
         else:
             _LOGGER.error(f"Received setup update for unknown node {node_type} {addr}")
 
@@ -236,7 +236,7 @@ class SmartboxNode(object):
      
     
     async def update_samples(self, node_type, addr, data) -> None:
-        _LOGGER.debug(f"Updating node {self.name} samples: {start}")
+        _LOGGER.debug(f"Updating node {self.name} samples:")
         
         #self._samples = self._session.get_device_samples(self._device.dev_id, self._node_info, start, end, 0)
      
@@ -248,7 +248,9 @@ class SmartboxNode(object):
         start = str(round(time.time() - time.time() % 3600) - 3600) 
         end = str(round(time.time() - time.time()  % 3600) + 1800)
      
-        self._samples: Any = asyncio.run(self._session.get_device_samples(self._device.dev_id, self._node_info, start , end, 0))
+        self._samples: Any = self._session.get_device_samples(self._device.dev_id, self._node_info, start , end, 0)
+        
+        _LOGGER.debug(f"Updated Samples: {self._samples}")
         
         
     @property
