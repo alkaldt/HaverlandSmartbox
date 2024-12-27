@@ -129,12 +129,12 @@ class SmartboxDevice(object):
             _LOGGER.error(f"Received setup update for unknown node {node_type} {addr}")
            
     def _node_samples_update(
-        self, node_type: str, addr: int, start: str, end: str, data: Dict[str, Any]
+        self, node_type: str, addr: int, data: Dict[str, Any]
     ) -> None:
-        _LOGGER.debug(f"Node samples update: {start}")
+        _LOGGER.debug(f"Node samples update")
         node = self._nodes.get((node_type, addr), None)
         if node is not None:
-            node.update_samples(node_type, addr, start, end, data)
+            node.update_samples(node_type, addr, data)
         else:
             _LOGGER.error(f"Received setup update for unknown node {node_type} {addr}")
 
@@ -235,7 +235,7 @@ class SmartboxNode(object):
         return self._samples
      
     
-    async def update_samples(self, node_type, addr, start, end, data) -> None:
+    async def update_samples(self, node_type, addr, data) -> None:
         _LOGGER.debug(f"Updating node {self.name} samples: {start}")
         
         #self._samples = self._session.get_device_samples(self._device.dev_id, self._node_info, start, end, 0)
@@ -244,6 +244,9 @@ class SmartboxNode(object):
     #    _LOGGER.debug(f"Self: {self}")
     #    _LOGGER.debug(f"Dev ID: {self._device.dev_id}  and Self Start: {self._start_date} and Passed in Start {start_date}") 
      #   _LOGGER.debug(f"Updating node {self.name} samples: {samples}")
+        
+        start = str(round(time.time() - time.time() % 3600) - 3600) 
+        end = str(round(time.time() - time.time()  % 3600) + 1800)
      
         self._samples: Any = asyncio.run(self._session.get_device_samples(self._device.dev_id, self._node_info, start , end, 0))
         
