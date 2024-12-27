@@ -77,7 +77,6 @@ class SmartboxDevice(object):
                 self._session.get_device_samples, self._dev_id, node_info, self._start  , self._end, 0
             )
             
-     
             node = SmartboxNode(self, node_info, self._session, status, setup, samples) 
             
             self._nodes[(node.node_type, node.addr)] = node
@@ -128,16 +127,15 @@ class SmartboxDevice(object):
         else:
             _LOGGER.error(f"Received setup update for unknown node {node_type} {addr}")
            
-    async def _node_samples_update(
+    def _node_samples_update(
         self, node_type: str, addr: int, data: Dict[str, Any]
     ) -> None:
         _LOGGER.debug(f"Node samples update")
         node = self._nodes.get((node_type, addr), None)
         if node is not None:
-            await node.update_samples(node_type, addr, data)
+            node.update_samples(node_type, addr, data)
         else:
             _LOGGER.error(f"Received setup update for unknown node {node_type} {addr}")
-
 
    
     @property
@@ -235,23 +233,10 @@ class SmartboxNode(object):
         return self._samples
      
     
-    async def update_samples(self, node_type, addr, data) -> None:
-        _LOGGER.debug(f"Updating node {self.name} samples:")
-        
-        #self._samples = self._session.get_device_samples(self._device.dev_id, self._node_info, start, end, 0)
-     
-    #async def update_samples(self, node_type, addr, start_date, end_date, data, boo) :
-    #    _LOGGER.debug(f"Self: {self}")
-    #    _LOGGER.debug(f"Dev ID: {self._device.dev_id}  and Self Start: {self._start_date} and Passed in Start {start_date}") 
-     #   _LOGGER.debug(f"Updating node {self.name} samples: {samples}")
-        
-        start = str(round(time.time() - time.time() % 3600) - 3600) 
-        end = str(round(time.time() - time.time()  % 3600) + 1800)
-     
-        self._samples: Any = self._session.get_device_samples(self._device.dev_id, self._node_info, start , end, 0)
-        
-        _LOGGER.debug(f"Updated Samples: {self._samples}")
-        
+    def update_samples(self, samples: SetupDict) -> None:
+        _LOGGER.debug(f"Updating node {self.name} setup: {samples}")
+        self._setup = samples
+   
         
     @property
     def away(self):
