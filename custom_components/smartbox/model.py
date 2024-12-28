@@ -77,6 +77,7 @@ class SmartboxDevice(object):
                 self._session.get_device_samples, self._dev_id, node_info, self._start  , self._end, 0
             )
             
+     
             node = SmartboxNode(self, node_info, self._session, status, setup, samples) 
             
             self._nodes[(node.node_type, node.addr)] = node
@@ -128,14 +129,15 @@ class SmartboxDevice(object):
             _LOGGER.error(f"Received setup update for unknown node {node_type} {addr}")
            
     def _node_samples_update(
-        self, node_type: str, addr: int, node_samples : Dict[str, Any]
+        self, node_type: str, addr: int, node_samples: SamplesDict
     ) -> None:
-        _LOGGER.debug(f"Node samples update")
+        _LOGGER.debug(f"Node samples update: {node_samples}")
         node = self._nodes.get((node_type, addr), None)
         if node is not None:
             node.update_samples(node_samples)
         else:
             _LOGGER.error(f"Received setup update for unknown node {node_type} {addr}")
+
 
    
     @property
@@ -231,12 +233,13 @@ class SmartboxNode(object):
     @property
     def samples(self) -> SamplesDict: 
         return self._samples
-     
     
-    def update_samples(self, samples: SetupDict) -> None:
-        _LOGGER.debug(f"Updating node {self.name} samples: {samples}")
-        self._setup = samples
-   
+     
+    def update_samples(self, samples: SamplesDict) -> None:
+        _LOGGER.debug(f"Updating node {self.name} setup: {samples}")
+        self._samples = samples
+
+        
         
     @property
     def away(self):
@@ -261,7 +264,6 @@ class SmartboxNode(object):
             self._device.dev_id, self._node_info, {"window_mode_enabled": window_mode}
         )
         self._setup["window_mode_enabled"] = window_mode
-
 
     @property
     def true_radiant(self) -> bool:
