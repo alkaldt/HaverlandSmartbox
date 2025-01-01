@@ -74,7 +74,7 @@ class SmartboxDevice(object):
             )
            
      
-            node = SmartboxNode(self, node_info, self._session, status, setup) 
+            node = SmartboxNode(self, node_info, self._session, status, setup, samples = {}) 
             
             self._nodes[(node.node_type, node.addr)] = node
 
@@ -164,12 +164,14 @@ class SmartboxNode(object):
         session: Union[Session, MagicMock],
         status: Dict[str, Any],
         setup: Dict[str, Any],
+        samples: Dict[str, Any]
         ) -> None:
         self._device = device
         self._node_info = node_info
         self._session = session
         self._status = status
         self._setup = setup
+        self._samples: Dict[str, Any] = samples
     
        
     @property
@@ -251,29 +253,15 @@ class SmartboxNode(object):
             self._device.dev_id, self._node_info, {"true_radiant_enabled": true_radiant}
         )
         self._setup["true_radiant_enabled"] = true_radiant
-
-
-def is_heater_node(node: Union[SmartboxNode, MagicMock]) -> bool:
-    return node.node_type in HEATER_NODE_TYPES
-
-
-def is_supported_node(node: Union[SmartboxNode, MagicMock]) -> bool:
-    return is_heater_node(node)
-
-
-def get_temperature_unit(status) -> None | Any:
-    if "units" not in status:
-        return None
-    unit = status["units"]
-    if unit == "C":
-        return UnitOfTemperature.CELSIUS
-    elif unit == "F":
-        return UnitOfTemperature.FAHRENHEIT
-    else:
-        raise ValueError(f"Unknown temp unit {unit}")
+        
+    @property
     
-def get_energy_used(self, node_type: str, node_addr: int, start_date: int, end_date: int ) ->  None | Any:
-                  
+    def samples(self) -> Dict[str, Any]:
+        return self._samples
+    
+    
+    def get_energy_used(self, node_type: str, node_addr: int, start_date: int, end_date: int) -> int:
+    
         samples: Dict[str, Any] = self._session.get_device_samples(self._device.dev_id, node_type, node_addr, start_date, end_date)
               
         _LOGGER.debug(f"get_energy_used: Model: Samples: {samples}" )
@@ -307,6 +295,27 @@ def get_energy_used(self, node_type: str, node_addr: int, start_date: int, end_d
         _LOGGER.debug(f"Model: KWH: {kwh}" )
 
         return kwh  
+
+
+def is_heater_node(node: Union[SmartboxNode, MagicMock]) -> bool:
+    return node.node_type in HEATER_NODE_TYPES
+
+
+def is_supported_node(node: Union[SmartboxNode, MagicMock]) -> bool:
+    return is_heater_node(node)
+
+
+def get_temperature_unit(status) -> None | Any:
+    if "units" not in status:
+        return None
+    unit = status["units"]
+    if unit == "C":
+        return UnitOfTemperature.CELSIUS
+    elif unit == "F":
+        return UnitOfTemperature.FAHRENHEIT
+    else:
+        raise ValueError(f"Unknown temp unit {unit}")
+    
 
 
 async def get_devices(
