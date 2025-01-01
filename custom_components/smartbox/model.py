@@ -56,8 +56,7 @@ class SmartboxDevice(object):
         self._socket_backoff_factor = socket_backoff_factor
         self._away = False
         self._power_limit: int = 0
-        self._start: int = int(time.time() - time.time() % 3600) - 3600
-        self._end: int = int(time.time() - time.time() % 3600) + 1800
+
         
     async def initialise_nodes(self, hass: HomeAssistant) -> None:
         # Would do in __init__, but needs to be a coroutine
