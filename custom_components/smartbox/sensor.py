@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from time import time
+import time
 from homeassistant.const import (
     ATTR_LOCKED,
     UnitOfEnergy,
@@ -23,7 +23,7 @@ from .const import (
     HEATER_NODE_TYPE_HTR_MOD,
     SMARTBOX_NODES,
 )
-from .model import get_temperature_unit, is_heater_node, is_heating, get_energy_used, SmartboxNode
+from .model import get_temperature_unit, is_heater_node, is_heating, SmartboxNode
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -286,7 +286,7 @@ class SamplesSensor(SmartboxSensorBase):
 
     @property
     def native_value(self) -> float | None:
-        return get_energy_used(self, self._node.node_type, self._node.addr, int(round(time.time() - time.time() % 3600)) - 3600, int(round(time.time() - time.time() % 3600) + 1800)
+        return self._node.get_energy_used(self._node.node_type, self._node.addr, int(round(time.time() - time.time() % 3600)) - 3600, int(round(time.time() - time.time() % 3600) + 1800)
         )
 
 class ChargeLevelSensor(SmartboxSensorBase):
