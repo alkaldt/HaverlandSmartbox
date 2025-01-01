@@ -34,7 +34,7 @@ from .const import (
     PRESET_SCHEDULE,
     PRESET_SELF_LEARN,
 )
-from .types import FactoryOptionsDict, SetupDict, StatusDict, SamplesDict
+from .types import FactoryOptionsDict, SetupDict, StatusDict
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -73,17 +73,13 @@ class SmartboxDevice(object):
             setup = await hass.async_add_executor_job(
                 self._session.get_setup, self._dev_id, node_info
             )
-            samples: Any = await hass.async_add_executor_job(
-                self._session.get_device_samples, self._dev_id, node_info, self._start  , self._end, 0
-            )
-            
+           
      
-            node = SmartboxNode(self, node_info, self._session, status, setup, samples) 
+            node = SmartboxNode(self, node_info, self._session, status, setup) 
             
             self._nodes[(node.node_type, node.addr)] = node
 
         _LOGGER.debug(f"Creating SocketSession for device {self._dev_id}")
-        _LOGGER.debug(f"Samples: {samples}")
         self._update_manager = UpdateManager(
             self._session,
             self._dev_id,
@@ -95,7 +91,7 @@ class SmartboxDevice(object):
         self._update_manager.subscribe_to_device_power_limit(self._power_limit_update)
         self._update_manager.subscribe_to_node_status(self._node_status_update)
         self._update_manager.subscribe_to_node_setup(self._node_setup_update)
-        self._update_manager.subscribe_to_node_samples(self._node_samples_update)
+
 
         _LOGGER.debug(f"Starting UpdateManager task for device {self._dev_id}")
         asyncio.create_task(self._update_manager.run())
@@ -128,24 +124,16 @@ class SmartboxDevice(object):
         else:
             _LOGGER.error(f"Received setup update for unknown node {node_type} {addr}")
            
-    def _node_samples_update(
-        self, node_type: str, addr: int, node_samples: SamplesDict
-    ) -> None:
-        _LOGGER.debug(f"Node samples update: {node_samples}")
-        node = self._nodes.get((node_type, addr), None)
-        if node is not None:
-            node.update_samples(node_samples)
-        else:
-            _LOGGER.error(f"Received setup update for unknown node {node_type} {addr}")
-
-
    
     @property
     def dev_id(self) -> str:
         return self._dev_id
 
     def get_nodes(self):
+        for item in self._nodes:
+            _LOGGER.debug(f"Get_nodes: {item}")
         return self._nodes.values()
+
 
     @property
     def name(self) -> str:
@@ -177,14 +165,12 @@ class SmartboxNode(object):
         session: Union[Session, MagicMock],
         status: Dict[str, Any],
         setup: Dict[str, Any],
-        samples: Dict[str, Any],
         ) -> None:
         self._device = device
         self._node_info = node_info
         self._session = session
         self._status = status
         self._setup = setup
-        self._samples = samples
     
        
     @property
@@ -227,19 +213,7 @@ class SmartboxNode(object):
         self._session.set_status(self._device.dev_id, self._node_info, status_args)
         # update our status locally until we get an update
         self._status |= {**status_args}
-        return self._status
-
-
-    @property
-    def samples(self) -> SamplesDict: 
-        return self._samples
-    
-     
-    def update_samples(self, samples: SamplesDict) -> None:
-        _LOGGER.debug(f"Updating node {self.name} setup: {samples}")
-        self._samples = samples
-
-        
+        return self._status    
         
     @property
     def away(self):
@@ -299,7 +273,41 @@ def get_temperature_unit(status) -> None | Any:
     else:
         raise ValueError(f"Unknown temp unit {unit}")
     
+def get_energy_used(self, device_id: str, node_type: str, node_addr: int, start_date: int, end_date: int ) ->  None | Any:
+        
+        samples: Dict[str, Any] = self._session.get_device_samples(device_id, node_type, node_addr, start_date  , end_date)
+              
+        _LOGGER.debug(f"get_energy_used: Model: Samples: {samples}" )
+        startKWh: int=0
+        endKWh: int=0
+        kwh: int=0
+        count: int=0
+        sample : Dict[str, int]  = samples['samples']
+        
+        if len(sample) == 1:
+            return kwh
+        else:
+        
+            for counter in sample:
+                temp2 = str(counter).split(',')
+                _LOGGER.debug(f"{temp2[2]}")            
+           
+                if count == 0:
+                    lenCount: int = len(temp2[2])
+                    _LOGGER.debug(f"LenCount:{lenCount}")
 
+                    startKWh =  int(temp2[2][12:lenCount-1])
+                    _LOGGER.debug(f"StartKwh:{startKWh}")
+                    count = count + 1
+                else:
+                    lenCount: int = len(temp2[2])
+                    endKWh =  int(temp2[2][12:lenCount-1])
+        
+        kwh = endKWh-startKWh               
+        
+        _LOGGER.debug(f"Model: KWH: {kwh}" )
+
+        return kwh  
 
 
 async def get_devices(
@@ -574,35 +582,4 @@ def true_radiant_available(node: Union[SmartboxNode, MagicMock]) -> bool:
 
 
     
-def get_energy_used(samples) -> None | Any:
-        _LOGGER.debug(f"get_energy_used: Model: Samples: {samples}" )
-        startKWh: int=0
-        endKWh: int=0
-        kwh: int=0
-        count: int=0
-        sample : Dict[str, int]  = samples['samples']
-        
-        if len(sample) == 1:
-            return kwh
-        else:
-        
-            for counter in sample:
-                temp2 = str(counter).split(',')
-                _LOGGER.debug(f"{temp2[2]}")            
-           
-                if count == 0:
-                    lenCount: int = len(temp2[2])
-                    _LOGGER.debug(f"LenCount:{lenCount}")
-
-                    startKWh =  int(temp2[2][12:lenCount-1])
-                    _LOGGER.debug(f"StartKwh:{startKWh}")
-                    count = count + 1
-                else:
-                    lenCount: int = len(temp2[2])
-                    endKWh =  int(temp2[2][12:lenCount-1])
-        
-        kwh = endKWh-startKWh               
-        
-        _LOGGER.debug(f"Model: KWH: {kwh}" )
-
-        return kwh   
+ 
