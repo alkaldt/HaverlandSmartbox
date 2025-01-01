@@ -272,9 +272,9 @@ def get_temperature_unit(status) -> None | Any:
     else:
         raise ValueError(f"Unknown temp unit {unit}")
     
-def get_energy_used(self, device_id: str, node_type: str, node_addr: int, start_date: int, end_date: int ) ->  None | Any:
-        
-        samples: Dict[str, Any] = self._session.get_device_samples(device_id, node_type, node_addr, start_date  , end_date)
+def get_energy_used(self, node_type: str, node_addr: int, start_date: int, end_date: int ) ->  None | Any:
+                  
+        samples: Dict[str, Any] = self._session.get_device_samples(self._device.dev_id, node_type, node_addr, start_date, end_date)
               
         _LOGGER.debug(f"get_energy_used: Model: Samples: {samples}" )
         startKWh: int=0
