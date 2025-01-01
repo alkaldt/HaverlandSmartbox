@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from time import time
 from homeassistant.const import (
     ATTR_LOCKED,
     UnitOfEnergy,
@@ -284,7 +285,8 @@ class SamplesSensor(SmartboxSensorBase):
 
     @property
     def native_value(self) -> float | None:
-        return get_energy_used(self._node.samples)
+        return get_energy_used(self, self._node.node_type, self._node.addr, int(round(time.time() - time.time() % 3600)) - 3600, int(round(time.time() - time.time() % 3600) + 1800)
+        )
 
 class ChargeLevelSensor(SmartboxSensorBase):
     """Smartbox storage heater charge level sensor"""
