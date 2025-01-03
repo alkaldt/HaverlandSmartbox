@@ -4,12 +4,10 @@ from datetime import timedelta
 
 DOMAIN = "smartbox"
 
-CONF_ACCOUNTS = "accounts"
 CONF_API_NAME = "api_name"
 CONF_BASIC_AUTH_CREDS = "basic_auth_creds"
 CONF_X_REFERER = "x_referer"
 CONF_X_SERIALID = "x_serialid"
-CONF_DEVICE_IDS = "device_ids"
 CONF_PASSWORD = "password"
 CONF_USERNAME = "username"
 CONF_SESSION_RETRY_ATTEMPTS = "session_retry_attempts"
@@ -22,6 +20,7 @@ DEFAULT_SESSION_BACKOFF_FACTOR = 0.1
 DEFAULT_SOCKET_RECONNECT_ATTEMPTS = 3
 DEFAULT_SOCKET_BACKOFF_FACTOR = 0.1
 
+DEVICE_MANUFACTURER = "HJM"
 GITHUB_ISSUES_URL = "https://github.com/graham33/hass-smartbox/issues"
 
 HEATER_NODE_TYPE_ACM = "acm"

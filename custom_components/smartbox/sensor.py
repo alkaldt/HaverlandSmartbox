@@ -13,7 +13,7 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.core import HomeAssistant
 import logging
-from typing import Any, Callable, Dict, Optional, Union
+from typing import Any, Dict, Optional, Union
 from unittest.mock import MagicMock
 
 from .const import (
@@ -24,20 +24,19 @@ from .const import (
     SMARTBOX_NODES,
 )
 from .model import get_temperature_unit, is_heater_node, is_heating, SmartboxNode
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.config_entries import ConfigEntry
+from .const import DEVICE_MANUFACTURER
+from homeassistant.helpers.entity import DeviceInfo
 
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_platform(
-    hass: HomeAssistant,
-    config: Dict[Any, Any],
-    async_add_entities: Callable,
-    discovery_info: Optional[Dict[Any, Any]] = None,
+async def async_setup_entry(
+    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
     """Set up platform."""
     _LOGGER.debug("Setting up Smartbox sensor platform")
-    if discovery_info is None:
-        return
 
     # Temperature
     async_add_entities(
@@ -68,14 +67,14 @@ async def async_setup_platform(
         ],
         True,
     )
-#    async_add_entities(
-#        [
-#            EnergySensor(node)
-#            for node in hass.data[DOMAIN][SMARTBOX_NODES]
-#            if node.node_type == HEATER_NODE_TYPE_HTR
-#        ],
-#        True,
-#    )
+    #    async_add_entities(
+    #        [
+    #            EnergySensor(node)
+    #            for node in hass.data[DOMAIN][SMARTBOX_NODES]
+    #            if node.node_type == HEATER_NODE_TYPE_HTR
+    #        ],
+    #        True,
+    #    )
     # to collect the records for temperture and electricty consumption
     async_add_entities(
         [
@@ -106,7 +105,18 @@ class SmartboxSensorBase(SensorEntity):
         self._samples: Dict[str, Any] = {}
         self._last_update: Optional[datetime] = None
         self._time_since_last_update: Optional[timedelta] = None
+        self._device_id = self._node.node_id
         _LOGGER.debug(f"Created node {self.name} unique_id={self.unique_id}")
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._device_id)},
+            name=self._node.name,
+            manufacturer=DEVICE_MANUFACTURER,
+            model=DOMAIN,
+        )
 
     @property
     def extra_state_attributes(self) -> Dict[str, bool]:
@@ -224,7 +234,7 @@ class DutyCycleSensor(SmartboxSensorBase):
         return self._status["duty"]
 
 
-#class EnergySensor(SmartboxSensorBase):
+# class EnergySensor(SmartboxSensorBase):
 #    """Smartbox heater energy sensor
 #
 #    Represents the energy consumed by the heater.
@@ -257,23 +267,23 @@ class DutyCycleSensor(SmartboxSensorBase):
 #                / 60
 #                / 60
 #            )
- #       else:
- #           return None
+#       else:
+#           return None
+
 
 class SamplesSensor(SmartboxSensorBase):
     """Smartbox samples sensor
 
     Represents the temperture and electrity consumed by the heater for each hour for the day.
     """
-    
+
     device_class = SensorDeviceClass.ENERGY
     native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
     state_class = SensorStateClass.TOTAL
 
-
+    # TOTAL_INCREASING
     def __init__(self, node: Union[SmartboxNode, MagicMock]) -> None:
         super().__init__(node)
-       
 
     @property
     def name(self) -> str:
@@ -285,8 +295,14 @@ class SamplesSensor(SmartboxSensorBase):
 
     @property
     def native_value(self) -> float | None:
-        return self._node.get_energy_used(self._node.node_type, self._node.addr, int(round(time.time() - time.time() % 3600)) - 3600, int(round(time.time() - time.time() % 3600) + 1800)
-        )
+        return time.time()
+        # return self._node.get_energy_used(
+        #     self._node.node_type,
+        #     self._node.addr,
+        #     int(round(time.time() - time.time() % 3600)) - 3600,
+        #     int(round(time.time() - time.time() % 3600) + 1800),
+        # )
+
 
 class ChargeLevelSensor(SmartboxSensorBase):
     """Smartbox storage heater charge level sensor"""
@@ -309,4 +325,3 @@ class ChargeLevelSensor(SmartboxSensorBase):
     @property
     def native_value(self) -> int:
         return self._status["charge_level"]
-
