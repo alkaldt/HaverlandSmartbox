@@ -214,6 +214,7 @@ MOCK_SMARTBOX_NODE_STATUS: Dict[str, List[Dict[str, Any]]] = {
             "locked": False,
             "active": True,
             "power": "510",
+            "duty": "50",
             "mode": "auto",
         },
         {

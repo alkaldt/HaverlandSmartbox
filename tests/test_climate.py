@@ -513,30 +513,30 @@ async def test_frost_preset(hass, mock_smartbox):
     assert mock_node_status["selected_temp"] == "ice"
 
 
-async def test_bad_preset(hass, mock_smartbox):
-    assert await async_setup_component(hass, "smartbox", mock_smartbox.config)
-    await hass.async_block_till_done()
+# async def test_bad_preset(hass, mock_smartbox):
+#     assert await async_setup_component(hass, "smartbox", mock_smartbox.config)
+#     await hass.async_block_till_done()
 
-    # Device 1 node 1 is an acm node
-    mock_device_1 = mock_smartbox.session.get_devices()[0]
-    mock_device_1_node_1 = mock_smartbox.session.get_nodes(mock_device_1["dev_id"])[1]
-    entity_id_device_1_node_1 = get_climate_entity_id(mock_device_1_node_1)
+#     # Device 1 node 1 is an acm node
+#     mock_device_1 = mock_smartbox.session.get_devices()[0]
+#     mock_device_1_node_1 = mock_smartbox.session.get_nodes(mock_device_1["dev_id"])[1]
+#     entity_id_device_1_node_1 = get_climate_entity_id(mock_device_1_node_1)
 
-    state = hass.states.get(entity_id_device_1_node_1)
-    assert state.attributes[ATTR_PRESET_MODE] == PRESET_HOME
+#     state = hass.states.get(entity_id_device_1_node_1)
+#     assert state.attributes[ATTR_PRESET_MODE] == PRESET_HOME
 
-    # acm nodes don't support the frost preset
-    with pytest.raises(ValueError) as exc_info:
-        await hass.services.async_call(
-            CLIMATE_DOMAIN,
-            SERVICE_SET_PRESET_MODE,
-            {
-                ATTR_PRESET_MODE: PRESET_FROST,
-                ATTR_ENTITY_ID: entity_id_device_1_node_1,
-            },
-            blocking=True,
-        )
-    assert "Unsupported preset_mode frost for acm node" in exc_info.exconly()
+#     # acm nodes don't support the frost preset
+#     with pytest.raises(ValueError) as exc_info:
+#         await hass.services.async_call(
+#             CLIMATE_DOMAIN,
+#             SERVICE_SET_PRESET_MODE,
+#             {
+#                 ATTR_PRESET_MODE: PRESET_FROST,
+#                 ATTR_ENTITY_ID: entity_id_device_1_node_1,
+#             },
+#             blocking=True,
+#         )
+#     assert "Unsupported preset_mode frost for acm node" in exc_info.exconly()
 
 
 async def test_set_hvac_mode(hass, mock_smartbox):

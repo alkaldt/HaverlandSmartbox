@@ -13,6 +13,7 @@ from custom_components.smartbox.const import (
     CONF_ACCOUNTS,
     CONF_DEVICE_IDS,
     HEATER_NODE_TYPE_ACM,
+    HEATER_NODE_TYPE_HTR,
     HEATER_NODE_TYPE_HTR_MOD,
 )
 from custom_components.smartbox.types import SetupDict, StatusDict
@@ -43,9 +44,11 @@ def mock_node(dev_id: str, addr: int, node_type: str, mode="auto") -> MagicMock:
     }
     if node_type == HEATER_NODE_TYPE_ACM:
         node.status["charging"] = True
-        node.status["charge_level"] = 4
+        node.status["charge_level"] = "4"
     else:
         node.status["active"] = True
+    if node_type == HEATER_NODE_TYPE_HTR:
+        node.status["duty"] = "50"
     if node_type == HEATER_NODE_TYPE_HTR_MOD:
         node.status["on"] = True
         node.status["selected_temp"] = "comfort"

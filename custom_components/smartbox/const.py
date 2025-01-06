@@ -21,7 +21,7 @@ DEFAULT_SOCKET_RECONNECT_ATTEMPTS = 3
 DEFAULT_SOCKET_BACKOFF_FACTOR = 0.1
 
 DEVICE_MANUFACTURER = "HJM"
-GITHUB_ISSUES_URL = "https://github.com/graham33/hass-smartbox/issues"
+GITHUB_ISSUES_URL = "https://github.com/ajtudela/hass-smartbox/issues"
 
 HEATER_NODE_TYPE_ACM = "acm"
 HEATER_NODE_TYPE_HTR = "htr"

@@ -1,5 +1,7 @@
-# hass-smartbox ![hassfest](https://github.com/graham33/hass-smartbox/workflows/Validate%20with%20hassfest/badge.svg) [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration) [![codecov](https://codecov.io/gh/graham33/hass-smartbox/branch/main/graph/badge.svg?token=F3VFCU9WPA)](https://codecov.io/gh/graham33/hass-smartbox)
-Home Assistant integration for heating smartboxes.
+# hass-smartbox ![hassfest](https://github.com/ajtudela/hass-smartbox/workflows/Validate%20with%20hassfest/badge.svg) [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration) [![codecov](https://codecov.io/gh/ajtudela/hass-smartbox/branch/main/graph/badge.svg?token=C6J448TUQ8)](https://codecov.io/gh/ajtudela/hass-smartbox)
+Home Assistant integration for Haverland (and other brands) heating smartboxes.
+
+**NOTE**: The initial version of this integration was made by [graham33](https://github.com/graham33) but it was not maintained. I have taken over the project and will try to keep it up to date.
 
 ## Installation
 This integration uses the [smartbox] Python module, so make sure to install that
@@ -140,8 +142,8 @@ file a [Github issue] with any problems.
 * Graceful cleanup/shutdown of update task
 
 [custom repository]: https://hacs.xyz/docs/faq/custom_repositories
-[Github issue]: https://github.com/graham33/hass-smartbox/issues
+[Github issue]: https://github.com/ajtudela/hass-smartbox/issues
 [Home Assistant integration docs]: https://developers.home-assistant.io/docs/creating_integration_file_structure/#where-home-assistant-looks-for-integrations
 [Home Assistant logger docs]: https://www.home-assistant.io/integrations/logger/#viewing-logs
 [Home Assistant secrets management]: https://www.home-assistant.io/docs/configuration/secrets/
-[smartbox]: https://github.com/graham33/smartbox
+[smartbox]: https://github.com/ajtudela/smartbox

@@ -231,6 +231,7 @@ class DutyCycleSensor(SmartboxSensorBase):
 
     @property
     def native_value(self) -> float:
+        print(f"{self._status}")
         return self._status["duty"]
 
 
