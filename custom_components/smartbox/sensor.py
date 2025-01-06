@@ -67,14 +67,14 @@ async def async_setup_entry(
         ],
         True,
     )
-    #    async_add_entities(
-    #        [
-    #            EnergySensor(node)
-    #            for node in hass.data[DOMAIN][SMARTBOX_NODES]
-    #            if node.node_type == HEATER_NODE_TYPE_HTR
-    #        ],
-    #        True,
-    #    )
+    async_add_entities(
+        [
+            EnergySensor(node)
+            for node in hass.data[DOMAIN][SMARTBOX_NODES]
+            if node.node_type == HEATER_NODE_TYPE_HTR
+        ],
+        True,
+    )
     # to collect the records for temperture and electricty consumption
     async_add_entities(
         [
@@ -138,6 +138,13 @@ class SmartboxSensorBase(SensorEntity):
             if self._last_update is not None:
                 self._time_since_last_update = update_time - self._last_update
             self._last_update = update_time
+            self._status["kwh"] = await self.hass.async_add_executor_job(
+                self._node.get_energy_used,
+                self._node.node_type,
+                self._node.addr,
+                int(round(time.time() - time.time() % 3600)) - 3600,
+                int(round(time.time() - time.time() % 3600) + 1800),
+            )
         else:
             self._available = False
             self._last_update = None
@@ -234,41 +241,41 @@ class DutyCycleSensor(SmartboxSensorBase):
         return self._status["duty"]
 
 
-# class EnergySensor(SmartboxSensorBase):
-#    """Smartbox heater energy sensor
-#
-#    Represents the energy consumed by the heater.
-#    """
-#
-#    device_class = SensorDeviceClass.ENERGY
-#    native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
-#    state_class = SensorStateClass.TOTAL
-#
-#    def __init__(self, node: Union[SmartboxNode, MagicMock]) -> None:
-#        super().__init__(node)
-#
-#    @property
-#    def name(self) -> str:
-#        return f"{self._node.name} Energy"
+class EnergySensor(SmartboxSensorBase):
+    """Smartbox heater energy sensor
 
-#    @property
-#    def unique_id(self) -> str:
-#        return f"{self._node.node_id}_energy"
-#
-#    @property
-#    def native_value(self) -> float | None:
-#        time_since_last_update = self.time_since_last_update
-#        if time_since_last_update is not None:
-#            return (
-#                float(self._status["power"])
-#                * float(self._status["duty"])
-#                / 100
-#                * time_since_last_update.seconds
-#                / 60
-#                / 60
-#            )
-#       else:
-#           return None
+    Represents the energy consumed by the heater.
+    """
+
+    device_class = SensorDeviceClass.ENERGY
+    native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
+    state_class = SensorStateClass.TOTAL
+
+    def __init__(self, node: Union[SmartboxNode, MagicMock]) -> None:
+        super().__init__(node)
+
+    @property
+    def name(self) -> str:
+        return f"{self._node.name} Energy"
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._node.node_id}_energy2"
+
+    @property
+    def native_value(self) -> float | None:
+        time_since_last_update = self.time_since_last_update
+        if time_since_last_update is not None:
+            return (
+                float(self._status["power"])
+                * float(self._status["duty"])
+                / 100
+                * time_since_last_update.seconds
+                / 60
+                / 60
+            )
+        else:
+            return None
 
 
 class SamplesSensor(SmartboxSensorBase):
@@ -279,7 +286,7 @@ class SamplesSensor(SmartboxSensorBase):
 
     device_class = SensorDeviceClass.ENERGY
     native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
-    state_class = SensorStateClass.TOTAL
+    state_class = SensorStateClass.TOTAL_INCREASING
 
     # TOTAL_INCREASING
     def __init__(self, node: Union[SmartboxNode, MagicMock]) -> None:
@@ -295,13 +302,7 @@ class SamplesSensor(SmartboxSensorBase):
 
     @property
     def native_value(self) -> float | None:
-        return time.time()
-        # return self._node.get_energy_used(
-        #     self._node.node_type,
-        #     self._node.addr,
-        #     int(round(time.time() - time.time() % 3600)) - 3600,
-        #     int(round(time.time() - time.time() % 3600) + 1800),
-        # )
+        return self._node.get_energy_used(self._node._samples)
 
 
 class ChargeLevelSensor(SmartboxSensorBase):
