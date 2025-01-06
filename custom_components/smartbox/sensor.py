@@ -138,13 +138,6 @@ class SmartboxSensorBase(SensorEntity):
             if self._last_update is not None:
                 self._time_since_last_update = update_time - self._last_update
             self._last_update = update_time
-            self._status["kwh"] = await self.hass.async_add_executor_job(
-                self._node.get_energy_used,
-                self._node.node_type,
-                self._node.addr,
-                int(round(time.time() - time.time() % 3600)) - 3600,
-                int(round(time.time() - time.time() % 3600) + 1800),
-            )
         else:
             self._available = False
             self._last_update = None
@@ -261,7 +254,7 @@ class EnergySensor(SmartboxSensorBase):
 
     @property
     def unique_id(self) -> str:
-        return f"{self._node.node_id}_energy2"
+        return f"{self._node.node_id}_energy"
 
     @property
     def native_value(self) -> float | None:
@@ -295,11 +288,11 @@ class SamplesSensor(SmartboxSensorBase):
 
     @property
     def name(self) -> str:
-        return f"{self._node.name} KWh"
+        return f"{self._node.name} Hour KWh"
 
     @property
     def unique_id(self) -> str:
-        return f"{self._node.node_id}_energy"
+        return f"{self._node.node_id}_energy_hour"
 
     @property
     def native_value(self) -> float | None:
