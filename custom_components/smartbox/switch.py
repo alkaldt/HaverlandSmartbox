@@ -3,7 +3,7 @@ from homeassistant.components.switch import (
 )
 from homeassistant.core import HomeAssistant
 import logging
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Union
 from unittest.mock import MagicMock
 
 from .const import DOMAIN, SMARTBOX_DEVICES, SMARTBOX_NODES
@@ -13,22 +13,22 @@ from .model import (
     true_radiant_available,
     window_mode_available,
 )
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.config_entries import ConfigEntry
+from .const import DEVICE_MANUFACTURER
+from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_platform(
-    hass: HomeAssistant,
-    config: Dict[Any, Any],
-    async_add_entities: Callable,
-    discovery_info: Optional[Dict[Any, Any]] = None,
+async def async_setup_entry(
+    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
     """Set up platform."""
     _LOGGER.debug("Setting up Smartbox switch platform")
-    if discovery_info is None:
-        return
 
-    switch_entities: List[SwitchEntity] = []
+    switch_entities: list[SwitchEntity] = []
     for device in hass.data[DOMAIN][SMARTBOX_DEVICES]:
         _LOGGER.debug("Creating away switch for device %s", device.name)
         switch_entities.append(AwaySwitch(device))
@@ -55,6 +55,17 @@ class AwaySwitch(SwitchEntity):
 
     def __init__(self, device: Union[SmartboxDevice, MagicMock]) -> None:
         self._device = device
+        self._device_id = list(device.get_nodes())[0].node_id
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._device_id)},
+            name=self._device.name,
+            manufacturer=DEVICE_MANUFACTURER,
+            model=DOMAIN,
+        )
 
     @property
     def name(self):
@@ -84,6 +95,17 @@ class WindowModeSwitch(SwitchEntity):
 
     def __init__(self, node: Union[SmartboxNode, MagicMock]) -> None:
         self._node = node
+        self._device_id = self._node.node_id
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._device_id)},
+            name=self._node.name,
+            manufacturer=DEVICE_MANUFACTURER,
+            model=DOMAIN,
+        )
 
     @property
     def name(self):
@@ -113,6 +135,17 @@ class TrueRadiantSwitch(SwitchEntity):
 
     def __init__(self, node: Union[SmartboxNode, MagicMock]) -> None:
         self._node = node
+        self._device_id = self._node.node_id
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._device_id)},
+            name=self._node.name,
+            manufacturer=DEVICE_MANUFACTURER,
+            model=DOMAIN,
+        )
 
     @property
     def name(self):

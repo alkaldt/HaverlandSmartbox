@@ -15,7 +15,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 import logging
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Dict, List, Union
 from unittest.mock import MagicMock
 
 from .const import (
@@ -36,21 +36,20 @@ from .model import (
     set_temperature_args,
     SmartboxNode,
 )
+from homeassistant.config_entries import ConfigEntry
 from .types import StatusDict
+from homeassistant.helpers.entity import DeviceInfo
+from .const import DEVICE_MANUFACTURER
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_platform(
-    hass: HomeAssistant,
-    config: Dict[Any, Any],
-    async_add_entities: Callable,
-    discovery_info: Optional[Dict[Any, Any]] = None,
+async def async_setup_entry(
+    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
     """Set up platform."""
-    _LOGGER.debug("Setting up Smartbox climate platform")
-    if discovery_info is None:
-        return
+    _LOGGER.info("Setting up Smartbox climate platform")
 
     async_add_entities(
         [
@@ -70,15 +69,24 @@ def status_to_hvac_action(node_type: str, status: StatusDict) -> str:
 class SmartboxHeater(ClimateEntity):
     """Smartbox heater climate control"""
 
+    _attr_translation_key = "thermostat"
+    _attr_name = None
+
     def __init__(self, node: Union[MagicMock, SmartboxNode]) -> None:
         """Initialize the sensor."""
+        _LOGGER.debug("Setting up Smartbox climate platerqgsdform")
         self._node = node
         self._status: Dict[str, Any] = {}
         self._available = False  # unavailable until we get an update
         self._enable_turn_on_off_backwards_compatibility = False
         self._supported_features = (
-            ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.PRESET_MODE | ClimateEntityFeature.TURN_OFF | ClimateEntityFeature.TURN_ON
+            ClimateEntityFeature.TARGET_TEMPERATURE
+            | ClimateEntityFeature.PRESET_MODE
+            | ClimateEntityFeature.TURN_OFF
+            | ClimateEntityFeature.TURN_ON
         )
+        self._device_id = self._node.node_id
+        self._attr_unique_id = self._node.node_id
         _LOGGER.debug(f"Created node {self.name} unique_id={self.unique_id}")
 
     async def async_turn_off(self) -> None:
@@ -87,6 +95,16 @@ class SmartboxHeater(ClimateEntity):
     async def async_turn_on(self) -> None:
         await self.async_set_hvac_mode(HVACMode.AUTO)
 
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._device_id)},
+            name=self.name,
+            manufacturer=DEVICE_MANUFACTURER,
+            model=DOMAIN,
+        )
 
     @property
     def unique_id(self) -> str:
@@ -96,7 +114,7 @@ class SmartboxHeater(ClimateEntity):
     @property
     def name(self) -> str:
         """Return the name of the sensor."""
-        return self._node.name
+        return f"{self._node.name}"
 
     @property
     def supported_features(self) -> int:
