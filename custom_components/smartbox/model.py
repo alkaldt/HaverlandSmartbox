@@ -71,10 +71,15 @@ class SmartboxDevice(object):
             setup = await hass.async_add_executor_job(
                 self._session.get_setup, self._dev_id, node_info
             )
-
-            node = SmartboxNode(
-                self, node_info, self._session, status, setup, samples={}
+            samples: Any = await hass.async_add_executor_job(
+                self._session.get_device_samples,
+                self._dev_id,
+                node_info,
+                int(round(time.time() - time.time() % 3600)) - 3600,
+                int(round(time.time() - time.time() % 3600)) + 1800,
             )
+
+            node = SmartboxNode(self, node_info, self._session, status, setup, samples)
 
             self._nodes[(node.node_type, node.addr)] = node
 
@@ -90,6 +95,7 @@ class SmartboxDevice(object):
         self._update_manager.subscribe_to_device_power_limit(self._power_limit_update)
         self._update_manager.subscribe_to_node_status(self._node_status_update)
         self._update_manager.subscribe_to_node_setup(self._node_setup_update)
+        self._update_manager.subscribe_to_node_samples(self._node_samples_update)
 
         _LOGGER.debug(f"Starting UpdateManager task for device {self._dev_id}")
         asyncio.create_task(self._update_manager.run())
@@ -119,6 +125,21 @@ class SmartboxDevice(object):
         node = self._nodes.get((node_type, addr), None)
         if node is not None:
             node.update_setup(node_setup)
+        else:
+            _LOGGER.error(f"Received setup update for unknown node {node_type} {addr}")
+
+    def _node_samples_update(
+        self,
+        node_type: str,
+        addr: int,
+        start: int,
+        end: int,
+        node_samples: Dict[str, Any],
+    ) -> None:
+        _LOGGER.debug(f"Node samples update: {node_samples}")
+        node = self._nodes.get((node_type, addr), None)
+        if node is not None:
+            node.update_samples(node_samples)
         else:
             _LOGGER.error(f"Received setup update for unknown node {node_type} {addr}")
 
@@ -251,13 +272,20 @@ class SmartboxNode(object):
     def samples(self) -> Dict[str, Any]:
         return self._samples
 
-    def get_energy_used(
-        self, node_type: str, node_addr: int, start_date: int, end_date: int
-    ) -> int:
-        samples: Dict[str, Any] = self._session.get_device_samples(
-            self._device.dev_id, node_type, node_addr, start_date, end_date
-        )
+    def update_samples(self, samples: Dict[str, Any]) -> None:
+        _LOGGER.debug(f"Updating node {self.name} samples: {samples}")
+        self._samples = samples
 
+    def get_energy_used(self, samples) -> int:
+        # print(
+        #     self._session._api_request(
+        #         f"devs/{self._device.dev_id}/{node_type}/{node_addr}/samples?start={str(round(time.time() - time.time() % 3600))}&end={str(round(time.time() - time.time() % 3600))}"
+        #     )
+        # )
+        # samples: Dict[str, Any] = self._session.get_device_samples(
+        #     self._device.dev_id, node_type, node_addr, start_date, end_date
+        # )
+        print(samples)
         _LOGGER.debug(f"get_energy_used: Model: Samples: {samples}")
         startKWh: int = 0
         endKWh: int = 0
@@ -266,7 +294,7 @@ class SmartboxNode(object):
         sample: Dict[str, int] = samples["samples"]
 
         if len(sample) == 1:
-            return kwh
+            return int(sample[0]["counter"])
         else:
             for counter in sample:
                 temp2 = str(counter).split(",")
@@ -285,9 +313,9 @@ class SmartboxNode(object):
 
         kwh = endKWh - startKWh
 
-        _LOGGER.debug(f"Model: KWH: {kwh}")
-
-        return kwh
+        _LOGGER.warning(f"Model: KWH: {kwh}")
+        # print(kwh)
+        return endKWh
 
 
 def is_heater_node(node: Union[SmartboxNode, MagicMock]) -> bool:
