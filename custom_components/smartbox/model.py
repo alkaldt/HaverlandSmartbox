@@ -277,15 +277,6 @@ class SmartboxNode(object):
         self._samples = samples
 
     def get_energy_used(self, samples) -> int:
-        # print(
-        #     self._session._api_request(
-        #         f"devs/{self._device.dev_id}/{node_type}/{node_addr}/samples?start={str(round(time.time() - time.time() % 3600))}&end={str(round(time.time() - time.time() % 3600))}"
-        #     )
-        # )
-        # samples: Dict[str, Any] = self._session.get_device_samples(
-        #     self._device.dev_id, node_type, node_addr, start_date, end_date
-        # )
-        print(samples)
         _LOGGER.debug(f"get_energy_used: Model: Samples: {samples}")
         startKWh: int = 0
         endKWh: int = 0
@@ -299,7 +290,6 @@ class SmartboxNode(object):
             for counter in sample:
                 temp2 = str(counter).split(",")
                 _LOGGER.debug(f"{temp2[2]}")
-
                 if count == 0:
                     lenCount: int = len(temp2[2])
                     _LOGGER.debug(f"LenCount:{lenCount}")
@@ -313,8 +303,7 @@ class SmartboxNode(object):
 
         kwh = endKWh - startKWh
 
-        _LOGGER.warning(f"Model: KWH: {kwh}")
-        # print(kwh)
+        _LOGGER.debug(f"Model: KWH: {kwh}")
         return endKWh
 
 
