@@ -15,7 +15,6 @@ from .model import (
 )
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.config_entries import ConfigEntry
-from .const import DEVICE_MANUFACTURER
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -63,8 +62,9 @@ class AwaySwitch(SwitchEntity):
         return DeviceInfo(
             identifiers={(DOMAIN, self._device_id)},
             name=self._device.name,
-            manufacturer=DEVICE_MANUFACTURER,
-            model=DOMAIN,
+            model_id=self._device.model_id,
+            sw_version=self._device.sw_version,
+            serial_number=self._device.serial_number,
         )
 
     @property
@@ -103,8 +103,9 @@ class WindowModeSwitch(SwitchEntity):
         return DeviceInfo(
             identifiers={(DOMAIN, self._device_id)},
             name=self._node.name,
-            manufacturer=DEVICE_MANUFACTURER,
-            model=DOMAIN,
+            model_id=self._node._device.model_id,
+            sw_version=self._node._device.sw_version,
+            serial_number=self._node._device.serial_number,
         )
 
     @property
@@ -143,8 +144,9 @@ class TrueRadiantSwitch(SwitchEntity):
         return DeviceInfo(
             identifiers={(DOMAIN, self._device_id)},
             name=self._node.name,
-            manufacturer=DEVICE_MANUFACTURER,
-            model=DOMAIN,
+            model_id=self._node._device.model_id,
+            sw_version=self._node._device.sw_version,
+            serial_number=self._node._device.serial_number,
         )
 
     @property

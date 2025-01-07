@@ -1,13 +1,12 @@
 {
   "domain": "smartbox",
   "name": "Smartbox",
-  "documentation": "https://github.com/holdness/hass-smartbox",
-  "issue_tracker": "https://github.com/holdness/hass-smartbox/issues",
-  "version": "3.0.3",
-  "dependencies": [],
+  "codeowners": ["@ajtudela"],
   "config_flow": true,
-  "codeowners": ["@graham33"],
-  "requirements": ["jq", "git+https://github.com/holdness/smartbox.git@main#smartbox==3.0.3"],
-  "quality_scale": "custom",
-  "iot_class": "cloud_polling"
+  "dependencies": [],
+  "documentation": "https://github.com/ajtudela/hass-smartbox",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/ajtudela/hass-smartbox/issues",
+  "requirements": ["smartbox==2.0.0b2"],
+  "version": "2.0.0-beta.2"
 }

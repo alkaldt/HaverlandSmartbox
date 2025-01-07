@@ -10,7 +10,6 @@ from .const import DOMAIN, SMARTBOX_DEVICES
 from .model import SmartboxDevice
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.config_entries import ConfigEntry
-from .const import DEVICE_MANUFACTURER
 from homeassistant.helpers.entity import DeviceInfo
 
 
@@ -47,8 +46,9 @@ class DevicePowerLimit(NumberEntity):
         return DeviceInfo(
             identifiers={(DOMAIN, self._device_id)},
             name=self._device.name,
-            manufacturer=DEVICE_MANUFACTURER,
-            model=DOMAIN,
+            model_id=self._device.model_id,
+            sw_version=self._device.sw_version,
+            serial_number=self._device.serial_number,
         )
 
     @property

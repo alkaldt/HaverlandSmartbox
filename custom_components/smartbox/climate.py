@@ -39,7 +39,6 @@ from .model import (
 from homeassistant.config_entries import ConfigEntry
 from .types import StatusDict
 from homeassistant.helpers.entity import DeviceInfo
-from .const import DEVICE_MANUFACTURER
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 _LOGGER = logging.getLogger(__name__)
@@ -98,12 +97,12 @@ class SmartboxHeater(ClimateEntity):
     @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
-
         return DeviceInfo(
             identifiers={(DOMAIN, self._device_id)},
-            name=self.name,
-            manufacturer=DEVICE_MANUFACTURER,
-            model=DOMAIN,
+            name=self._node.name,
+            model_id=self._node._device.model_id,
+            sw_version=self._node._device.sw_version,
+            serial_number=self._node._device.serial_number,
         )
 
     @property

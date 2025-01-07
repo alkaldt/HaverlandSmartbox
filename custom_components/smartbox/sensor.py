@@ -26,7 +26,6 @@ from .const import (
 from .model import get_temperature_unit, is_heater_node, is_heating, SmartboxNode
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.config_entries import ConfigEntry
-from .const import DEVICE_MANUFACTURER
 from homeassistant.helpers.entity import DeviceInfo
 
 _LOGGER = logging.getLogger(__name__)
@@ -76,14 +75,14 @@ async def async_setup_entry(
         True,
     )
     # to collect the records for temperture and electricty consumption
-    async_add_entities(
-        [
-            SamplesSensor(node)
-            for node in hass.data[DOMAIN][SMARTBOX_NODES]
-            if node.node_type == HEATER_NODE_TYPE_HTR
-        ],
-        True,
-    )
+    # async_add_entities(
+    #     [
+    #         SamplesSensor(node)
+    #         for node in hass.data[DOMAIN][SMARTBOX_NODES]
+    #         if node.node_type == HEATER_NODE_TYPE_HTR
+    #     ],
+    #     True,
+    # )
     # Charge Level
     async_add_entities(
         [
@@ -114,8 +113,9 @@ class SmartboxSensorBase(SensorEntity):
         return DeviceInfo(
             identifiers={(DOMAIN, self._device_id)},
             name=self._node.name,
-            manufacturer=DEVICE_MANUFACTURER,
-            model=DOMAIN,
+            model_id=self._node._device.model_id,
+            sw_version=self._node._device.sw_version,
+            serial_number=self._node._device.serial_number,
         )
 
     @property
@@ -231,7 +231,6 @@ class DutyCycleSensor(SmartboxSensorBase):
 
     @property
     def native_value(self) -> float:
-        print(f"{self._status}")
         return self._status["duty"]
 
 
@@ -272,31 +271,31 @@ class EnergySensor(SmartboxSensorBase):
             return None
 
 
-class SamplesSensor(SmartboxSensorBase):
-    """Smartbox samples sensor
+# class SamplesSensor(SmartboxSensorBase):
+#     """Smartbox samples sensor
 
-    Represents the temperture and electrity consumed by the heater for each hour for the day.
-    """
+#     Represents the temperture and electrity consumed by the heater for each hour for the day.
+#     """
 
-    device_class = SensorDeviceClass.ENERGY
-    native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
-    state_class = SensorStateClass.TOTAL_INCREASING
+#     device_class = SensorDeviceClass.ENERGY
+#     native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
+#     state_class = SensorStateClass.TOTAL_INCREASING
 
-    # TOTAL_INCREASING
-    def __init__(self, node: Union[SmartboxNode, MagicMock]) -> None:
-        super().__init__(node)
+#     # TOTAL_INCREASING
+#     def __init__(self, node: Union[SmartboxNode, MagicMock]) -> None:
+#         super().__init__(node)
 
-    @property
-    def name(self) -> str:
-        return f"{self._node.name} Hour KWh"
+#     @property
+#     def name(self) -> str:
+#         return f"{self._node.name} Hour KWh"
 
-    @property
-    def unique_id(self) -> str:
-        return f"{self._node.node_id}_energy_hour"
+#     @property
+#     def unique_id(self) -> str:
+#         return f"{self._node.node_id}_energy_hour"
 
-    @property
-    def native_value(self) -> float | None:
-        return self._node.get_energy_used(self._node._samples)
+#     @property
+#     def native_value(self) -> float | None:
+#         return self._node.get_energy_used(self._node._samples)
 
 
 class ChargeLevelSensor(SmartboxSensorBase):

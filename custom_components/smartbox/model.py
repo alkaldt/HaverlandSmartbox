@@ -44,14 +44,12 @@ _LOGGER = logging.getLogger(__name__)
 class SmartboxDevice(object):
     def __init__(
         self,
-        dev_id: str,
-        name: str,
+        device,
         session: Union[Session, MagicMock],
         socket_reconnect_attempts: int,
         socket_backoff_factor: float,
     ) -> None:
-        self._dev_id = dev_id
-        self._name = name
+        self._device = device
         self._session = session
         self._socket_reconnect_attempts = socket_reconnect_attempts
         self._socket_backoff_factor = socket_backoff_factor
@@ -66,27 +64,27 @@ class SmartboxDevice(object):
         self._nodes = {}
         for node_info in session_nodes:
             status = await hass.async_add_executor_job(
-                self._session.get_status, self._dev_id, node_info
+                self._session.get_status, self.dev_id, node_info
             )
             setup = await hass.async_add_executor_job(
-                self._session.get_setup, self._dev_id, node_info
+                self._session.get_setup, self.dev_id, node_info
             )
-            samples: Any = await hass.async_add_executor_job(
-                self._session.get_device_samples,
-                self._dev_id,
-                node_info,
-                int(round(time.time() - time.time() % 3600)) - 3600,
-                int(round(time.time() - time.time() % 3600)) + 1800,
-            )
+            # samples: Any = await hass.async_add_executor_job(
+            #     self._session.get_device_samples,
+            #     self._dev_id,
+            #     node_info,
+            #     int(round(time.time() - time.time() % 3600)) - 3600,
+            #     int(round(time.time() - time.time() % 3600)) + 1800,
+            # )
 
-            node = SmartboxNode(self, node_info, self._session, status, setup, samples)
+            node = SmartboxNode(self, node_info, self._session, status, setup)
 
             self._nodes[(node.node_type, node.addr)] = node
 
-        _LOGGER.debug(f"Creating SocketSession for device {self._dev_id}")
+        _LOGGER.debug(f"Creating SocketSession for device {self.dev_id}")
         self._update_manager = UpdateManager(
             self._session,
-            self._dev_id,
+            self.dev_id,
             reconnect_attempts=self._socket_reconnect_attempts,
             backoff_factor=self._socket_backoff_factor,
         )
@@ -95,9 +93,9 @@ class SmartboxDevice(object):
         self._update_manager.subscribe_to_device_power_limit(self._power_limit_update)
         self._update_manager.subscribe_to_node_status(self._node_status_update)
         self._update_manager.subscribe_to_node_setup(self._node_setup_update)
-        self._update_manager.subscribe_to_node_samples(self._node_samples_update)
+        # self._update_manager.subscribe_to_node_samples(self._node_samples_update)
 
-        _LOGGER.debug(f"Starting UpdateManager task for device {self._dev_id}")
+        _LOGGER.debug(f"Starting UpdateManager task for device {self.dev_id}")
         asyncio.create_task(self._update_manager.run())
 
     def _away_status_update(self, away_status: Dict[str, bool]) -> None:
@@ -128,24 +126,24 @@ class SmartboxDevice(object):
         else:
             _LOGGER.error(f"Received setup update for unknown node {node_type} {addr}")
 
-    def _node_samples_update(
-        self,
-        node_type: str,
-        addr: int,
-        start: int,
-        end: int,
-        node_samples: Dict[str, Any],
-    ) -> None:
-        _LOGGER.debug(f"Node samples update: {node_samples}")
-        node = self._nodes.get((node_type, addr), None)
-        if node is not None:
-            node.update_samples(node_samples)
-        else:
-            _LOGGER.error(f"Received setup update for unknown node {node_type} {addr}")
+    # def _node_samples_update(
+    #     self,
+    #     node_type: str,
+    #     addr: int,
+    #     start: int,
+    #     end: int,
+    #     node_samples: Dict[str, Any],
+    # ) -> None:
+    #     _LOGGER.debug(f"Node samples update: {node_samples}")
+    #     node = self._nodes.get((node_type, addr), None)
+    #     if node is not None:
+    #         node.update_samples(node_samples)
+    #     else:
+    #         _LOGGER.error(f"Received setup update for unknown node {node_type} {addr}")
 
     @property
     def dev_id(self) -> str:
-        return self._dev_id
+        return self._device["dev_id"]
 
     def get_nodes(self):
         for item in self._nodes:
@@ -154,7 +152,19 @@ class SmartboxDevice(object):
 
     @property
     def name(self) -> str:
-        return self._name
+        return self._device["name"]
+
+    @property
+    def model_id(self) -> int:
+        return self._device["product_id"]
+
+    @property
+    def sw_version(self) -> int:
+        return self._device["fw_version"]
+
+    @property
+    def serial_number(self) -> int:
+        return self._device["serial_id"]
 
     @property
     def away(self) -> bool:
@@ -181,14 +191,14 @@ class SmartboxNode(object):
         session: Union[Session, MagicMock],
         status: Dict[str, Any],
         setup: Dict[str, Any],
-        samples: Dict[str, Any],
+        # samples: Dict[str, Any],
     ) -> None:
         self._device = device
         self._node_info = node_info
         self._session = session
         self._status = status
         self._setup = setup
-        self._samples: Dict[str, Any] = samples
+        # self._samples: Dict[str, Any] = samples
 
     @property
     def node_id(self) -> str:
@@ -268,43 +278,43 @@ class SmartboxNode(object):
         )
         self._setup["true_radiant_enabled"] = true_radiant
 
-    @property
-    def samples(self) -> Dict[str, Any]:
-        return self._samples
+    # @property
+    # def samples(self) -> Dict[str, Any]:
+    #     return self._samples
 
-    def update_samples(self, samples: Dict[str, Any]) -> None:
-        _LOGGER.debug(f"Updating node {self.name} samples: {samples}")
-        self._samples = samples
+    # def update_samples(self, samples: Dict[str, Any]) -> None:
+    #     _LOGGER.debug(f"Updating node {self.name} samples: {samples}")
+    #     self._samples = samples
 
-    def get_energy_used(self, samples) -> int:
-        _LOGGER.debug(f"get_energy_used: Model: Samples: {samples}")
-        startKWh: int = 0
-        endKWh: int = 0
-        kwh: int = 0
-        count: int = 0
-        sample: Dict[str, int] = samples["samples"]
+    # def get_energy_used(self, samples) -> int:
+    #     _LOGGER.debug(f"get_energy_used: Model: Samples: {samples}")
+    #     startKWh: int = 0
+    #     endKWh: int = 0
+    #     kwh: int = 0
+    #     count: int = 0
+    #     sample: Dict[str, int] = samples["samples"]
 
-        if len(sample) == 1:
-            return int(sample[0]["counter"])
-        else:
-            for counter in sample:
-                temp2 = str(counter).split(",")
-                _LOGGER.debug(f"{temp2[2]}")
-                if count == 0:
-                    lenCount: int = len(temp2[2])
-                    _LOGGER.debug(f"LenCount:{lenCount}")
+    #     if len(sample) == 1:
+    #         return int(sample[0]["counter"])
+    #     else:
+    #         for counter in sample:
+    #             temp2 = str(counter).split(",")
+    #             _LOGGER.debug(f"{temp2[2]}")
+    #             if count == 0:
+    #                 lenCount: int = len(temp2[2])
+    #                 _LOGGER.debug(f"LenCount:{lenCount}")
 
-                    startKWh = int(temp2[2][12 : lenCount - 1])
-                    _LOGGER.debug(f"StartKwh:{startKWh}")
-                    count = count + 1
-                else:
-                    lenCount: int = len(temp2[2])
-                    endKWh = int(temp2[2][12 : lenCount - 1])
+    #                 startKWh = int(temp2[2][12 : lenCount - 1])
+    #                 _LOGGER.debug(f"StartKwh:{startKWh}")
+    #                 count = count + 1
+    #             else:
+    #                 lenCount: int = len(temp2[2])
+    #                 endKWh = int(temp2[2][12 : lenCount - 1])
 
-        kwh = endKWh - startKWh
+    #     kwh = endKWh - startKWh
 
-        _LOGGER.debug(f"Model: KWH: {kwh}")
-        return endKWh
+    #     _LOGGER.debug(f"Model: KWH: {kwh}")
+    #     return endKWh
 
 
 def is_heater_node(node: Union[SmartboxNode, MagicMock]) -> bool:
@@ -337,8 +347,7 @@ async def get_devices(
     devices = [
         await create_smartbox_device(
             hass,
-            session_device["dev_id"],
-            session_device["name"],
+            session_device,
             session,
             entry.data[CONF_SESSION_RETRY_ATTEMPTS],
             entry.data[CONF_SESSION_BACKOFF_FACTOR],
@@ -350,15 +359,14 @@ async def get_devices(
 
 async def create_smartbox_device(
     hass: HomeAssistant,
-    dev_id: str,
-    name: str,
+    device: str,
     session: Union[Session, MagicMock],
     socket_reconnect_attempts: int,
     socket_backoff_factor: float,
 ) -> Union[SmartboxDevice, MagicMock]:
     """Factory function for SmartboxDevices"""
     device = SmartboxDevice(
-        dev_id, name, session, socket_reconnect_attempts, socket_backoff_factor
+        device, session, socket_reconnect_attempts, socket_backoff_factor
     )
     await device.initialise_nodes(hass)
     return device
