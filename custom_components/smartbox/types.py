@@ -1,9 +1,9 @@
-from typing import Dict, Union
+"""Type for smartbox."""
 
-FactoryOptionsDict = Dict[str, bool]
+FactoryOptionsDict = dict[str, bool]
 
-SetupDict = Dict[str, Union[bool, float, str, FactoryOptionsDict]]
+SetupDict = dict[str, bool | float | str | FactoryOptionsDict]
 
-StatusDict = Dict[str, Union[bool, int, float, str]]
+StatusDict = dict[str, bool | int | float | str]
 
-SamplesDict = Dict[str, Union[bool, int, float, str]]
+SamplesDict = dict[str, bool | int | float | str]

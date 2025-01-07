@@ -1,19 +1,21 @@
+"""Config flow for Smartbox."""
+
 import logging
 from typing import Any
 
-import homeassistant.helpers.config_validation as cv
 import requests
+from smartbox import Session
 import voluptuous as vol
+
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
+import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.selector import (
     TextSelector,
     TextSelectorConfig,
     TextSelectorType,
 )
-
-from smartbox import Session
 
 from .const import (
     CONF_API_NAME,
@@ -86,7 +88,7 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
             raise InvalidAuth
     except requests.exceptions.ConnectionError:
         raise CannotConnect
-    except Exception as e:
+    except Exception:
         raise InvalidAuth
     locations = [
         {"id": location["id"], "name": location["name"]}

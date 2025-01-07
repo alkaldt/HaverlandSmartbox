@@ -1,20 +1,20 @@
+"""Support for Smartbox sensor entities."""
+
 from datetime import datetime, timedelta
-import time
-from homeassistant.const import (
-    ATTR_LOCKED,
-    UnitOfEnergy,
-    PERCENTAGE,
-    UnitOfPower,
-)
+import logging
+from typing import Any
+from unittest.mock import MagicMock
+
 from homeassistant.components.sensor import (
+    SensorDeviceClass,
     SensorEntity,
     SensorStateClass,
-    SensorDeviceClass,
 )
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import ATTR_LOCKED, PERCENTAGE, UnitOfEnergy, UnitOfPower
 from homeassistant.core import HomeAssistant
-import logging
-from typing import Any, Dict, Optional, Union
-from unittest.mock import MagicMock
+from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
     DOMAIN,
@@ -23,10 +23,7 @@ from .const import (
     HEATER_NODE_TYPE_HTR_MOD,
     SMARTBOX_NODES,
 )
-from .model import get_temperature_unit, is_heater_node, is_heating, SmartboxNode
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.entity import DeviceInfo
+from .model import SmartboxNode, get_temperature_unit, is_heater_node
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -97,15 +94,18 @@ async def async_setup_entry(
 
 
 class SmartboxSensorBase(SensorEntity):
-    def __init__(self, node: Union[SmartboxNode, MagicMock]) -> None:
+    """Base class for Smartbox sensor."""
+
+    def __init__(self, node: SmartboxNode | MagicMock) -> None:
+        """Initialize the Climate Entity."""
         self._node = node
-        self._status: Dict[str, Any] = {}
+        self._status: dict[str, Any] = {}
         self._available = False  # unavailable until we get an update
-        self._samples: Dict[str, Any] = {}
-        self._last_update: Optional[datetime] = None
-        self._time_since_last_update: Optional[timedelta] = None
+        self._samples: dict[str, Any] = {}
+        self._last_update: datetime | None = None
+        self._time_since_last_update: timedelta | None = None
         self._device_id = self._node.node_id
-        _LOGGER.debug(f"Created node {self.name} unique_id={self.unique_id}")
+        _LOGGER.debug("Created node %s unique_id=%s", self.name, self.unique_id)
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -113,22 +113,25 @@ class SmartboxSensorBase(SensorEntity):
         return DeviceInfo(
             identifiers={(DOMAIN, self._device_id)},
             name=self._node.name,
-            model_id=self._node._device.model_id,
-            sw_version=self._node._device.sw_version,
-            serial_number=self._node._device.serial_number,
+            model_id=self._node.device.model_id,
+            sw_version=self._node.device.sw_version,
+            serial_number=self._node.device.serial_number,
         )
 
     @property
-    def extra_state_attributes(self) -> Dict[str, bool]:
+    def extra_state_attributes(self) -> dict[str, bool]:
+        """Return extra states of the sensor."""
         return {
             ATTR_LOCKED: self._status["locked"],
         }
 
     @property
     def available(self) -> bool:
+        """Return the availability of the sensor."""
         return self._available
 
     async def async_update(self) -> None:
+        """Get the latest data."""
         new_status = await self._node.async_update(self.hass)
         if new_status["sync_status"] == "ok":
             # update our status
@@ -144,38 +147,40 @@ class SmartboxSensorBase(SensorEntity):
             self._time_since_last_update = None
 
     @property
-    def time_since_last_update(self) -> Optional[timedelta]:
+    def time_since_last_update(self) -> timedelta | None:
+        """Return the time since the data have been updated."""
         return self._time_since_last_update
 
 
 class TemperatureSensor(SmartboxSensorBase):
-    """Smartbox heater temperature sensor"""
+    """Smartbox heater temperature sensor."""
 
     device_class = SensorDeviceClass.TEMPERATURE
     state_class = SensorStateClass.MEASUREMENT
 
-    def __init__(self, node: Union[SmartboxNode, MagicMock]) -> None:
-        super().__init__(node)
-
     @property
     def name(self) -> str:
+        """Return the name of the sensor."""
         return f"{self._node.name} Temperature"
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id of the sensor."""
         return f"{self._node.node_id}_temperature"
 
     @property
     def native_value(self) -> float:
+        """Return the native value of the sensor."""
         return self._status["mtemp"]
 
     @property
     def native_unit_of_measurement(self) -> Any:
+        """Return the unit of the sensor."""
         return get_temperature_unit(self._status)
 
 
 class PowerSensor(SmartboxSensorBase):
-    """Smartbox heater power sensor
+    """Smartbox heater power sensor.
 
     Note: this represents the power the heater is drawing *when heating*; the
     heater is not always active over the entire period since the last update,
@@ -188,75 +193,65 @@ class PowerSensor(SmartboxSensorBase):
     native_unit_of_measurement = UnitOfPower.WATT
     state_class = SensorStateClass.MEASUREMENT
 
-    def __init__(self, node: Union[SmartboxNode, MagicMock]) -> None:
-        super().__init__(node)
-
     @property
     def name(self) -> str:
+        """Return the name of the sensor."""
         return f"{self._node.name} Power"
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id of the sensor."""
         return f"{self._node.node_id}_power"
 
     @property
     def native_value(self) -> float:
-        return (
-            self._status["power"]
-            if is_heating(self._node.node_type, self._status)
-            else 0
-        )
+        """Return the native value of the sensor."""
+        return self._status["power"] if self._node.is_heating(self._status) else 0
 
 
 class DutyCycleSensor(SmartboxSensorBase):
-    """Smartbox heater duty cycle sensor
-
-    Represents the duty cycle for the heater.
-    """
+    """Smartbox heater duty cycle sensor: Represents the duty cycle for the heater."""
 
     device_class = SensorDeviceClass.POWER_FACTOR
     native_unit_of_measurement = PERCENTAGE
     state_class = SensorStateClass.MEASUREMENT
 
-    def __init__(self, node: Union[SmartboxNode, MagicMock]) -> None:
-        super().__init__(node)
-
     @property
     def name(self) -> str:
+        """Return the name of the sensor."""
         return f"{self._node.name} Duty Cycle"
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id of the sensor."""
         return f"{self._node.node_id}_duty_cycle"
 
     @property
     def native_value(self) -> float:
+        """Return the native value of the sensor."""
         return self._status["duty"]
 
 
 class EnergySensor(SmartboxSensorBase):
-    """Smartbox heater energy sensor
-
-    Represents the energy consumed by the heater.
-    """
+    """Smartbox heater energy sensor: Represents the energy consumed by the heater."""
 
     device_class = SensorDeviceClass.ENERGY
     native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
     state_class = SensorStateClass.TOTAL
 
-    def __init__(self, node: Union[SmartboxNode, MagicMock]) -> None:
-        super().__init__(node)
-
     @property
     def name(self) -> str:
+        """Return the name of the sensor."""
         return f"{self._node.name} Energy"
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id of the sensor."""
         return f"{self._node.node_id}_energy"
 
     @property
     def native_value(self) -> float | None:
+        """Return the native value of the sensor."""
         time_since_last_update = self.time_since_last_update
         if time_since_last_update is not None:
             return (
@@ -267,8 +262,7 @@ class EnergySensor(SmartboxSensorBase):
                 / 60
                 / 60
             )
-        else:
-            return None
+        return None
 
 
 # class SamplesSensor(SmartboxSensorBase):
@@ -299,23 +293,23 @@ class EnergySensor(SmartboxSensorBase):
 
 
 class ChargeLevelSensor(SmartboxSensorBase):
-    """Smartbox storage heater charge level sensor"""
+    """Smartbox storage heater charge level sensor."""
 
     device_class = SensorDeviceClass.BATTERY
     native_unit_of_measurement = PERCENTAGE
     state_class = SensorStateClass.MEASUREMENT
 
-    def __init__(self, node: Union[SmartboxNode, MagicMock]) -> None:
-        super().__init__(node)
-
     @property
     def name(self) -> str:
+        """Return the name of the sensor."""
         return f"{self._node.name} Charge Level"
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id of the sensor."""
         return f"{self._node.node_id}_charge_level"
 
     @property
     def native_value(self) -> int:
+        """Return the native value of the sensor."""
         return self._status["charge_level"]

@@ -1,10 +1,13 @@
-from homeassistant.components.switch import (
-    SwitchEntity,
-)
-from homeassistant.core import HomeAssistant
+"""Support for Smartbox switch entities."""
+
 import logging
-from typing import Union
 from unittest.mock import MagicMock
+
+from homeassistant.components.switch import SwitchEntity
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN, SMARTBOX_DEVICES, SMARTBOX_NODES
 from .model import (
@@ -13,10 +16,6 @@ from .model import (
     true_radiant_available,
     window_mode_available,
 )
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -50,9 +49,10 @@ async def async_setup_entry(
 
 
 class AwaySwitch(SwitchEntity):
-    """Smartbox device away switch"""
+    """Smartbox device away switch."""
 
-    def __init__(self, device: Union[SmartboxDevice, MagicMock]) -> None:
+    def __init__(self, device: SmartboxDevice | MagicMock) -> None:
+        """Initialize the away Entity."""
         self._device = device
         self._device_id = list(device.get_nodes())[0].node_id
 
@@ -74,6 +74,7 @@ class AwaySwitch(SwitchEntity):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id of the switch."""
         return f"{self._device.dev_id}_away_status"
 
     def turn_on(self, **kwargs):  # pylint: disable=unused-argument
@@ -91,9 +92,10 @@ class AwaySwitch(SwitchEntity):
 
 
 class WindowModeSwitch(SwitchEntity):
-    """Smartbox node window mode switch"""
+    """Smartbox node window mode switch."""
 
-    def __init__(self, node: Union[SmartboxNode, MagicMock]) -> None:
+    def __init__(self, node: SmartboxNode | MagicMock) -> None:
+        """Initialize the window mode Entity."""
         self._node = node
         self._device_id = self._node.node_id
 
@@ -103,9 +105,9 @@ class WindowModeSwitch(SwitchEntity):
         return DeviceInfo(
             identifiers={(DOMAIN, self._device_id)},
             name=self._node.name,
-            model_id=self._node._device.model_id,
-            sw_version=self._node._device.sw_version,
-            serial_number=self._node._device.serial_number,
+            model_id=self._node.device.model_id,
+            sw_version=self._node.device.sw_version,
+            serial_number=self._node.device.serial_number,
         )
 
     @property
@@ -115,6 +117,7 @@ class WindowModeSwitch(SwitchEntity):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id of the switch."""
         return f"{self._node.node_id}_window_mode"
 
     def turn_on(self, **kwargs):  # pylint: disable=unused-argument
@@ -132,9 +135,10 @@ class WindowModeSwitch(SwitchEntity):
 
 
 class TrueRadiantSwitch(SwitchEntity):
-    """Smartbox node true radiant switch"""
+    """Smartbox node true radiant switch."""
 
-    def __init__(self, node: Union[SmartboxNode, MagicMock]) -> None:
+    def __init__(self, node: SmartboxNode | MagicMock) -> None:
+        """Initialize the radiant Entity."""
         self._node = node
         self._device_id = self._node.node_id
 
@@ -144,9 +148,9 @@ class TrueRadiantSwitch(SwitchEntity):
         return DeviceInfo(
             identifiers={(DOMAIN, self._device_id)},
             name=self._node.name,
-            model_id=self._node._device.model_id,
-            sw_version=self._node._device.sw_version,
-            serial_number=self._node._device.serial_number,
+            model_id=self._node.device.model_id,
+            sw_version=self._node.device.sw_version,
+            serial_number=self._node.device.serial_number,
         )
 
     @property
@@ -156,6 +160,7 @@ class TrueRadiantSwitch(SwitchEntity):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id of the switch."""
         return f"{self._node.node_id}_true_radiant"
 
     def turn_on(self, **kwargs):  # pylint: disable=unused-argument

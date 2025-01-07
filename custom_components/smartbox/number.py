@@ -1,17 +1,16 @@
-from homeassistant.components.number import (
-    NumberEntity,
-)
-from homeassistant.core import HomeAssistant
+"""Support for Smartbox sensor entities."""
+
 import logging
-from typing import Union
 from unittest.mock import MagicMock
+
+from homeassistant.components.number import NumberEntity
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN, SMARTBOX_DEVICES
 from .model import SmartboxDevice
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.entity import DeviceInfo
-
 
 _LOGGER = logging.getLogger(__name__)
 _MAX_POWER_LIMIT = 9999
@@ -32,9 +31,10 @@ async def async_setup_entry(
 
 
 class DevicePowerLimit(NumberEntity):
-    """Smartbox device power limit"""
+    """Smartbox device power limit."""
 
-    def __init__(self, device: Union[SmartboxDevice, MagicMock]) -> None:
+    def __init__(self, device: SmartboxDevice | MagicMock) -> None:
+        """Initialize the Entity."""
         self._device = device
         self._device_id = list(device.get_nodes())[0].node_id
 
@@ -58,10 +58,12 @@ class DevicePowerLimit(NumberEntity):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id of the number."""
         return f"{self._device.dev_id}_power_limit"
 
     @property
     def native_value(self) -> float:
+        """Return the native value of the number."""
         return self._device.power_limit
 
     def set_native_value(self, value: float) -> None:
