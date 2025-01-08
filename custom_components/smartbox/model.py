@@ -20,8 +20,6 @@ from homeassistant.const import UnitOfTemperature
 from homeassistant.core import HomeAssistant
 
 from .const import (
-    CONF_SESSION_BACKOFF_FACTOR,
-    CONF_SESSION_RETRY_ATTEMPTS,
     GITHUB_ISSUES_URL,
     HEATER_NODE_TYPE_ACM,
     HEATER_NODE_TYPE_HTR_MOD,
@@ -42,14 +40,10 @@ class SmartboxDevice:
         self,
         device,
         session: Session | MagicMock,
-        socket_reconnect_attempts: int,
-        socket_backoff_factor: float,
     ) -> None:
         """Initialise a smartbox device."""
         self._device = device
         self._session = session
-        self._socket_reconnect_attempts = socket_reconnect_attempts
-        self._socket_backoff_factor = socket_backoff_factor
         self._away = False
         self._power_limit: int = 0
         self._nodes = {}
@@ -85,10 +79,7 @@ class SmartboxDevice:
         update_manager = UpdateManager(
             self._session,
             self.dev_id,
-            reconnect_attempts=self._socket_reconnect_attempts,
-            backoff_factor=self._socket_backoff_factor,
         )
-
         update_manager.subscribe_to_device_away_status(self._away_status_update)
         update_manager.subscribe_to_device_power_limit(self._power_limit_update)
         update_manager.subscribe_to_node_status(self._node_status_update)
@@ -305,7 +296,7 @@ class SmartboxNode:
             raise KeyError(
                 "true_radiant_enabled not present in setup for node {self.name}"
             )
-        return True  # self._setup["true_radiant_enabled"]
+        return self._setup["true_radiant_enabled"]
 
     def set_true_radiant(self, true_radiant: bool):
         """Set true radiant."""
@@ -395,8 +386,6 @@ async def get_devices(
             hass,
             session_device,
             session,
-            entry.data[CONF_SESSION_RETRY_ATTEMPTS],
-            entry.data[CONF_SESSION_BACKOFF_FACTOR],
         )
         for session_device in session_devices
     ]
@@ -406,14 +395,10 @@ async def create_smartbox_device(
     hass: HomeAssistant,
     device: str,
     session: Session | MagicMock,
-    socket_reconnect_attempts: int,
-    socket_backoff_factor: float,
 ) -> SmartboxDevice | MagicMock:
-    """Factory function for SmartboxDevices."""
+    """Create factory function for smartboxdevices."""
 
-    device = SmartboxDevice(
-        device, session, socket_reconnect_attempts, socket_backoff_factor
-    )
+    device = SmartboxDevice(device, session)
     await device.initialise_nodes(hass)
     return device
 
@@ -554,33 +539,6 @@ def _get_htr_mod_preset_mode(node_type: str, mode: str, selected_temp: str) -> s
     if mode == "self_learn":
         return PRESET_SELF_LEARN
     raise ValueError(f"Unknown smartbox node mode {mode}")
-
-
-# def get_preset_mode(node_type: str, status: dict[str, Any], away: bool) -> str:
-#     """Get the preset mode."""
-#     if away:
-#         return PRESET_AWAY
-#     if node_type == HEATER_NODE_TYPE_HTR_MOD:
-#         _check_status_key("mode", node_type, status)
-#         _check_status_key("selected_temp", node_type, status)
-#         return _get_htr_mod_preset_mode(
-#             node_type, status["mode"], status["selected_temp"]
-#         )
-#     return PRESET_HOME
-
-
-# def get_preset_modes(node_type: str) -> list[str]:
-#     if node_type == HEATER_NODE_TYPE_HTR_MOD:
-#         return [
-#             PRESET_ACTIVITY,
-#             PRESET_AWAY,
-#             PRESET_COMFORT,
-#             PRESET_ECO,
-#             PRESET_FROST,
-#             PRESET_SCHEDULE,
-#             PRESET_SELF_LEARN,
-#         ]
-#     return [PRESET_AWAY, PRESET_HOME]
 
 
 def set_preset_mode_status_update(

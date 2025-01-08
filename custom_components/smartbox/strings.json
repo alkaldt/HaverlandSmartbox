@@ -10,35 +10,50 @@
           "password": "[%key:common::config_flow::data::password%]",
           "basic_auth_creds": "[%key:common::config_flow::data::basic_auth_creds%]",
           "x_referer": "[%key:common::config_flow::data::x_referer%]",
-          "x_serialid": "[%key:common::config_flow::data::x_serialid%]",
-          "session_retry_attempts": "[%key:common::config_flow::data::session_retry_attempts%]",
-          "session_backoff_factor": "[%key:common::config_flow::data::session_backoff_factor%]",
-          "socket_reconnect_attempts": "[%key:common::config_flow::data::socket_reconnect_attempts%]",
-          "socket_backoff_factor": "[%key:common::config_flow::data::socket_backoff_factor%]"
+          "x_serialid": "[%key:common::config_flow::data::x_serialid%]"
         },
         "data_description": {
           "api_name": "[%key:common::config_flow::data_description::api_name%]",
-          "basic_auth_creds": "[%key:common::config_flow::data_description::basic_auth_creds%]",
-          "session_retry_attempts": "[%key:common::config_flow::data_description::session_retry_attempts%]",
-          "session_backoff_factor": "[%key:common::config_flow::data_description::session_backoff_factor%]",
-          "socket_reconnect_attempts": "[%key:common::config_flow::data_description::socket_reconnect_attempts%]",
-          "socket_backoff_factor": "[%key:common::config_flow::data_description::socket_backoff_factor%]"
+          "basic_auth_creds": "[%key:common::config_flow::data_description::basic_auth_creds%]"
         }
       },
       "reauth_confirm": {
         "title": "[%key:common::config_flow::title::reauth%]",
-        "description": "[%key:common::config_flow::description::reauth%]"
+        "description": "[%key:common::config_flow::description::reauth%]",
+        "data": {
+          "username": "[%key:common::config_flow::data::username%]",
+          "password": "[%key:common::config_flow::data::password%]"
+        }
       }
     },
     "error": {
-      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
-      "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
-      "unknown": "[%key:common::config_flow::error::unknown%]"
+      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%] {error}",
+      "invalid_auth": "[%key:common::config_flow::error::invalid_auth%] {error}",
+      "unknown": "[%key:common::config_flow::error::unknown%] {error}"
     },
     "abort": {
-      "unknown": "Unknown error occurred",
-      "cannot_connect": "Unable to connect to the bridge",
-      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
+      "unknown": "[%key:common::config_flow::error::unknown%] {error}",
+      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]",
+      "reauth_successful": "[%key:common::config_flow::abort::reauth_successful%]"
+    }
+  },
+  "options": {
+    "step": {
+      "session_options": {
+        "title": "[%key:common::config_flow::title%]",
+        "data": {
+          "session_retry_attempts": "[%key:common::options::data::session_retry_attempts%]",
+          "session_backoff_factor": "[%key:common::options::data::session_backoff_factor%]",
+          "socket_reconnect_attempts": "[%key:common::options::data::socket_reconnect_attempts%]",
+          "socket_backoff_factor": "[%key:common::options::data::socket_backoff_factor%]"
+        },
+        "data_description": {
+          "session_retry_attempts": "[%key:common::options::data_description::session_retry_attempts%]",
+          "session_backoff_factor": "[%key:common::options::data_description::session_backoff_factor%]",
+          "socket_reconnect_attempts": "[%key:common::options::data_description::socket_reconnect_attempts%]",
+          "socket_backoff_factor": "[%key:common::options::data_description::socket_backoff_factor%]"
+        }
+      }
     }
   }
 }

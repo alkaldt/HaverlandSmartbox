@@ -1,19 +1,19 @@
 """The Smartbox integration."""
 
 import logging
+from typing import Any
 
 from smartbox import Session
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed
 
 from .const import (
     CONF_API_NAME,
     CONF_BASIC_AUTH_CREDS,
     CONF_PASSWORD,
-    CONF_SESSION_BACKOFF_FACTOR,
-    CONF_SESSION_RETRY_ATTEMPTS,
     CONF_USERNAME,
     DOMAIN,
     SMARTBOX_DEVICES,
@@ -33,17 +33,33 @@ PLATFORMS: list[Platform] = [
 ]
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up Smartbox from a config entry."""
+async def create_smartbox_session_from_entry(
+    hass: HomeAssistant, entry: ConfigEntry | dict[str, Any] | None = None
+) -> Session:
+    """Create a Session class from smartbox."""
+    data = {}
+    if type(entry) is ConfigEntry:
+        data = entry.data
+    if type(entry) is dict:
+        data = entry
+    # TODO si il y a des options alors on doit l'ajouter
     session = await hass.async_add_executor_job(
         Session,
-        entry.data[CONF_API_NAME],
-        entry.data[CONF_BASIC_AUTH_CREDS],
-        entry.data[CONF_USERNAME],
-        entry.data[CONF_PASSWORD],
-        entry.data[CONF_SESSION_RETRY_ATTEMPTS],
-        entry.data[CONF_SESSION_BACKOFF_FACTOR],
+        data[CONF_API_NAME],
+        data[CONF_BASIC_AUTH_CREDS],
+        data[CONF_USERNAME],
+        data[CONF_PASSWORD],
     )
+    await hass.async_add_executor_job(session.get_access_token)
+    return session
+
+
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Set up Smartbox from a config entry."""
+    try:
+        session = await create_smartbox_session_from_entry(hass, entry)
+    except Exception as ex:
+        raise ConfigEntryAuthFailed from ex
 
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][SMARTBOX_DEVICES] = []
@@ -64,10 +80,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 )
         hass.data[DOMAIN][SMARTBOX_NODES].extend(nodes)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    entry.async_on_unload(entry.add_update_listener(update_listener))
     return True
 
 
-# TODO Update entry annotation
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+
+
+async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Reload entity from config entry."""
+    await hass.config_entries.async_reload(entry.entry_id)
