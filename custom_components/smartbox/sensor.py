@@ -71,15 +71,6 @@ async def async_setup_entry(
         ],
         True,
     )
-    # to collect the records for temperture and electricty consumption
-    # async_add_entities(
-    #     [
-    #         SamplesSensor(node)
-    #         for node in hass.data[DOMAIN][SMARTBOX_NODES]
-    #         if node.node_type == HEATER_NODE_TYPE_HTR
-    #     ],
-    #     True,
-    # )
     # Charge Level
     async_add_entities(
         [
@@ -263,33 +254,6 @@ class EnergySensor(SmartboxSensorBase):
                 / 60
             )
         return None
-
-
-# class SamplesSensor(SmartboxSensorBase):
-#     """Smartbox samples sensor
-
-#     Represents the temperture and electrity consumed by the heater for each hour for the day.
-#     """
-
-#     device_class = SensorDeviceClass.ENERGY
-#     native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
-#     state_class = SensorStateClass.TOTAL_INCREASING
-
-#     # TOTAL_INCREASING
-#     def __init__(self, node: Union[SmartboxNode, MagicMock]) -> None:
-#         super().__init__(node)
-
-#     @property
-#     def name(self) -> str:
-#         return f"{self._node.name} Hour KWh"
-
-#     @property
-#     def unique_id(self) -> str:
-#         return f"{self._node.node_id}_energy_hour"
-
-#     @property
-#     def native_value(self) -> float | None:
-#         return self._node.get_energy_used(self._node._samples)
 
 
 class ChargeLevelSensor(SmartboxSensorBase):

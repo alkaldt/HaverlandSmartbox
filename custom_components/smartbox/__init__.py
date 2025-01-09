@@ -21,7 +21,7 @@ from .const import (
 )
 from .model import get_devices, is_supported_node
 
-__version__ = "3.0"
+__version__ = "2.1.0"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -38,11 +38,10 @@ async def create_smartbox_session_from_entry(
 ) -> Session:
     """Create a Session class from smartbox."""
     data = {}
-    if type(entry) is ConfigEntry:
-        data = entry.data
     if type(entry) is dict:
         data = entry
-    # TODO si il y a des options alors on doit l'ajouter
+    else:
+        data = entry.data
     session = await hass.async_add_executor_job(
         Session,
         data[CONF_API_NAME],
@@ -65,7 +64,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data[DOMAIN][SMARTBOX_DEVICES] = []
     hass.data[DOMAIN][SMARTBOX_NODES] = []
 
-    devices = await get_devices(hass=hass, session=session, entry=entry)
+    devices = await get_devices(hass=hass, session=session)
     for device in devices:
         _LOGGER.info("Setting up configured device %s", device.dev_id)
         hass.data[DOMAIN][SMARTBOX_DEVICES].append(device)

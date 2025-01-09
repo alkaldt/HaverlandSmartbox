@@ -19,9 +19,9 @@ pytest_plugins = "pytest_homeassistant_custom_component"
 
 # This fixture enables loading custom integrations in all tests.
 # Remove to enable selective use of this fixture
-@pytest.fixture(autouse=True)
-def auto_enable_custom_integrations(enable_custom_integrations):
-    yield
+@pytest.fixture(name="auto_enable_custom_integrations", autouse=True)
+def auto_enable_custom_integrations(hass: Any, enable_custom_integrations: Any) -> None:  # noqa: F811
+    """Enable custom integrations defined in the test dir."""
 
 
 # This fixture is used to prevent HomeAssistant from attempting to create and
@@ -30,8 +30,9 @@ def auto_enable_custom_integrations(enable_custom_integrations):
 @pytest.fixture(name="skip_notifications", autouse=True)
 def skip_notifications_fixture():
     """Skip notification calls."""
-    with patch("homeassistant.components.persistent_notification.async_create"), patch(
-        "homeassistant.components.persistent_notification.async_dismiss"
+    with (
+        patch("homeassistant.components.persistent_notification.async_create"),
+        patch("homeassistant.components.persistent_notification.async_dismiss"),
     ):
         yield
 
@@ -61,7 +62,7 @@ def mock_smartbox(request):
     )
 
     with patch(
-        "custom_components.smartbox.model.Session",
+        "custom_components.smartbox.Session",
         autospec=True,
         side_effect=mock_smartbox.get_mock_session,
     ):
@@ -85,9 +86,9 @@ def mock_smartbox_unavailable(request):
     )
 
     with patch(
-        "custom_components.smartbox.model.Session",
+        "custom_components.smartbox.Session",
         autospec=True,
-        return_value=mock_smartbox.session,
+        side_effect=mock_smartbox.get_mock_session,
     ):
         with patch(
             "smartbox.update_manager.SocketSession",

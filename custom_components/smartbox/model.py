@@ -15,7 +15,6 @@ from homeassistant.components.climate import (
     PRESET_HOME,
     HVACMode,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfTemperature
 from homeassistant.core import HomeAssistant
 
@@ -63,13 +62,6 @@ class SmartboxDevice:
             setup = await hass.async_add_executor_job(
                 self._session.get_setup, self.dev_id, node_info
             )
-            # samples: Any = await hass.async_add_executor_job(
-            #     self._session.get_device_samples,
-            #     self._dev_id,
-            #     node_info,
-            #     int(round(time.time() - time.time() % 3600)) - 3600,
-            #     int(round(time.time() - time.time() % 3600)) + 1800,
-            # )
 
             node = SmartboxNode(self, node_info, self._session, status, setup)
 
@@ -84,7 +76,6 @@ class SmartboxDevice:
         update_manager.subscribe_to_device_power_limit(self._power_limit_update)
         update_manager.subscribe_to_node_status(self._node_status_update)
         update_manager.subscribe_to_node_setup(self._node_setup_update)
-        # self._update_manager.subscribe_to_node_samples(self._node_samples_update)
 
         _LOGGER.debug("Starting UpdateManager task for device %s", self.dev_id)
         self._watchdog_task = asyncio.create_task(update_manager.run())
@@ -120,21 +111,6 @@ class SmartboxDevice:
             _LOGGER.error(
                 "Received setup update for unknown node %s %s", node_type, addr
             )
-
-    # def _node_samples_update(
-    #     self,
-    #     node_type: str,
-    #     addr: int,
-    #     start: int,
-    #     end: int,
-    #     node_samples: Dict[str, Any],
-    # ) -> None:
-    #     _LOGGER.debug(f"Node samples update: {node_samples}")
-    #     node = self._nodes.get((node_type, addr), None)
-    #     if node is not None:
-    #         node.update_samples(node_samples)
-    #     else:
-    #         _LOGGER.error(f"Received setup update for unknown node {node_type} {addr}")
 
     @property
     def dev_id(self) -> str:
@@ -198,7 +174,6 @@ class SmartboxNode:
         session: Session | MagicMock,
         status: dict[str, Any],
         setup: dict[str, Any],
-        # samples: Dict[str, Any],
     ) -> None:
         """Initialise a smartbox node."""
         self._device = device
@@ -206,7 +181,6 @@ class SmartboxNode:
         self._session = session
         self._status = status
         self._setup = setup
-        # self._samples: Dict[str, Any] = samples
 
     @property
     def node_id(self) -> str:
@@ -313,44 +287,6 @@ class SmartboxNode:
             else status["active"]
         )
 
-    # @property
-    # def samples(self) -> Dict[str, Any]:
-    #     return self._samples
-
-    # def update_samples(self, samples: Dict[str, Any]) -> None:
-    #     _LOGGER.debug(f"Updating node {self.name} samples: {samples}")
-    #     self._samples = samples
-
-    # def get_energy_used(self, samples) -> int:
-    #     _LOGGER.debug(f"get_energy_used: Model: Samples: {samples}")
-    #     startKWh: int = 0
-    #     endKWh: int = 0
-    #     kwh: int = 0
-    #     count: int = 0
-    #     sample: Dict[str, int] = samples["samples"]
-
-    #     if len(sample) == 1:
-    #         return int(sample[0]["counter"])
-    #     else:
-    #         for counter in sample:
-    #             temp2 = str(counter).split(",")
-    #             _LOGGER.debug(f"{temp2[2]}")
-    #             if count == 0:
-    #                 lenCount: int = len(temp2[2])
-    #                 _LOGGER.debug(f"LenCount:{lenCount}")
-
-    #                 startKWh = int(temp2[2][12 : lenCount - 1])
-    #                 _LOGGER.debug(f"StartKwh:{startKWh}")
-    #                 count = count + 1
-    #             else:
-    #                 lenCount: int = len(temp2[2])
-    #                 endKWh = int(temp2[2][12 : lenCount - 1])
-
-    #     kwh = endKWh - startKWh
-
-    #     _LOGGER.debug(f"Model: KWH: {kwh}")
-    #     return endKWh
-
 
 def is_heater_node(node: SmartboxNode | MagicMock) -> bool:
     """Is this node a heater."""
@@ -377,7 +313,6 @@ def get_temperature_unit(status) -> None | Any:
 async def get_devices(
     hass: HomeAssistant,
     session: Session,
-    entry: ConfigEntry,
 ) -> list[SmartboxDevice]:
     """Get the devices."""
     session_devices = await hass.async_add_executor_job(session.get_devices)

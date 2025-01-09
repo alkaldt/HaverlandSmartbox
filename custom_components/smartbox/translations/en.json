@@ -32,6 +32,7 @@
       "unknown": "Unknow error {error}"
     },
     "abort": {
+      "unknown": "Unknown error {error}.",
       "already_configured": "This account is already configured.",
       "reauth_successful": "Reauthenticatication successful."
     }
