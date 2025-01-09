@@ -2,6 +2,7 @@ from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 from homeassistant.components.switch import SERVICE_TURN_ON, SERVICE_TURN_OFF
 from homeassistant.const import ATTR_ENTITY_ID, ATTR_FRIENDLY_NAME
 from homeassistant.setup import async_setup_component
+from custom_components.smartbox.const import DOMAIN
 import logging
 
 from mocks import (
@@ -18,10 +19,23 @@ from mocks import (
 )
 from test_utils import assert_log_message
 
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
 
 async def test_away_status(hass, mock_smartbox):
-    assert await async_setup_component(hass, "smartbox", mock_smartbox.config)
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="test_username_1",
+        data=mock_smartbox.config[DOMAIN],
+    )
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
+    assert len(hass.states.async_entity_ids(SWITCH_DOMAIN)) == 12
+    entries = hass.config_entries.async_entries(DOMAIN)
+    assert len(entries) == 1
+
+    assert DOMAIN in hass.config.components
 
     for mock_device in mock_smartbox.session.get_devices():
         entity_id = get_away_status_switch_entity_id(mock_device)
@@ -83,8 +97,19 @@ async def test_away_status(hass, mock_smartbox):
 
 
 async def test_basic_window_mode(hass, mock_smartbox, caplog):
-    assert await async_setup_component(hass, "smartbox", mock_smartbox.config)
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="test_username_1",
+        data=mock_smartbox.config[DOMAIN],
+    )
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
+    assert len(hass.states.async_entity_ids(SWITCH_DOMAIN)) == 12
+    entries = hass.config_entries.async_entries(DOMAIN)
+    assert len(entries) == 1
+
+    assert DOMAIN in hass.config.components
 
     for mock_device in mock_smartbox.session.get_devices():
         for mock_node in mock_smartbox.session.get_nodes(mock_device["dev_id"]):
@@ -167,8 +192,19 @@ async def test_basic_window_mode(hass, mock_smartbox, caplog):
 
 
 async def test_basic_true_radiant(hass, mock_smartbox, caplog):
-    assert await async_setup_component(hass, "smartbox", mock_smartbox.config)
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="test_username_1",
+        data=mock_smartbox.config[DOMAIN],
+    )
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
+    assert len(hass.states.async_entity_ids(SWITCH_DOMAIN)) == 12
+    entries = hass.config_entries.async_entries(DOMAIN)
+    assert len(entries) == 1
+
+    assert DOMAIN in hass.config.components
 
     for mock_device in mock_smartbox.session.get_devices():
         for mock_node in mock_smartbox.session.get_nodes(mock_device["dev_id"]):

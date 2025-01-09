@@ -2,10 +2,8 @@ from typing import Any, Dict, List
 
 from custom_components.smartbox.const import (
     DOMAIN,
-    CONF_ACCOUNTS,
     CONF_API_NAME,
     CONF_BASIC_AUTH_CREDS,
-    CONF_DEVICE_IDS,
     CONF_PASSWORD,
     CONF_USERNAME,
     CONF_SESSION_RETRY_ATTEMPTS,
@@ -17,84 +15,18 @@ from custom_components.smartbox.const import (
     HEATER_NODE_TYPE_HTR_MOD,
 )
 
-TEST_CONFIG_1 = {
-    DOMAIN: {
-        CONF_ACCOUNTS: [
-            {
-                CONF_API_NAME: "test_api_name_1",
-                CONF_USERNAME: "test_username_1",
-                CONF_PASSWORD: "test_password_1",
-                CONF_DEVICE_IDS: ["test_device_id_1"],
-                CONF_SESSION_RETRY_ATTEMPTS: 4,
-                CONF_SESSION_BACKOFF_FACTOR: 0.1,
-                CONF_SOCKET_RECONNECT_ATTEMPTS: 3,
-                CONF_SOCKET_BACKOFF_FACTOR: 0.2,
-            },
-        ],
-        CONF_BASIC_AUTH_CREDS: "test_basic_auth_creds",
-    }
-}
-
-TEST_CONFIG_2 = {
-    DOMAIN: {
-        CONF_ACCOUNTS: [
-            {
-                CONF_API_NAME: "test_api_name_1",
-                CONF_USERNAME: "test_username_1",
-                CONF_PASSWORD: "test_password_1",
-                CONF_DEVICE_IDS: ["test_device_id_1"],
-                CONF_SESSION_RETRY_ATTEMPTS: 5,
-                CONF_SESSION_BACKOFF_FACTOR: 0.2,
-                CONF_SOCKET_RECONNECT_ATTEMPTS: 4,
-                CONF_SOCKET_BACKOFF_FACTOR: 0.3,
-            },
-            {
-                CONF_API_NAME: "test_api_name_2",
-                CONF_USERNAME: "test_username_2",
-                CONF_PASSWORD: "test_password_2",
-                CONF_DEVICE_IDS: ["test_device_id_2_1", "test_device_id_2_2"],
-                CONF_SESSION_RETRY_ATTEMPTS: 6,
-                CONF_SESSION_BACKOFF_FACTOR: 0.3,
-                CONF_SOCKET_RECONNECT_ATTEMPTS: 5,
-                CONF_SOCKET_BACKOFF_FACTOR: 0.4,
-            },
-        ],
-        CONF_BASIC_AUTH_CREDS: "test_basic_auth_creds",
-    }
-}
-
-TEST_CONFIG_3 = {
-    DOMAIN: {
-        CONF_ACCOUNTS: [
-            {
-                CONF_API_NAME: "test_api_name_1",
-                CONF_USERNAME: "test_username_1",
-                CONF_PASSWORD: "test_password_1",
-                CONF_DEVICE_IDS: ["test_device_id_1", "test_device_id_2"],
-                CONF_SESSION_RETRY_ATTEMPTS: 7,
-                CONF_SESSION_BACKOFF_FACTOR: 0.4,
-                CONF_SOCKET_RECONNECT_ATTEMPTS: 6,
-                CONF_SOCKET_BACKOFF_FACTOR: 0.5,
-            },
-        ],
-        CONF_BASIC_AUTH_CREDS: "test_basic_auth_creds",
-    }
-}
+CONF_DEVICE_IDS = "device_ids"
 
 MOCK_SMARTBOX_CONFIG = {
     DOMAIN: {
-        CONF_ACCOUNTS: [
-            {
-                CONF_API_NAME: "test_api_name_1",
-                CONF_USERNAME: "test_username_1",
-                CONF_PASSWORD: "test_password_1",
-                CONF_DEVICE_IDS: ["test_device_id_1", "test_device_id_2"],
-                CONF_SESSION_RETRY_ATTEMPTS: 7,
-                CONF_SESSION_BACKOFF_FACTOR: 0.4,
-                CONF_SOCKET_RECONNECT_ATTEMPTS: 6,
-                CONF_SOCKET_BACKOFF_FACTOR: 0.5,
-            },
-        ],
+        CONF_API_NAME: "test_api_name_1",
+        CONF_USERNAME: "test_username_1",
+        CONF_PASSWORD: "test_password_1",
+        CONF_DEVICE_IDS: ["test_device_id_1", "test_device_id_2"],
+        CONF_SESSION_RETRY_ATTEMPTS: 7,
+        CONF_SESSION_BACKOFF_FACTOR: 0.4,
+        CONF_SOCKET_RECONNECT_ATTEMPTS: 6,
+        CONF_SOCKET_BACKOFF_FACTOR: 0.5,
         CONF_BASIC_AUTH_CREDS: "test_basic_auth_creds",
     }
 }
@@ -103,10 +35,16 @@ MOCK_SMARTBOX_DEVICE_INFO = {
     "test_device_id_1": {
         "dev_id": "test_device_id_1",
         "name": "Device 1",
+        "product_id": "product_id_1",
+        "fw_version": "fw_version_1",
+        "serial_id": "serial_id_1",
     },
     "test_device_id_2": {
         "dev_id": "test_device_id_2",
         "name": "Device 2",
+        "product_id": "product_id_2",
+        "fw_version": "fw_version_2",
+        "serial_id": "serial_id_2",
     },
 }
 
@@ -116,11 +54,17 @@ MOCK_SMARTBOX_NODE_INFO = {
             "addr": 0,
             "name": "Test device 1 node 0",
             "type": HEATER_NODE_TYPE_HTR,
+            "product_id": "product_id_1_0",
+            "fw_version": "fw_version_1_0",
+            "serial_id": "serial_id_1_0",
         },
         {
             "addr": 1,
             "name": "Test device 1 node 1",
             "type": HEATER_NODE_TYPE_ACM,
+            "product_id": "product_id_1_1",
+            "fw_version": "fw_version_1_1",
+            "serial_id": "serial_id_1_1",
         },
     ],
     "test_device_id_2": [
@@ -128,31 +72,49 @@ MOCK_SMARTBOX_NODE_INFO = {
             "addr": 0,
             "name": "Test device 2 node 0",
             "type": HEATER_NODE_TYPE_HTR_MOD,
+            "product_id": "product_id_2_0",
+            "fw_version": "fw_version_2_0",
+            "serial_id": "serial_id_2_0",
         },
         {
             "addr": 1,
             "name": "Test device 2 node 1",
             "type": HEATER_NODE_TYPE_HTR_MOD,
+            "product_id": "product_id_2_1",
+            "fw_version": "fw_version_2_1",
+            "serial_id": "serial_id_2_1",
         },
         {
             "addr": 2,
             "name": "Test device 2 node 2",
             "type": HEATER_NODE_TYPE_HTR_MOD,
+            "product_id": "product_id_2_2",
+            "fw_version": "fw_version_2_2",
+            "serial_id": "serial_id_2_2",
         },
         {
             "addr": 3,
             "name": "Test device 2 node 3",
             "type": HEATER_NODE_TYPE_HTR_MOD,
+            "product_id": "product_id_2_3",
+            "fw_version": "fw_version_2_3",
+            "serial_id": "serial_id_2_3",
         },
         {
             "addr": 4,
             "name": "Test device 2 node 4",
             "type": HEATER_NODE_TYPE_HTR_MOD,
+            "product_id": "product_id_2_4",
+            "fw_version": "fw_version_2_4",
+            "serial_id": "serial_id_2_4",
         },
         {
             "addr": 5,
             "name": "Test device 2 node 5",
             "type": HEATER_NODE_TYPE_HTR_MOD,
+            "product_id": "product_id_2_5",
+            "fw_version": "fw_version_2_5",
+            "serial_id": "serial_id_2_5",
         },
     ],
 }
@@ -250,7 +212,7 @@ MOCK_SMARTBOX_NODE_STATUS: Dict[str, List[Dict[str, Any]]] = {
     "test_device_id_2": [
         {
             "on": True,
-            "mtemp": "25.7",
+            "mtemp": "23.7",
             "selected_temp": "comfort",
             "comfort_temp": "20.3",
             "eco_offset": "4",
@@ -265,7 +227,7 @@ MOCK_SMARTBOX_NODE_STATUS: Dict[str, List[Dict[str, Any]]] = {
             "on": True,
             "mtemp": "18.2",
             "selected_temp": "comfort",
-            "comfort_temp": "22.3",
+            "comfort_temp": "20.3",
             "eco_offset": "4",
             "ice_temp": "7",
             "units": "C",

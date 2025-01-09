@@ -1,10 +1,13 @@
-from homeassistant.components.switch import (
-    SwitchEntity,
-)
-from homeassistant.core import HomeAssistant
+"""Support for Smartbox switch entities."""
+
 import logging
-from typing import Any, Callable, Dict, List, Optional, Union
 from unittest.mock import MagicMock
+
+from homeassistant.components.switch import SwitchEntity
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN, SMARTBOX_DEVICES, SMARTBOX_NODES
 from .model import (
@@ -17,18 +20,15 @@ from .model import (
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_platform(
+async def async_setup_entry(
     hass: HomeAssistant,
-    config: Dict[Any, Any],
-    async_add_entities: Callable,
-    discovery_info: Optional[Dict[Any, Any]] = None,
-) -> None:
+    entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:  # pylint: disable=unused-argument
     """Set up platform."""
     _LOGGER.debug("Setting up Smartbox switch platform")
-    if discovery_info is None:
-        return
 
-    switch_entities: List[SwitchEntity] = []
+    switch_entities: list[SwitchEntity] = []
     for device in hass.data[DOMAIN][SMARTBOX_DEVICES]:
         _LOGGER.debug("Creating away switch for device %s", device.name)
         switch_entities.append(AwaySwitch(device))
@@ -51,10 +51,23 @@ async def async_setup_platform(
 
 
 class AwaySwitch(SwitchEntity):
-    """Smartbox device away switch"""
+    """Smartbox device away switch."""
 
-    def __init__(self, device: Union[SmartboxDevice, MagicMock]) -> None:
+    def __init__(self, device: SmartboxDevice | MagicMock) -> None:
+        """Initialize the away Entity."""
         self._device = device
+        self._device_id = list(device.get_nodes())[0].node_id
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._device_id)},
+            name=self._device.name,
+            model_id=self._device.model_id,
+            sw_version=self._device.sw_version,
+            serial_number=self._device.serial_number,
+        )
 
     @property
     def name(self):
@@ -63,6 +76,7 @@ class AwaySwitch(SwitchEntity):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id of the switch."""
         return f"{self._device.dev_id}_away_status"
 
     def turn_on(self, **kwargs):  # pylint: disable=unused-argument
@@ -80,10 +94,23 @@ class AwaySwitch(SwitchEntity):
 
 
 class WindowModeSwitch(SwitchEntity):
-    """Smartbox node window mode switch"""
+    """Smartbox node window mode switch."""
 
-    def __init__(self, node: Union[SmartboxNode, MagicMock]) -> None:
+    def __init__(self, node: SmartboxNode | MagicMock) -> None:
+        """Initialize the window mode Entity."""
         self._node = node
+        self._device_id = self._node.node_id
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._device_id)},
+            name=self._node.name,
+            model_id=self._node.device.model_id,
+            sw_version=self._node.device.sw_version,
+            serial_number=self._node.device.serial_number,
+        )
 
     @property
     def name(self):
@@ -92,6 +119,7 @@ class WindowModeSwitch(SwitchEntity):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id of the switch."""
         return f"{self._node.node_id}_window_mode"
 
     def turn_on(self, **kwargs):  # pylint: disable=unused-argument
@@ -109,10 +137,23 @@ class WindowModeSwitch(SwitchEntity):
 
 
 class TrueRadiantSwitch(SwitchEntity):
-    """Smartbox node true radiant switch"""
+    """Smartbox node true radiant switch."""
 
-    def __init__(self, node: Union[SmartboxNode, MagicMock]) -> None:
+    def __init__(self, node: SmartboxNode | MagicMock) -> None:
+        """Initialize the radiant Entity."""
         self._node = node
+        self._device_id = self._node.node_id
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._device_id)},
+            name=self._node.name,
+            model_id=self._node.device.model_id,
+            sw_version=self._node.device.sw_version,
+            serial_number=self._node.device.serial_number,
+        )
 
     @property
     def name(self):
@@ -121,6 +162,7 @@ class TrueRadiantSwitch(SwitchEntity):
 
     @property
     def unique_id(self) -> str:
+        """Return the unique id of the switch."""
         return f"{self._node.node_id}_true_radiant"
 
     def turn_on(self, **kwargs):  # pylint: disable=unused-argument

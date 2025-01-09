@@ -6,10 +6,8 @@ from unittest.mock import (
     patch,
 )
 
-from homeassistant.components.climate.const import (
-    HVAC_MODE_AUTO,
-    HVAC_MODE_HEAT,
-    HVAC_MODE_OFF,
+from homeassistant.components.climate import (
+    HVACMode,
     PRESET_ACTIVITY,
     PRESET_AWAY,
     PRESET_COMFORT,
@@ -17,16 +15,6 @@ from homeassistant.components.climate.const import (
     PRESET_HOME,
 )
 from custom_components.smartbox.const import (
-    DOMAIN,
-    CONF_ACCOUNTS,
-    CONF_API_NAME,
-    CONF_BASIC_AUTH_CREDS,
-    CONF_PASSWORD,
-    CONF_USERNAME,
-    CONF_SESSION_RETRY_ATTEMPTS,
-    CONF_SESSION_BACKOFF_FACTOR,
-    CONF_SOCKET_RECONNECT_ATTEMPTS,
-    CONF_SOCKET_BACKOFF_FACTOR,
     HEATER_NODE_TYPE_ACM,
     HEATER_NODE_TYPE_HTR,
     HEATER_NODE_TYPE_HTR_MOD,
@@ -34,15 +22,14 @@ from custom_components.smartbox.const import (
     PRESET_SCHEDULE,
     PRESET_SELF_LEARN,
 )
+
+from const import MOCK_SMARTBOX_DEVICE_INFO
 from custom_components.smartbox.model import (
     create_smartbox_device,
     get_devices,
     get_hvac_mode,
-    get_preset_mode,
-    get_preset_modes,
     get_target_temperature,
     is_heater_node,
-    is_heating,
     is_supported_node,
     set_hvac_mode_args,
     set_preset_mode_status_update,
@@ -59,8 +46,6 @@ _LOGGER = logging.getLogger(__name__)
 
 async def test_create_smartbox_device(hass):
     dev_1_id = "test_device_id_1"
-    reconnect_attempts = 3
-    backoff_factor = 0.1
     mock_dev = mock_device(dev_1_id, [])
     mock_session = MagicMock()
     with patch(
@@ -69,10 +54,13 @@ async def test_create_smartbox_device(hass):
         return_value=mock_dev,
     ) as device_ctor_mock:
         device = await create_smartbox_device(
-            hass, dev_1_id, "Device 1", mock_session, reconnect_attempts, backoff_factor
+            hass,
+            dev_1_id,
+            mock_session,
         )
         device_ctor_mock.assert_called_with(
-            dev_1_id, "Device 1", mock_session, reconnect_attempts, backoff_factor
+            dev_1_id,
+            mock_session,
         )
         mock_dev.initialise_nodes.assert_awaited_with(hass)
         assert device == mock_dev
@@ -83,19 +71,10 @@ async def test_get_devices(hass, mock_smartbox):
     dev_1_name = "Device 1"
     dev_2_id = "test_device_id_2"  # missing
     dev_2_name = "Device 2"  # missing
-    reconnect_attempts = mock_smartbox.config[DOMAIN][CONF_ACCOUNTS][0][
-        CONF_SOCKET_RECONNECT_ATTEMPTS
-    ]
-    backoff_factor = mock_smartbox.config[DOMAIN][CONF_ACCOUNTS][0][
-        CONF_SOCKET_BACKOFF_FACTOR
-    ]
     test_devices = [
         SmartboxDevice(
-            dev["dev_id"],
-            dev["name"],
+            dev,
             mock_smartbox.session,
-            reconnect_attempts,
-            backoff_factor,
         )
         for dev in mock_smartbox.session.get_devices()
     ]
@@ -105,37 +84,7 @@ async def test_get_devices(hass, mock_smartbox):
         side_effect=test_devices,
     ) as create_smartbox_device_mock:
         # check we called the smartbox API correctly
-        devices = await get_devices(
-            hass,
-            mock_smartbox.config[DOMAIN][CONF_ACCOUNTS][0][CONF_API_NAME],
-            mock_smartbox.config[DOMAIN][CONF_BASIC_AUTH_CREDS],
-            mock_smartbox.config[DOMAIN][CONF_ACCOUNTS][0][CONF_USERNAME],
-            mock_smartbox.config[DOMAIN][CONF_ACCOUNTS][0][CONF_PASSWORD],
-            mock_smartbox.config[DOMAIN][CONF_ACCOUNTS][0][CONF_SESSION_RETRY_ATTEMPTS],
-            mock_smartbox.config[DOMAIN][CONF_ACCOUNTS][0][CONF_SESSION_BACKOFF_FACTOR],
-            mock_smartbox.config[DOMAIN][CONF_ACCOUNTS][0][
-                CONF_SOCKET_RECONNECT_ATTEMPTS
-            ],
-            mock_smartbox.config[DOMAIN][CONF_ACCOUNTS][0][CONF_SOCKET_BACKOFF_FACTOR],
-        )
-
-        # check we created the devices
-        create_smartbox_device_mock.assert_any_await(
-            hass,
-            dev_1_id,
-            dev_1_name,
-            mock_smartbox.session,
-            reconnect_attempts,
-            backoff_factor,
-        )
-        create_smartbox_device_mock.assert_any_await(
-            hass,
-            dev_2_id,
-            dev_2_name,
-            mock_smartbox.session,
-            reconnect_attempts,
-            backoff_factor,
-        )
+        devices = await get_devices(hass, mock_smartbox.session)
         assert devices == test_devices
 
 
@@ -150,7 +99,7 @@ async def test_smartbox_device_init(hass, mock_smartbox):
         side_effect=[node_sentinel_1, node_sentinel_2],
         autospec=True,
     ) as smartbox_node_ctor_mock:
-        device = SmartboxDevice(dev_id, "Device 1", mock_smartbox.session, 7, 0.2)
+        device = SmartboxDevice(mock_device, mock_smartbox.session)
         assert device.dev_id == dev_id
         await device.initialise_nodes(hass)
         mock_smartbox.session.get_nodes.assert_called_with(dev_id)
@@ -191,7 +140,7 @@ async def test_smartbox_device_dev_data_updates(hass):
         "custom_components.smartbox.model.SmartboxDevice.initialise_nodes",
         new_callable=NonCallableMock,
     ):
-        device = SmartboxDevice(dev_id, "Device 1", mock_session, 5, 0.3)
+        device = SmartboxDevice(MOCK_SMARTBOX_DEVICE_INFO[dev_id], mock_session)
         device._nodes = {
             (HEATER_NODE_TYPE_HTR, 1): mock_node_1,
             (HEATER_NODE_TYPE_ACM, 2): mock_node_2,
@@ -220,7 +169,7 @@ async def test_smartbox_device_node_status_update(hass, caplog):
         "custom_components.smartbox.model.SmartboxDevice.initialise_nodes",
         new_callable=NonCallableMock,
     ):
-        device = SmartboxDevice(dev_id, "Device 1", mock_session, 2, 0.1)
+        device = SmartboxDevice(MOCK_SMARTBOX_DEVICE_INFO[dev_id], mock_session)
         device._nodes = {
             (HEATER_NODE_TYPE_HTR, 1): mock_node_1,
             (HEATER_NODE_TYPE_ACM, 2): mock_node_2,
@@ -262,7 +211,7 @@ async def test_smartbox_device_node_setup_update(hass, caplog):
         "custom_components.smartbox.model.SmartboxDevice.initialise_nodes",
         new_callable=NonCallableMock,
     ):
-        device = SmartboxDevice(dev_id, "Device 1", mock_session, 2, 0.1)
+        device = SmartboxDevice(MOCK_SMARTBOX_DEVICE_INFO[dev_id], mock_session)
         device._nodes = {
             (HEATER_NODE_TYPE_HTR, 1): mock_node_1,
             (HEATER_NODE_TYPE_ACM, 2): mock_node_2,
@@ -526,45 +475,45 @@ def test_set_temperature_args():
 
 
 def test_get_hvac_mode():
-    assert get_hvac_mode(HEATER_NODE_TYPE_HTR, {"mode": "off"}) == HVAC_MODE_OFF
-    assert get_hvac_mode(HEATER_NODE_TYPE_ACM, {"mode": "auto"}) == HVAC_MODE_AUTO
+    assert get_hvac_mode(HEATER_NODE_TYPE_HTR, {"mode": "off"}) == HVACMode.OFF
+    assert get_hvac_mode(HEATER_NODE_TYPE_ACM, {"mode": "auto"}) == HVACMode.AUTO
     assert (
-        get_hvac_mode(HEATER_NODE_TYPE_HTR, {"mode": "modified_auto"}) == HVAC_MODE_AUTO
+        get_hvac_mode(HEATER_NODE_TYPE_HTR, {"mode": "modified_auto"}) == HVACMode.AUTO
     )
-    assert get_hvac_mode(HEATER_NODE_TYPE_ACM, {"mode": "manual"}) == HVAC_MODE_HEAT
+    assert get_hvac_mode(HEATER_NODE_TYPE_ACM, {"mode": "manual"}) == HVACMode.HEAT
     with pytest.raises(ValueError):
         get_hvac_mode(HEATER_NODE_TYPE_HTR, {"mode": "blah"})
     assert (
         get_hvac_mode(HEATER_NODE_TYPE_HTR_MOD, {"on": True, "mode": "auto"})
-        == HVAC_MODE_AUTO
+        == HVACMode.AUTO
     )
     assert (
         get_hvac_mode(HEATER_NODE_TYPE_HTR_MOD, {"on": True, "mode": "self_learn"})
-        == HVAC_MODE_AUTO
+        == HVACMode.AUTO
     )
     assert (
         get_hvac_mode(HEATER_NODE_TYPE_HTR_MOD, {"on": True, "mode": "presence"})
-        == HVAC_MODE_AUTO
+        == HVACMode.AUTO
     )
     assert (
         get_hvac_mode(HEATER_NODE_TYPE_HTR_MOD, {"on": True, "mode": "manual"})
-        == HVAC_MODE_HEAT
+        == HVACMode.HEAT
     )
     assert (
         get_hvac_mode(HEATER_NODE_TYPE_HTR_MOD, {"on": False, "mode": "auto"})
-        == HVAC_MODE_OFF
+        == HVACMode.OFF
     )
     assert (
         get_hvac_mode(HEATER_NODE_TYPE_HTR_MOD, {"on": False, "mode": "self_learn"})
-        == HVAC_MODE_OFF
+        == HVACMode.OFF
     )
     assert (
         get_hvac_mode(HEATER_NODE_TYPE_HTR_MOD, {"on": False, "mode": "presence"})
-        == HVAC_MODE_OFF
+        == HVACMode.OFF
     )
     assert (
         get_hvac_mode(HEATER_NODE_TYPE_HTR_MOD, {"on": False, "mode": "manual"})
-        == HVAC_MODE_OFF
+        == HVACMode.OFF
     )
     with pytest.raises(ValueError):
         get_hvac_mode(HEATER_NODE_TYPE_HTR_MOD, {"on": True, "mode": "blah"})
@@ -574,21 +523,27 @@ def test_get_hvac_mode():
 
 
 def test_set_hvac_mode_args():
-    assert set_hvac_mode_args(HEATER_NODE_TYPE_HTR, {}, HVAC_MODE_OFF) == {
-        "mode": "off"
-    }
-    assert set_hvac_mode_args(HEATER_NODE_TYPE_ACM, {}, HVAC_MODE_AUTO) == {
+    assert set_hvac_mode_args(HEATER_NODE_TYPE_HTR, {}, HVACMode.OFF) == {"mode": "off"}
+    assert set_hvac_mode_args(HEATER_NODE_TYPE_ACM, {}, HVACMode.AUTO) == {
         "mode": "auto"
     }
-    assert set_hvac_mode_args(HEATER_NODE_TYPE_HTR, {}, HVAC_MODE_HEAT) == {
+    assert set_hvac_mode_args(HEATER_NODE_TYPE_HTR, {}, HVACMode.HEAT) == {
         "mode": "manual"
     }
     with pytest.raises(ValueError):
         set_hvac_mode_args(HEATER_NODE_TYPE_HTR, {}, "blah")
-    assert set_hvac_mode_args(HEATER_NODE_TYPE_HTR_MOD, {}, HVAC_MODE_OFF,) == {
+    assert set_hvac_mode_args(
+        HEATER_NODE_TYPE_HTR_MOD,
+        {},
+        HVACMode.OFF,
+    ) == {
         "on": False,
     }
-    assert set_hvac_mode_args(HEATER_NODE_TYPE_HTR_MOD, {}, HVAC_MODE_AUTO,) == {
+    assert set_hvac_mode_args(
+        HEATER_NODE_TYPE_HTR_MOD,
+        {},
+        HVACMode.AUTO,
+    ) == {
         "on": True,
         "mode": "auto",
     }
@@ -597,7 +552,7 @@ def test_set_hvac_mode_args():
         {
             "selected_temp": "comfort",
         },
-        HVAC_MODE_HEAT,
+        HVACMode.HEAT,
     ) == {
         "on": True,
         "mode": "manual",
@@ -613,94 +568,9 @@ def test_set_hvac_mode_args():
         set_hvac_mode_args(
             HEATER_NODE_TYPE_HTR_MOD,
             {},
-            HVAC_MODE_HEAT,
+            HVACMode.HEAT,
         )
     assert "selected_temp" in exc_info.exconly()
-
-
-def test_get_preset_mode():
-    assert get_preset_mode(HEATER_NODE_TYPE_HTR, {}, away=True) == PRESET_AWAY
-    assert get_preset_mode(HEATER_NODE_TYPE_ACM, {}, away=True) == PRESET_AWAY
-    assert get_preset_mode(HEATER_NODE_TYPE_HTR_MOD, {}, away=True) == PRESET_AWAY
-    assert get_preset_mode(HEATER_NODE_TYPE_HTR, {}, away=False) == PRESET_HOME
-    assert get_preset_mode(HEATER_NODE_TYPE_ACM, {}, away=False) == PRESET_HOME
-
-    assert (
-        get_preset_mode(
-            HEATER_NODE_TYPE_HTR_MOD,
-            {"mode": "manual", "selected_temp": "comfort"},
-            away=False,
-        )
-        == PRESET_COMFORT
-    )
-    assert (
-        get_preset_mode(
-            HEATER_NODE_TYPE_HTR_MOD,
-            {"mode": "manual", "selected_temp": "eco"},
-            away=False,
-        )
-        == PRESET_ECO
-    )
-    assert (
-        get_preset_mode(
-            HEATER_NODE_TYPE_HTR_MOD,
-            {"mode": "manual", "selected_temp": "ice"},
-            away=False,
-        )
-        == PRESET_FROST
-    )
-    assert (
-        get_preset_mode(
-            HEATER_NODE_TYPE_HTR_MOD,
-            {"mode": "auto", "selected_temp": "comfort"},
-            away=False,
-        )
-        == PRESET_SCHEDULE
-    )
-    assert (
-        get_preset_mode(
-            HEATER_NODE_TYPE_HTR_MOD,
-            {"mode": "presence", "selected_temp": "comfort"},
-            away=False,
-        )
-        == PRESET_ACTIVITY
-    )
-    assert (
-        get_preset_mode(
-            HEATER_NODE_TYPE_HTR_MOD,
-            {"mode": "self_learn", "selected_temp": "comfort"},
-            away=False,
-        )
-        == PRESET_SELF_LEARN
-    )
-    with pytest.raises(ValueError) as exc_info:
-        get_preset_mode(
-            HEATER_NODE_TYPE_HTR_MOD,
-            {"mode": "blah", "selected_temp": "comfort"},
-            away=False,
-        )
-    assert "Unknown smartbox node mode" in exc_info.exconly()
-    with pytest.raises(ValueError) as exc_info:
-        get_preset_mode(
-            HEATER_NODE_TYPE_HTR_MOD,
-            {"mode": "manual", "selected_temp": "blah"},
-            away=False,
-        )
-    assert "Unexpected 'selected_temp' value" in exc_info.exconly()
-
-
-def test_get_preset_modes():
-    assert get_preset_modes(HEATER_NODE_TYPE_HTR) == [PRESET_AWAY, PRESET_HOME]
-    assert get_preset_modes(HEATER_NODE_TYPE_ACM) == [PRESET_AWAY, PRESET_HOME]
-    assert get_preset_modes(HEATER_NODE_TYPE_HTR_MOD) == [
-        PRESET_ACTIVITY,
-        PRESET_AWAY,
-        PRESET_COMFORT,
-        PRESET_ECO,
-        PRESET_FROST,
-        PRESET_SCHEDULE,
-        PRESET_SELF_LEARN,
-    ]
 
 
 def test_set_preset_mode_status_update():
@@ -736,16 +606,3 @@ def test_set_preset_mode_status_update():
         set_preset_mode_status_update(HEATER_NODE_TYPE_HTR_MOD, {}, PRESET_HOME)
     with pytest.raises(AssertionError):
         set_preset_mode_status_update(HEATER_NODE_TYPE_HTR_MOD, {}, PRESET_AWAY)
-
-
-def test_status_to_hvac_action():
-    assert is_heating(HEATER_NODE_TYPE_HTR, {"active": True})
-    assert not is_heating(HEATER_NODE_TYPE_HTR, {"active": False})
-    assert is_heating(HEATER_NODE_TYPE_ACM, {"charging": True})
-    assert not is_heating(HEATER_NODE_TYPE_ACM, {"charging": False})
-    assert is_heating(HEATER_NODE_TYPE_HTR_MOD, {"active": True})
-    assert not is_heating(HEATER_NODE_TYPE_HTR_MOD, {"active": False})
-    with pytest.raises(KeyError):
-        is_heating(HEATER_NODE_TYPE_HTR, {})
-    with pytest.raises(KeyError):
-        is_heating(HEATER_NODE_TYPE_ACM, {"active": True})

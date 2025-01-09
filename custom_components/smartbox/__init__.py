@@ -1,153 +1,93 @@
 """The Smartbox integration."""
+
 import logging
+from typing import Any
 
-import voluptuous as vol
+from smartbox import Session
 
-import homeassistant.helpers.config_validation as cv
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.discovery import async_load_platform
-
-from smartbox import __version__ as SMARTBOX_VERSION
+from homeassistant.exceptions import ConfigEntryAuthFailed
 
 from .const import (
-    DOMAIN,
-    CONF_ACCOUNTS,
     CONF_API_NAME,
     CONF_BASIC_AUTH_CREDS,
-    CONF_DEVICE_IDS,
     CONF_PASSWORD,
-    CONF_SESSION_RETRY_ATTEMPTS,
-    CONF_SESSION_BACKOFF_FACTOR,
-    CONF_SOCKET_RECONNECT_ATTEMPTS,
-    CONF_SOCKET_BACKOFF_FACTOR,
     CONF_USERNAME,
-    DEFAULT_SESSION_RETRY_ATTEMPTS,
-    DEFAULT_SESSION_BACKOFF_FACTOR,
-    DEFAULT_SOCKET_RECONNECT_ATTEMPTS,
-    DEFAULT_SOCKET_BACKOFF_FACTOR,
+    DOMAIN,
     SMARTBOX_DEVICES,
     SMARTBOX_NODES,
 )
 from .model import get_devices, is_supported_node
 
-__version__ = "2.0.0-beta.2"
+__version__ = "2.1.0"
 
 _LOGGER = logging.getLogger(__name__)
 
-
-DEVICE_IDS_SCHEMA = vol.Schema([cv.string])
-
-ACCOUNT_SCHEMA = vol.Schema(
-    {
-        vol.Required(CONF_API_NAME): cv.string,
-        vol.Required(CONF_USERNAME): cv.string,
-        vol.Required(CONF_PASSWORD): cv.string,
-        vol.Required(CONF_DEVICE_IDS): DEVICE_IDS_SCHEMA,
-        vol.Required(
-            CONF_SESSION_RETRY_ATTEMPTS, default=DEFAULT_SESSION_RETRY_ATTEMPTS
-        ): cv.positive_int,
-        vol.Required(
-            CONF_SESSION_BACKOFF_FACTOR, default=DEFAULT_SESSION_BACKOFF_FACTOR
-        ): cv.small_float,
-        vol.Required(
-            CONF_SOCKET_RECONNECT_ATTEMPTS, default=DEFAULT_SOCKET_RECONNECT_ATTEMPTS
-        ): cv.positive_int,
-        vol.Required(
-            CONF_SOCKET_BACKOFF_FACTOR, default=DEFAULT_SOCKET_BACKOFF_FACTOR
-        ): cv.small_float,
-    }
-)
-
-CONFIG_SCHEMA = vol.Schema(
-    {
-        DOMAIN: vol.Schema(
-            {
-                vol.Required(CONF_ACCOUNTS): vol.All(cv.ensure_list, [ACCOUNT_SCHEMA]),
-                vol.Required(CONF_BASIC_AUTH_CREDS): cv.string,
-            }
-        )
-    },
-    extra=vol.ALLOW_EXTRA,
-)
-
-PLATFORMS = ["climate", "number", "sensor", "switch"]
+PLATFORMS: list[Platform] = [
+    Platform.CLIMATE,
+    Platform.NUMBER,
+    Platform.SENSOR,
+    Platform.SWITCH,
+]
 
 
-async def async_setup(hass: HomeAssistant, config: dict) -> bool:
-    """Set up the Smartbox component."""
-    hass.data.setdefault(DOMAIN, {})
-
-    _LOGGER.info(
-        f"Setting up Smartbox integration v{__version__}"
-        f" (using smartbox v{SMARTBOX_VERSION})"
+async def create_smartbox_session_from_entry(
+    hass: HomeAssistant, entry: ConfigEntry | dict[str, Any] | None = None
+) -> Session:
+    """Create a Session class from smartbox."""
+    data = {}
+    if type(entry) is dict:
+        data = entry
+    else:
+        data = entry.data
+    session = await hass.async_add_executor_job(
+        Session,
+        data[CONF_API_NAME],
+        data[CONF_BASIC_AUTH_CREDS],
+        data[CONF_USERNAME],
+        data[CONF_PASSWORD],
     )
+    await hass.async_add_executor_job(session.get_access_token)
+    return session
 
-    accounts_cfg = config[DOMAIN][CONF_ACCOUNTS]
-    _LOGGER.debug(f"accounts: {accounts_cfg}")
-    basic_auth_creds = config[DOMAIN][CONF_BASIC_AUTH_CREDS]
-    _LOGGER.debug(f"basic_auth_creds: {basic_auth_creds}")
 
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Set up Smartbox from a config entry."""
+    try:
+        session = await create_smartbox_session_from_entry(hass, entry)
+    except Exception as ex:
+        raise ConfigEntryAuthFailed from ex
+
+    hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][SMARTBOX_DEVICES] = []
     hass.data[DOMAIN][SMARTBOX_NODES] = []
 
-    for account in accounts_cfg:
-        devices = await get_devices(
-            hass,
-            account[CONF_API_NAME],
-            basic_auth_creds,
-            account[CONF_USERNAME],
-            account[CONF_PASSWORD],
-            account[CONF_SESSION_RETRY_ATTEMPTS],
-            account[CONF_SESSION_BACKOFF_FACTOR],
-            account[CONF_SOCKET_RECONNECT_ATTEMPTS],
-            account[CONF_SOCKET_BACKOFF_FACTOR],
-        )
-
-        found_dev_ids = frozenset(dev.dev_id for dev in devices)
-        for dev_id in found_dev_ids.difference(account[CONF_DEVICE_IDS]):
-            _LOGGER.warning(
-                f"Found device {dev_id} which was not configured - ignoring"
-            )
-
-        for device in devices:
-            if device.dev_id in account[CONF_DEVICE_IDS]:
-                _LOGGER.info(f"Setting up configured device {device.dev_id}")
-                hass.data[DOMAIN][SMARTBOX_DEVICES].append(device)
-
-        setup_dev_ids = frozenset(
-            dev.dev_id for dev in hass.data[DOMAIN][SMARTBOX_DEVICES]
-        )
-        for dev_id in frozenset(account[CONF_DEVICE_IDS]) - setup_dev_ids:
-            _LOGGER.error(f"Configured device {dev_id} was not found")
-
+    devices = await get_devices(hass=hass, session=session)
+    for device in devices:
+        _LOGGER.info("Setting up configured device %s", device.dev_id)
+        hass.data[DOMAIN][SMARTBOX_DEVICES].append(device)
     for device in hass.data[DOMAIN][SMARTBOX_DEVICES]:
         nodes = device.get_nodes()
-        _LOGGER.debug(f"Configuring nodes for device {device.dev_id} {nodes}")
+        _LOGGER.debug("Configuring nodes for device %s %s", device.dev_id, nodes)
         for node in nodes:
             if not is_supported_node(node):
                 _LOGGER.error(
-                    f'Nodes of type "{node.node_type}" are not yet supported; '
-                    "no entities will be created. Please file an issue on GitHub."
+                    'Nodes of type "%s" are not yet supported; no entities will be created. Please file an issue on GitHub',
+                    node.node_type,
                 )
         hass.data[DOMAIN][SMARTBOX_NODES].extend(nodes)
-
-    if hass.data[DOMAIN][SMARTBOX_DEVICES]:
-        for component in PLATFORMS:
-            await async_load_platform(hass, component, DOMAIN, {}, config)
-
-    _LOGGER.debug("Finished setting up Smartbox integration")
-
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    entry.async_on_unload(entry.add_update_listener(update_listener))
     return True
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
-    """Set up Smartbox from a config entry."""
-    # TODO: implement
-    return False
-
-
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
-    # TODO: implement
-    return False
+    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+
+
+async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Reload entity from config entry."""
+    await hass.config_entries.async_reload(entry.entry_id)

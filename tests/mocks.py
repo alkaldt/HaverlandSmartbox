@@ -10,8 +10,6 @@ from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 from homeassistant.helpers import entity_registry
 from custom_components.smartbox.const import (
     DOMAIN,
-    CONF_ACCOUNTS,
-    CONF_DEVICE_IDS,
     HEATER_NODE_TYPE_ACM,
     HEATER_NODE_TYPE_HTR,
     HEATER_NODE_TYPE_HTR_MOD,
@@ -19,6 +17,7 @@ from custom_components.smartbox.const import (
 from custom_components.smartbox.types import SetupDict, StatusDict
 
 _LOGGER = logging.getLogger(__name__)
+from tests.const import CONF_DEVICE_IDS
 
 
 def mock_device(dev_id: str, nodes: List[MagicMock]) -> MagicMock:
@@ -151,8 +150,8 @@ class MockSmartbox(object):
         start_available=True,
     ):
         self.config = mock_config
-        assert len(mock_config[DOMAIN][CONF_ACCOUNTS]) == 1
-        config_dev_ids = mock_config[DOMAIN][CONF_ACCOUNTS][0][CONF_DEVICE_IDS]
+        assert len(mock_config[DOMAIN]) == 9
+        config_dev_ids = mock_config[DOMAIN][CONF_DEVICE_IDS]
         self._device_info = mock_device_info
         self._devices = list(map(self._get_device, config_dev_ids))
         self._node_info = mock_node_info
@@ -214,8 +213,6 @@ class MockSmartbox(object):
         basic_auth_credentials: str,
         username: str,
         password: str,
-        retry_attempts: int,
-        backoff_factor: float,
     ):
         """Patched to custom_components.smartbox.model.Session"""
         return self._session
@@ -234,8 +231,6 @@ class MockSmartbox(object):
         dev_id,
         on_dev_data,
         on_update,
-        reconnect_attempts,
-        backoff_factor,
     ):
         """Patched to smartbox.update_manager.SocketSession"""
         assert session == self._session
