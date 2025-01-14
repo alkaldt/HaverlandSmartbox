@@ -8,9 +8,7 @@
           "api_name": "Api name",
           "username": "Username",
           "password": "Password",
-          "basic_auth_creds": "Basic Authentication Credential",
-          "x_referer": "X Referer",
-          "x_serialid": "X serial id"
+          "basic_auth_creds": "Basic Authentication Credential"
         },
         "data_description": {
           "api_name": "The API name for your heater vendor. This is visible in the 'API Host' entry in the 'Version' menu item in the mobile app/web app. If the host name is of the form api-foo.xxxx or api.xxxx use the values api-foo or api respectively.",

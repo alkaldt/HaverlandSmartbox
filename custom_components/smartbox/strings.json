@@ -8,9 +8,7 @@
           "api_name": "[%key:common::config_flow::data::api_name%]",
           "username": "[%key:common::config_flow::data::username%]",
           "password": "[%key:common::config_flow::data::password%]",
-          "basic_auth_creds": "[%key:common::config_flow::data::basic_auth_creds%]",
-          "x_referer": "[%key:common::config_flow::data::x_referer%]",
-          "x_serialid": "[%key:common::config_flow::data::x_serialid%]"
+          "basic_auth_creds": "[%key:common::config_flow::data::basic_auth_creds%]"
         },
         "data_description": {
           "api_name": "[%key:common::config_flow::data_description::api_name%]",
