@@ -18,21 +18,6 @@ Initial support is available for installation via HACS, as a [custom
 repository].
 
 ## Configuration
-**Note: currently only YAML-based configuration is supported, the UI-based
-config flow is not yet implemented.**
-
-Add a section like the following to your Home Assistant config.yaml:
-
-```
-smartbox:
-  accounts:
-  - api_name: <api name>
-    username: <api username>
-    password: <api password>
-    device_ids:
-    - <device id>
-  basic_auth_creds: <basic auth credentials>
-```
 
 You will need the following items of information:
 * The API name for your heater vendor. This is visible in the 'API Host' entry
@@ -40,14 +25,9 @@ You will need the following items of information:
   the form `api-foo.xxxx` or `api.xxxx` use the values `api-foo` or `api`
   respectively.
 * Your username and password used for the mobile app/web app.
-* Your smartbox device ID, which is shows as the 'Device ID Code' under My
-  Devices in the Home section of the mobile app/web app.
 * Basic auth credentials: this is an HTTP Basic Auth credential used to do
   initial authentication with the server. Use the base64 encoded string
   directly. See 'Basic Auth Credential' section below for more details.
-
-It's recommended that you store credentials using the built-in [Home Assistant
-secrets management].
 
 ### Basic Auth Credential
 Initial authentication to the smartbox REST API is protected by HTTP Basic Auth,
@@ -60,13 +40,10 @@ is not provided here and system owners need to find it themselves**.
 You can also specify the following options (although they have reasonable defaults):
 
 ```
-smartbox:
-  accounts:
-  - ...
-    session_retry_attempts: 8 # how many times to retry session REST operations
-    session_backoff_factor: 0.1 # how much to backoff between REST retries
-    socket_reconnect_attempts: 3 # how many times to try reconnecting the socket.io socket
-    socket_backoff_factor: 0.1 # how much to backoff between initial socket connect attempts
+  session_retry_attempts: 8 # how many times to retry session REST operations
+  session_backoff_factor: 0.1 # how much to backoff between REST retries
+  socket_reconnect_attempts: 3 # how many times to try reconnecting the socket.io socket
+  socket_backoff_factor: 0.1 # how much to backoff between initial socket connect attempts
 ```
 
 ### Use in energy dashboard
@@ -83,7 +60,7 @@ infrequent and so this won't be accurate.
 ```
 sensor:
   - platform: integration
-    source: sensor.living_room
+    source: sensor.living_room.energy
     name: energy_living_room
     unit_prefix: k
     round: 2

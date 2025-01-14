@@ -29,7 +29,6 @@ from homeassistant.components.climate.const import (
 
 from custom_components.smartbox.climate import (
     get_hvac_mode,
-    status_to_hvac_action,
 )
 from custom_components.smartbox.const import (
     HEATER_NODE_TYPE_HTR,
@@ -52,37 +51,6 @@ from mocks import (
 from test_utils import assert_no_log_errors, convert_temp, round_temp
 
 _LOGGER = logging.getLogger(__name__)
-
-
-def test_status_to_hvac_action():
-    assert (
-        status_to_hvac_action(HEATER_NODE_TYPE_HTR, {"active": True})
-        == HVACAction.HEATING
-    )
-    assert (
-        status_to_hvac_action(HEATER_NODE_TYPE_HTR, {"active": False})
-        == HVACAction.IDLE
-    )
-    assert (
-        status_to_hvac_action(HEATER_NODE_TYPE_ACM, {"charging": True})
-        == HVACAction.HEATING
-    )
-    assert (
-        status_to_hvac_action(HEATER_NODE_TYPE_ACM, {"charging": False})
-        == HVACAction.IDLE
-    )
-    assert (
-        status_to_hvac_action(HEATER_NODE_TYPE_HTR_MOD, {"active": True})
-        == HVACAction.HEATING
-    )
-    assert (
-        status_to_hvac_action(HEATER_NODE_TYPE_HTR_MOD, {"active": False})
-        == HVACAction.IDLE
-    )
-    with pytest.raises(KeyError):
-        status_to_hvac_action(HEATER_NODE_TYPE_HTR, {})
-    with pytest.raises(KeyError):
-        status_to_hvac_action(HEATER_NODE_TYPE_ACM, {"active": True})
 
 
 def _check_state(hass, mock_node, mock_node_status, state):
@@ -114,19 +82,31 @@ def _check_state(hass, mock_node, mock_node_status, state):
         convert_temp(hass, mock_node_status["units"], target_temp),
     )
 
-    assert state.attributes[ATTR_HVAC_ACTION] == status_to_hvac_action(
-        mock_node["type"], mock_node_status
+
+from custom_components.smartbox.const import DOMAIN
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+
+async def test_basic_climate(hass, mock_smartbox, caplog):
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="test_username_1",
+        data=mock_smartbox.config[DOMAIN],
     )
-
-
-async def test_basic(hass, mock_smartbox, caplog):
-    assert await async_setup_component(hass, "smartbox", mock_smartbox.config)
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
+    assert len(hass.states.async_entity_ids(CLIMATE_DOMAIN)) == 8
+    entries = hass.config_entries.async_entries(DOMAIN)
+    assert len(entries) == 1
+
+    assert DOMAIN in hass.config.components
 
     for mock_device in mock_smartbox.session.get_devices():
         for mock_node in mock_smartbox.session.get_nodes(mock_device["dev_id"]):
             entity_id = get_climate_entity_id(mock_node)
             state = hass.states.get(entity_id)
+            print(hass.states)
 
             # check basic properties
             assert state.object_id.startswith(
@@ -167,8 +147,19 @@ async def test_basic(hass, mock_smartbox, caplog):
 
 
 async def test_unavailable(hass, mock_smartbox):
-    assert await async_setup_component(hass, "smartbox", mock_smartbox.config)
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="test_username_1",
+        data=mock_smartbox.config[DOMAIN],
+    )
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
+    assert len(hass.states.async_entity_ids(CLIMATE_DOMAIN)) == 8
+    entries = hass.config_entries.async_entries(DOMAIN)
+    assert len(entries) == 1
+
+    assert DOMAIN in hass.config.components
 
     for mock_device in mock_smartbox.session.get_devices():
         for mock_node in mock_smartbox.session.get_nodes(mock_device["dev_id"]):
@@ -219,8 +210,19 @@ def _check_not_away_preset(node_type, status, preset_mode):
 
 
 async def test_away(hass, mock_smartbox):
-    assert await async_setup_component(hass, "smartbox", mock_smartbox.config)
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="test_username_1",
+        data=mock_smartbox.config[DOMAIN],
+    )
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
+    assert len(hass.states.async_entity_ids(CLIMATE_DOMAIN)) == 8
+    entries = hass.config_entries.async_entries(DOMAIN)
+    assert len(entries) == 1
+
+    assert DOMAIN in hass.config.components
 
     # test everything is not away
     for mock_device in mock_smartbox.session.get_devices():
@@ -258,8 +260,19 @@ async def test_away(hass, mock_smartbox):
 
 
 async def test_away_preset(hass, mock_smartbox):
-    assert await async_setup_component(hass, "smartbox", mock_smartbox.config)
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="test_username_1",
+        data=mock_smartbox.config[DOMAIN],
+    )
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
+    assert len(hass.states.async_entity_ids(CLIMATE_DOMAIN)) == 8
+    entries = hass.config_entries.async_entries(DOMAIN)
+    assert len(entries) == 1
+
+    assert DOMAIN in hass.config.components
 
     # test everything is not away
     for mock_device in mock_smartbox.session.get_devices():
@@ -328,8 +341,19 @@ async def test_away_preset(hass, mock_smartbox):
 
 
 async def test_schedule_preset(hass, mock_smartbox):
-    assert await async_setup_component(hass, "smartbox", mock_smartbox.config)
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="test_username_1",
+        data=mock_smartbox.config[DOMAIN],
+    )
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
+    assert len(hass.states.async_entity_ids(CLIMATE_DOMAIN)) == 8
+    entries = hass.config_entries.async_entries(DOMAIN)
+    assert len(entries) == 1
+
+    assert DOMAIN in hass.config.components
 
     # Device 2 node 1 starts in manual mode, selected_temp comfort
     mock_device_2 = mock_smartbox.session.get_devices()[1]
@@ -356,8 +380,19 @@ async def test_schedule_preset(hass, mock_smartbox):
 
 
 async def test_self_learn_preset(hass, mock_smartbox):
-    assert await async_setup_component(hass, "smartbox", mock_smartbox.config)
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="test_username_1",
+        data=mock_smartbox.config[DOMAIN],
+    )
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
+    assert len(hass.states.async_entity_ids(CLIMATE_DOMAIN)) == 8
+    entries = hass.config_entries.async_entries(DOMAIN)
+    assert len(entries) == 1
+
+    assert DOMAIN in hass.config.components
 
     # Device 2 node 1 starts in manual mode, selected_temp comfort
     mock_device_2 = mock_smartbox.session.get_devices()[1]
@@ -387,8 +422,19 @@ async def test_self_learn_preset(hass, mock_smartbox):
 
 
 async def test_activity_preset(hass, mock_smartbox):
-    assert await async_setup_component(hass, "smartbox", mock_smartbox.config)
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="test_username_1",
+        data=mock_smartbox.config[DOMAIN],
+    )
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
+    assert len(hass.states.async_entity_ids(CLIMATE_DOMAIN)) == 8
+    entries = hass.config_entries.async_entries(DOMAIN)
+    assert len(entries) == 1
+
+    assert DOMAIN in hass.config.components
 
     # Device 2 node 1 starts in manual mode, selected_temp comfort
     mock_device_2 = mock_smartbox.session.get_devices()[1]
@@ -418,8 +464,19 @@ async def test_activity_preset(hass, mock_smartbox):
 
 
 async def test_comfort_preset(hass, mock_smartbox):
-    assert await async_setup_component(hass, "smartbox", mock_smartbox.config)
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="test_username_1",
+        data=mock_smartbox.config[DOMAIN],
+    )
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
+    assert len(hass.states.async_entity_ids(CLIMATE_DOMAIN)) == 8
+    entries = hass.config_entries.async_entries(DOMAIN)
+    assert len(entries) == 1
+
+    assert DOMAIN in hass.config.components
 
     # Device 2 node 2 starts in manual mode, selected_temp eco
     mock_device_2 = mock_smartbox.session.get_devices()[1]
@@ -450,8 +507,19 @@ async def test_comfort_preset(hass, mock_smartbox):
 
 
 async def test_eco_preset(hass, mock_smartbox):
-    assert await async_setup_component(hass, "smartbox", mock_smartbox.config)
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="test_username_1",
+        data=mock_smartbox.config[DOMAIN],
+    )
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
+    assert len(hass.states.async_entity_ids(CLIMATE_DOMAIN)) == 8
+    entries = hass.config_entries.async_entries(DOMAIN)
+    assert len(entries) == 1
+
+    assert DOMAIN in hass.config.components
 
     # Device 2 node 1 starts in manual mode, selected_temp comfort
     mock_device_2 = mock_smartbox.session.get_devices()[1]
@@ -482,8 +550,19 @@ async def test_eco_preset(hass, mock_smartbox):
 
 
 async def test_frost_preset(hass, mock_smartbox):
-    assert await async_setup_component(hass, "smartbox", mock_smartbox.config)
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="test_username_1",
+        data=mock_smartbox.config[DOMAIN],
+    )
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
+    assert len(hass.states.async_entity_ids(CLIMATE_DOMAIN)) == 8
+    entries = hass.config_entries.async_entries(DOMAIN)
+    assert len(entries) == 1
+
+    assert DOMAIN in hass.config.components
 
     # Device 2 node 2 starts in manual mode, selected_temp eco
     mock_device_2 = mock_smartbox.session.get_devices()[1]
@@ -540,8 +619,19 @@ async def test_frost_preset(hass, mock_smartbox):
 
 
 async def test_set_hvac_mode(hass, mock_smartbox):
-    assert await async_setup_component(hass, "smartbox", mock_smartbox.config)
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="test_username_1",
+        data=mock_smartbox.config[DOMAIN],
+    )
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
+    assert len(hass.states.async_entity_ids(CLIMATE_DOMAIN)) == 8
+    entries = hass.config_entries.async_entries(DOMAIN)
+    assert len(entries) == 1
+
+    assert DOMAIN in hass.config.components
 
     await hass.services.async_call(
         CLIMATE_DOMAIN,
@@ -605,19 +695,29 @@ async def test_set_hvac_mode(hass, mock_smartbox):
 
 
 async def test_set_target_temp(hass, mock_smartbox):
-    assert await async_setup_component(hass, "smartbox", mock_smartbox.config)
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="test_username_1",
+        data=mock_smartbox.config[DOMAIN],
+    )
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
+    assert len(hass.states.async_entity_ids(CLIMATE_DOMAIN)) == 8
+    entries = hass.config_entries.async_entries(DOMAIN)
+    assert len(entries) == 1
+
+    assert DOMAIN in hass.config.components
 
     for mock_device in mock_smartbox.session.get_devices():
         for mock_node in mock_smartbox.session.get_nodes(mock_device["dev_id"]):
             entity_id = get_climate_entity_id(mock_node)
 
             state = hass.states.get(entity_id)
-            old_target_temp = state.attributes[ATTR_TEMPERATURE]
-
             mock_node_status = mock_smartbox.session.get_status(
                 mock_device["dev_id"], mock_node
             )
+            old_target_temp = state.attributes[f"current_{ATTR_TEMPERATURE}"]
             if (
                 mock_node["type"] == HEATER_NODE_TYPE_HTR_MOD
                 and mock_node_status["selected_temp"] == "ice"
@@ -652,8 +752,19 @@ async def test_set_target_temp(hass, mock_smartbox):
 
 
 async def test_hvac_action(hass, mock_smartbox):
-    assert await async_setup_component(hass, "smartbox", mock_smartbox.config)
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="test_username_1",
+        data=mock_smartbox.config[DOMAIN],
+    )
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
+    assert len(hass.states.async_entity_ids(CLIMATE_DOMAIN)) == 8
+    entries = hass.config_entries.async_entries(DOMAIN)
+    assert len(entries) == 1
+
+    assert DOMAIN in hass.config.components
 
     for mock_device in mock_smartbox.session.get_devices():
         for mock_node in mock_smartbox.session.get_nodes(mock_device["dev_id"]):
@@ -679,10 +790,19 @@ async def test_hvac_action(hass, mock_smartbox):
 
 
 async def test_unavailable_at_startup(hass, mock_smartbox_unavailable):
-    assert await async_setup_component(
-        hass, "smartbox", mock_smartbox_unavailable.config
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="test_username_1",
+        data=mock_smartbox_unavailable.config[DOMAIN],
     )
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
+    assert len(hass.states.async_entity_ids(CLIMATE_DOMAIN)) == 8
+    entries = hass.config_entries.async_entries(DOMAIN)
+    assert len(entries) == 1
+
+    assert DOMAIN in hass.config.components
 
     for mock_device in mock_smartbox_unavailable.session.get_devices():
         for mock_node in mock_smartbox_unavailable.session.get_nodes(

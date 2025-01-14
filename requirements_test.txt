@@ -2,11 +2,11 @@
 coverage
 # The version of homeassistant used for testing needs to be tightly coordinated with
 # pytest-homeassistant-custom-component and homeassistant-stubs
-homeassistant>=2024.2.0,<2025.1.0
-homeassistant-stubs>=2024.2.0,<2025.1.0
+homeassistant>=2024.12.5,<2025.1.0
+homeassistant-stubs>=2024.12.5,<2025.1.0
 pytest
 pytest-aiohttp
 pytest-cov
-pytest-homeassistant-custom-component==0.13.99
+pytest-homeassistant-custom-component==0.13.195
 pytest-sugar
 tox

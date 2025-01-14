@@ -1,0 +1,85 @@
+{
+  "title": "smartbox",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Add an account",
+        "data": {
+          "api_name": "Api name",
+          "username": "Username",
+          "password": "Password",
+          "basic_auth_creds": "Basic Authentication Credential",
+          "x_referer": "X Referer",
+          "x_serialid": "X serial id"
+        },
+        "data_description": {
+          "api_name": "The API name for your heater vendor. This is visible in the 'API Host' entry in the 'Version' menu item in the mobile app/web app. If the host name is of the form api-foo.xxxx or api.xxxx use the values api-foo or api respectively.",
+          "basic_auth_creds": "This is an HTTP Basic Auth credential used to do initial authentication with the server. Use the base64 encoded string directly"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Reauthentication",
+        "description": "The Smartbox integration needs to re-authenticate your account",
+        "data": {
+          "username": "Username",
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot connect {error}",
+      "invalid_auth": "Invalid authentication {error}",
+      "unknown": "Unknow error {error}"
+    },
+    "abort": {
+      "unknown": "Unknown error {error}.",
+      "already_configured": "This account is already configured.",
+      "reauth_successful": "Reauthenticatication successful."
+    }
+  },
+  "options": {
+    "step": {
+      "session_options": {
+        "title": "Session options",
+        "data": {
+          "session_retry_attempts": "Session retry attempts",
+          "session_backoff_factor": "Session backoff attempts",
+          "socket_reconnect_attempts": "Session retry attempts",
+          "socket_backoff_factor": "Session retry attempts"
+        },
+        "data_description": {
+          "session_retry_attempts": "How many times to retry session REST operations",
+          "session_backoff_factor": "How much to backoff between REST retries",
+          "socket_reconnect_attempts": "How many times to try reconnecting the socket.io socket",
+          "socket_backoff_factor": "How much to backoff between initial socket connect attempts"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "charge_level": {
+        "name": "Charge Level"
+      },
+      "duty_cycle": {
+        "name": "Duty Cycle"
+      }
+    },
+    "number": {
+      "power_limit": {
+        "name": "Power Limit"
+      }
+    },
+    "switch": {
+      "true_radiant": {
+        "name": "True Radiant"
+      },
+      "window_mode": {
+        "name": "Window mode"
+      },
+      "away_status": {
+        "name": "Away status"
+      }
+    }
+  }
+}
