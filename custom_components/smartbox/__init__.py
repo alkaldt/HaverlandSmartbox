@@ -2,7 +2,7 @@
 
 import logging
 from typing import Any
-
+import requests
 from smartbox import Session
 
 from homeassistant.config_entries import ConfigEntry
@@ -32,6 +32,12 @@ PLATFORMS: list[Platform] = [
     Platform.SWITCH,
 ]
 
+from homeassistant import exceptions
+
+
+class InvalidAuth(exceptions.HomeAssistantError):
+    """Error to indicate there is invalid auth."""
+
 
 async def create_smartbox_session_from_entry(
     hass: HomeAssistant, entry: ConfigEntry | dict[str, Any] | None = None
@@ -42,15 +48,20 @@ async def create_smartbox_session_from_entry(
         data = entry
     else:
         data = entry.data
-    session = await hass.async_add_executor_job(
-        Session,
-        data[CONF_API_NAME],
-        data[CONF_BASIC_AUTH_CREDS],
-        data[CONF_USERNAME],
-        data[CONF_PASSWORD],
-    )
-    await hass.async_add_executor_job(session.get_access_token)
-    return session
+    try:
+        session = await hass.async_add_executor_job(
+            Session,
+            data[CONF_API_NAME],
+            data[CONF_BASIC_AUTH_CREDS],
+            data[CONF_USERNAME],
+            data[CONF_PASSWORD],
+        )
+        await hass.async_add_executor_job(session.get_access_token)
+        return session
+    except requests.exceptions.ConnectionError as ex:
+        raise requests.exceptions.ConnectionError from ex
+    except InvalidAuth as ex:
+        raise InvalidAuth from ex
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

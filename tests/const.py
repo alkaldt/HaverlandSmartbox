@@ -23,11 +23,16 @@ MOCK_SMARTBOX_CONFIG = {
         CONF_USERNAME: "test_username_1",
         CONF_PASSWORD: "test_password_1",
         CONF_DEVICE_IDS: ["test_device_id_1", "test_device_id_2"],
+        CONF_BASIC_AUTH_CREDS: "test_basic_auth_creds",
+    }
+}
+
+MOCK_SESSION_CONFIG = {
+    DOMAIN: {
         CONF_SESSION_RETRY_ATTEMPTS: 7,
         CONF_SESSION_BACKOFF_FACTOR: 0.4,
         CONF_SOCKET_RECONNECT_ATTEMPTS: 6,
         CONF_SOCKET_BACKOFF_FACTOR: 0.5,
-        CONF_BASIC_AUTH_CREDS: "test_basic_auth_creds",
     }
 }
 

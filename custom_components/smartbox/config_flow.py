@@ -23,7 +23,7 @@ from homeassistant.helpers.selector import (
     TextSelectorType,
 )
 
-from . import create_smartbox_session_from_entry
+from . import create_smartbox_session_from_entry, InvalidAuth
 from .const import (
     CONF_API_NAME,
     CONF_BASIC_AUTH_CREDS,
@@ -75,27 +75,6 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
 )
 
 
-def add_suggested_values_to_schema(
-    data_schema: vol.Schema, suggested_values: Mapping[str, Any]
-) -> vol.Schema:
-    """Make a copy of the schema, populated with suggested values.
-
-    For each schema marker matching items in `suggested_values`,
-    the `suggested_value` will be set. The existing `suggested_value` will
-    be left untouched if there is no matching item.
-    """
-    schema = {}
-    for key, val in data_schema.schema.items():
-        new_key = key
-        if key in suggested_values and isinstance(key, vol.Marker):
-            # Copy the marker to not modify the flow schema
-            new_key = copy.copy(key)
-            new_key.description = {"suggested_value": suggested_values[key]}
-        schema[new_key] = val
-    _LOGGER.debug("add_suggested_values_to_schema: schema=%s", schema)
-    return vol.Schema(schema)
-
-
 class ConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for test."""
 
@@ -113,7 +92,7 @@ class ConfigFlow(ConfigFlow, domain=DOMAIN):
             except requests.exceptions.ConnectionError as ex:
                 errors["base"] = "cannot_connect"
                 placeholders["error"] = str(ex)
-            except Exception as ex:
+            except InvalidAuth as ex:
                 errors["base"] = "invalid_auth"
                 placeholders["error"] = str(ex)
             except Exception as ex:

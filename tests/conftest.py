@@ -9,6 +9,7 @@ from const import (
     MOCK_SMARTBOX_NODE_INFO,
     MOCK_SMARTBOX_NODE_SETUP,
     MOCK_SMARTBOX_NODE_STATUS,
+    DOMAIN,
 )
 
 from mocks import MockSmartbox
@@ -20,7 +21,9 @@ pytest_plugins = "pytest_homeassistant_custom_component"
 # This fixture enables loading custom integrations in all tests.
 # Remove to enable selective use of this fixture
 @pytest.fixture(name="auto_enable_custom_integrations", autouse=True)
-def auto_enable_custom_integrations(hass: Any, enable_custom_integrations: Any) -> None:  # noqa: F811
+def auto_enable_custom_integrations(
+    hass: Any, enable_custom_integrations: Any
+) -> None:  # noqa: F811
     """Enable custom integrations defined in the test dir."""
 
 
@@ -96,3 +99,32 @@ def mock_smartbox_unavailable(request):
             side_effect=mock_smartbox.get_mock_socket,
         ):
             yield mock_smartbox
+
+
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+from homeassistant.core import HomeAssistant
+
+from unittest.mock import AsyncMock, patch
+from collections.abc import Generator
+
+
+@pytest.fixture
+def mock_setup_entry() -> Generator[AsyncMock]:
+    """Override async_setup_entry."""
+    with patch(
+        "custom_components.smartbox.async_setup_entry", return_value=True
+    ) as mock_setup_entry:
+        yield mock_setup_entry
+
+
+@pytest.fixture(name="config_entry")
+def mock_config_entry_fixture(hass: HomeAssistant) -> MockConfigEntry:
+    """Mock a config entry."""
+    mock_entry = MockConfigEntry(
+        domain=DOMAIN,
+        data=MOCK_SMARTBOX_CONFIG[DOMAIN],
+        title="test_username_1",
+    )
+    mock_entry.add_to_hass(hass)
+
+    return mock_entry

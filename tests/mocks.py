@@ -150,7 +150,7 @@ class MockSmartbox(object):
         start_available=True,
     ):
         self.config = mock_config
-        assert len(mock_config[DOMAIN]) == 9
+        assert len(mock_config[DOMAIN]) == 5
         config_dev_ids = mock_config[DOMAIN][CONF_DEVICE_IDS]
         self._device_info = mock_device_info
         self._devices = list(map(self._get_device, config_dev_ids))
