@@ -3,6 +3,7 @@ from homeassistant.components.number import DOMAIN as NUMBER_DOMAIN
 from homeassistant.components.number import SERVICE_SET_VALUE
 from homeassistant.const import ATTR_ENTITY_ID, ATTR_FRIENDLY_NAME
 from mocks import (
+    get_device_unique_id,
     get_entity_id_from_unique_id,
     get_node_unique_id,
     get_object_id,
