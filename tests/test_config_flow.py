@@ -1,3 +1,5 @@
+from unittest.mock import AsyncMock
+
 from const import (
     CONF_PASSWORD,
     CONF_USERNAME,
@@ -37,9 +39,6 @@ async def test_integration_already_exists(hass: HomeAssistant, mock_smartbox) ->
 
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "already_configured"
-
-
-from unittest.mock import AsyncMock
 
 
 async def test_form(

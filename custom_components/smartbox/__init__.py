@@ -4,6 +4,7 @@ import logging
 from typing import Any
 
 import requests
+from homeassistant import exceptions
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
@@ -31,8 +32,6 @@ PLATFORMS: list[Platform] = [
     Platform.SENSOR,
     Platform.SWITCH,
 ]
-
-from homeassistant import exceptions
 
 
 class InvalidAuth(exceptions.HomeAssistantError):
