@@ -1,0 +1,83 @@
+{
+  "title": "Smartbox",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Agregar una cuenta",
+        "data": {
+          "api_name": "Nombre de API",
+          "username": "Nombre de usuario",
+          "password": "Contraseña",
+          "basic_auth_creds": "Credencial de autenticación básica"
+        },
+        "data_description": {
+          "api_name": "El nombre API de su proveedor de calentador. ",
+          "basic_auth_creds": "Esta es una credencial de autenticación básica HTTP que se utiliza para realizar la autenticación inicial con el servidor. "
+        }
+      },
+      "reauth_confirm": {
+        "title": "Reautenticación",
+        "description": "La integración de Smartbox necesita volver a autenticar su cuenta",
+        "data": {
+          "username": "Nombre de usuario",
+          "password": "Contraseña"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "No se puede conectar {error}",
+      "invalid_auth": "Autenticación no válida {error}",
+      "unknown": "Error desconocido {error}"
+    },
+    "abort": {
+      "unknown": "Error desconocido {error}.",
+      "already_configured": "Esta cuenta ya está configurada.",
+      "reauth_successful": "Reautenticación exitosa."
+    }
+  },
+  "options": {
+    "step": {
+      "session_options": {
+        "title": "Opciones de sesión",
+        "data": {
+          "session_retry_attempts": "Intentos de reintento de sesión",
+          "session_backoff_factor": "Intentos de interrupción de sesión",
+          "socket_reconnect_attempts": "Intentos de reintento de sesión",
+          "socket_backoff_factor": "Intentos de reintento de sesión"
+        },
+        "data_description": {
+          "session_retry_attempts": "¿Cuántas veces reintentar las operaciones REST de la sesión?",
+          "session_backoff_factor": "Cuánto retroceder entre reintentos REST",
+          "socket_reconnect_attempts": "¿Cuántas veces intentar volver a conectar el socket socket.io?",
+          "socket_backoff_factor": "¿Cuánto retroceder entre los intentos iniciales de conexión del socket?"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "charge_level": {
+        "name": "Nivel de carga"
+      },
+      "duty_cycle": {
+        "name": "Ciclo de trabajo"
+      }
+    },
+    "number": {
+      "power_limit": {
+        "name": "Límite de potencia"
+      }
+    },
+    "switch": {
+      "true_radiant": {
+        "name": "Verdadero Radiante"
+      },
+      "window_mode": {
+        "name": "Modo ventana"
+      },
+      "away_status": {
+        "name": "Estado ausente"
+      }
+    }
+  }
+}
