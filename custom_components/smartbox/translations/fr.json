@@ -25,12 +25,12 @@
       }
     },
     "error": {
-      "cannot_connect": "Impossible de se connecter {erreur}",
-      "invalid_auth": "Authentification invalide {erreur}",
-      "unknown": "Erreur inconnue {erreur}"
+      "cannot_connect": "Impossible de se connecter {error}",
+      "invalid_auth": "Authentification invalide {error}",
+      "unknown": "Erreur inconnue {error}"
     },
     "abort": {
-      "unknown": "Erreur inconnue {erreur}.",
+      "unknown": "Erreur inconnue {error}.",
       "already_configured": "Ce compte est déjà configuré.",
       "reauth_successful": "Réauthentification réussie."
     }
@@ -73,10 +73,10 @@
         "name": "Véritable Radiant"
       },
       "window_mode": {
-        "name": "Mode fenêtre"
+        "name": "Mode Fenêtre"
       },
       "away_status": {
-        "name": "Statut d'absence"
+        "name": "Statut d'Absence"
       }
     }
   }

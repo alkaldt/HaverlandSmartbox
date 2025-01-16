@@ -25,12 +25,12 @@
       }
     },
     "error": {
-      "cannot_connect": "Cannot connect {error}",
-      "invalid_auth": "Invalid authentication {error}",
-      "unknown": "Unknow error {error}"
+      "cannot_connect": "Cannot connect: {error}",
+      "invalid_auth": "Invalid authentication: {error}",
+      "unknown": "Unknow error: {error}"
     },
     "abort": {
-      "unknown": "Unknown error {error}.",
+      "unknown": "Unknown error: {error}.",
       "already_configured": "This account is already configured.",
       "reauth_successful": "Reauthenticatication successful."
     }
@@ -41,9 +41,9 @@
         "title": "Session options",
         "data": {
           "session_retry_attempts": "Session retry attempts",
-          "session_backoff_factor": "Session backoff attempts",
-          "socket_reconnect_attempts": "Session retry attempts",
-          "socket_backoff_factor": "Session retry attempts"
+          "session_backoff_factor": "Session backoff factor",
+          "socket_reconnect_attempts": "Socket reconnect attempts",
+          "socket_backoff_factor": "Socket backoff factor"
         },
         "data_description": {
           "session_retry_attempts": "How many times to retry session REST operations",
@@ -73,10 +73,10 @@
         "name": "True Radiant"
       },
       "window_mode": {
-        "name": "Window mode"
+        "name": "Window Mode"
       },
       "away_status": {
-        "name": "Away status"
+        "name": "Away Status"
       }
     }
   }

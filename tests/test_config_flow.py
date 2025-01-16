@@ -1,16 +1,15 @@
-from pytest_homeassistant_custom_component.common import MockConfigEntry
-from homeassistant.core import HomeAssistant
-from custom_components.smartbox.const import DOMAIN
-from custom_components.smartbox import config_flow
-from homeassistant.config_entries import ConfigEntryState
-from homeassistant.data_entry_flow import FlowResultType
-from homeassistant import config_entries
 from const import (
-    MOCK_SMARTBOX_CONFIG,
+    CONF_PASSWORD,
     CONF_USERNAME,
     MOCK_SESSION_CONFIG,
-    CONF_PASSWORD,
+    MOCK_SMARTBOX_CONFIG,
 )
+from homeassistant import config_entries
+from homeassistant.core import HomeAssistant
+from homeassistant.data_entry_flow import FlowResultType
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+from custom_components.smartbox.const import DOMAIN
 
 
 async def test_show_form(hass: HomeAssistant) -> None:
@@ -40,7 +39,7 @@ async def test_integration_already_exists(hass: HomeAssistant, mock_smartbox) ->
     assert result["reason"] == "already_configured"
 
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock
 
 
 async def test_form(

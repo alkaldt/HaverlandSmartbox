@@ -1,23 +1,23 @@
 {
-  "title": "Smartbox",
+  "title": "smartbox",
   "config": {
     "step": {
       "user": {
-        "title": "Agregar una cuenta",
+        "title": "Añadir una cuenta",
         "data": {
-          "api_name": "Nombre de API",
+          "api_name": "Nombre de la API",
           "username": "Nombre de usuario",
           "password": "Contraseña",
-          "basic_auth_creds": "Credencial de autenticación básica"
+          "basic_auth_creds": "Credenciales de Autenticación Básica"
         },
         "data_description": {
-          "api_name": "El nombre API de su proveedor de calentador. ",
-          "basic_auth_creds": "Esta es una credencial de autenticación básica HTTP que se utiliza para realizar la autenticación inicial con el servidor. "
+          "api_name": "El nombre de la API de tu proveedor de calefacción. Esto es visible en la entrada 'Host API' en el menú 'Versión' de la aplicación móvil o web. Si el nombre del host tiene el formato api-foo.xxxx o api.xxxx, usa los valores api-foo o api respectivamente.",
+          "basic_auth_creds": "Estas son credenciales de autenticación básica HTTP usadas para realizar la autenticación inicial con el servidor. Usa la cadena codificada en base64 directamente."
         }
       },
       "reauth_confirm": {
         "title": "Reautenticación",
-        "description": "La integración de Smartbox necesita volver a autenticar su cuenta",
+        "description": "La integración de Smartbox necesita volver a autenticar tu cuenta",
         "data": {
           "username": "Nombre de usuario",
           "password": "Contraseña"
@@ -25,12 +25,12 @@
       }
     },
     "error": {
-      "cannot_connect": "No se puede conectar {error}",
-      "invalid_auth": "Autenticación no válida {error}",
-      "unknown": "Error desconocido {error}"
+      "cannot_connect": "No se puede conectar: {error}",
+      "invalid_auth": "Autenticación inválida: {error}",
+      "unknown": "Error desconocido: {error}"
     },
     "abort": {
-      "unknown": "Error desconocido {error}.",
+      "unknown": "Error desconocido: {error}.",
       "already_configured": "Esta cuenta ya está configurada.",
       "reauth_successful": "Reautenticación exitosa."
     }
@@ -41,15 +41,15 @@
         "title": "Opciones de sesión",
         "data": {
           "session_retry_attempts": "Intentos de reintento de sesión",
-          "session_backoff_factor": "Intentos de interrupción de sesión",
-          "socket_reconnect_attempts": "Intentos de reintento de sesión",
-          "socket_backoff_factor": "Intentos de reintento de sesión"
+          "session_backoff_factor": "Factor de retardo de sesión",
+          "socket_reconnect_attempts": "Intentos de reconexión del socket",
+          "socket_backoff_factor": "Factor de retardo del socket"
         },
         "data_description": {
-          "session_retry_attempts": "¿Cuántas veces reintentar las operaciones REST de la sesión?",
-          "session_backoff_factor": "Cuánto retroceder entre reintentos REST",
-          "socket_reconnect_attempts": "¿Cuántas veces intentar volver a conectar el socket socket.io?",
-          "socket_backoff_factor": "¿Cuánto retroceder entre los intentos iniciales de conexión del socket?"
+          "session_retry_attempts": "Cuántas veces reintentar las operaciones REST de la sesión",
+          "session_backoff_factor": "Cuánto tiempo de espera entre reintentos REST",
+          "socket_reconnect_attempts": "Cuántas veces intentar reconectar el socket.io",
+          "socket_backoff_factor": "Cuánto tiempo de espera entre los intentos iniciales de conexión del socket"
         }
       }
     }
@@ -70,13 +70,13 @@
     },
     "switch": {
       "true_radiant": {
-        "name": "Verdadero Radiante"
+        "name": "True Radiant"
       },
       "window_mode": {
         "name": "Modo ventana"
       },
       "away_status": {
-        "name": "Estado ausente"
+        "name": "Estado de ausencia"
       }
     }
   }
