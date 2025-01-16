@@ -1,26 +1,20 @@
+from homeassistant.components.number import ATTR_VALUE
 from homeassistant.components.number import DOMAIN as NUMBER_DOMAIN
-from homeassistant.components.number import ATTR_VALUE, SERVICE_SET_VALUE
+from homeassistant.components.number import SERVICE_SET_VALUE
 from homeassistant.const import ATTR_ENTITY_ID, ATTR_FRIENDLY_NAME
-from custom_components.smartbox.const import DOMAIN
-
 from mocks import (
+    get_device_unique_id,
     get_entity_id_from_unique_id,
     get_object_id,
     get_power_limit_number_entity_id,
     get_power_limit_number_entity_name,
-    get_device_unique_id,
 )
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+from custom_components.smartbox.const import DOMAIN
 
 
-async def test_power_limit(hass, mock_smartbox):
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="test_username_1",
-        data=mock_smartbox.config[DOMAIN],
-    )
-    entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(entry.entry_id)
+async def test_power_limit(hass, mock_smartbox, config_entry):
+    assert await hass.config_entries.async_setup(config_entry.entry_id)
     await hass.async_block_till_done()
     assert len(hass.states.async_entity_ids(NUMBER_DOMAIN)) == 2
     entries = hass.config_entries.async_entries(DOMAIN)
