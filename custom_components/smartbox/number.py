@@ -24,7 +24,6 @@ async def async_setup_entry(
         [PowerLimit(device) for device in hass.data[DOMAIN][SMARTBOX_DEVICES]],
         True,
     )
-
     _LOGGER.debug("Finished setting up Smartbox number platform")
 
 

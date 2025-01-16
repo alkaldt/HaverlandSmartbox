@@ -16,9 +16,9 @@ from custom_components.smartbox.const import (
     HEATER_NODE_TYPE_HTR_MOD,
 )
 from custom_components.smartbox.types import SetupDict, StatusDict
+from tests.const import CONF_DEVICE_IDS
 
 _LOGGER = logging.getLogger(__name__)
-from tests.const import CONF_DEVICE_IDS
 
 
 def mock_device(dev_id: str, nodes: List[MagicMock]) -> MagicMock:

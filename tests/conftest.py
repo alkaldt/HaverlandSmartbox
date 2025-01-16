@@ -1,6 +1,7 @@
+from collections.abc import Generator
 from copy import deepcopy
 from typing import Any, Dict
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from const import (
@@ -12,7 +13,9 @@ from const import (
     MOCK_SMARTBOX_NODE_SETUP,
     MOCK_SMARTBOX_NODE_STATUS,
 )
+from homeassistant.core import HomeAssistant
 from mocks import MockSmartbox
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 from test_utils import simple_celsius_to_fahrenheit
 
 pytest_plugins = "pytest_homeassistant_custom_component"
@@ -97,13 +100,6 @@ def mock_smartbox_unavailable(request):
             side_effect=mock_smartbox.get_mock_socket,
         ):
             yield mock_smartbox
-
-
-from collections.abc import Generator
-from unittest.mock import AsyncMock
-
-from homeassistant.core import HomeAssistant
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 
 @pytest.fixture

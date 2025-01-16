@@ -62,10 +62,6 @@ async def test_create_smartbox_device(hass):
 
 
 async def test_get_devices(hass, mock_smartbox):
-    dev_1_id = "test_device_id_1"
-    dev_1_name = "Device 1"
-    dev_2_id = "test_device_id_2"  # missing
-    dev_2_name = "Device 2"  # missing
     test_devices = [
         SmartboxDevice(
             dev,
@@ -77,7 +73,7 @@ async def test_get_devices(hass, mock_smartbox):
         "custom_components.smartbox.model.create_smartbox_device",
         autospec=True,
         side_effect=test_devices,
-    ) as create_smartbox_device_mock:
+    ):
         # check we called the smartbox API correctly
         devices = await get_devices(hass, mock_smartbox.session)
         assert devices == test_devices
