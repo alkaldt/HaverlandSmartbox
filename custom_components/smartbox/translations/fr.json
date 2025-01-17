@@ -5,13 +5,12 @@
       "user": {
         "title": "Ajouter un compte",
         "data": {
-          "api_name": "Nom de l'API",
+          "api_name": "Nom de votre fournisseur",
           "username": "Nom d'utilisateur",
           "password": "Mot de passe",
           "basic_auth_creds": "Entête d'authentification"
         },
         "data_description": {
-          "api_name": "Le nom API de votre fournisseur de chauffage.",
           "basic_auth_creds": "Il s'agit d'un entête HTTP Basic Auth utilisé pour effectuer l'authentification initiale auprès du serveur."
         }
       },

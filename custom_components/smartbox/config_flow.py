@@ -17,7 +17,11 @@ from homeassistant.core import callback
 from homeassistant.helpers.selector import (
     TextSelector,
     TextSelectorConfig,
+    SelectSelectorConfig,
+    SelectOptionDict,
+    SelectSelectorMode,
     TextSelectorType,
+    SelectSelector,
 )
 
 from . import InvalidAuth, create_smartbox_session_from_entry
@@ -33,6 +37,7 @@ from .const import (
     DEFAULT_SESSION_RETRY_ATTEMPTS,
     DEFAULT_SOCKET_BACKOFF_FACTOR,
     DOMAIN,
+    SMARTBOX_RESAILER,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -60,10 +65,17 @@ SESSION_DATA_SCHEMA = {
     vol.Required(CONF_SOCKET_RECONNECT_ATTEMPTS, default=3): cv.positive_int,
     vol.Required(CONF_SOCKET_BACKOFF_FACTOR, default=0.1): cv.small_float,
 }
-
 STEP_USER_DATA_SCHEMA = vol.Schema(
     {
-        vol.Required(CONF_API_NAME): str,
+        vol.Required(CONF_API_NAME): SelectSelector(
+            SelectSelectorConfig(
+                options=[
+                    SelectOptionDict(value=resailer["api_url"], label=resailer["name"])
+                    for resailer in SMARTBOX_RESAILER.values()
+                ],
+                mode=SelectSelectorMode.DROPDOWN,
+            )
+        ),
         **LOGIN_DATA_SCHEMA,
         vol.Required(CONF_BASIC_AUTH_CREDS): TextSelector(
             TextSelectorConfig(type=TextSelectorType.PASSWORD)

@@ -56,11 +56,12 @@ async def create_smartbox_session_from_entry(
             data[CONF_PASSWORD],
         )
         await hass.async_add_executor_job(session.get_access_token)
-        return session
     except requests.exceptions.ConnectionError as ex:
         raise requests.exceptions.ConnectionError from ex
     except InvalidAuth as ex:
         raise InvalidAuth from ex
+    else:
+        return session
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
