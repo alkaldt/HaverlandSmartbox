@@ -53,7 +53,7 @@ async def async_setup_entry(
 
     async_add_entities(
         [
-            SmartboxHeater(node)
+            SmartboxHeater(node, entry)
             for node in hass.data[DOMAIN][SMARTBOX_NODES]
             if is_heater_node(node)
         ],
@@ -68,10 +68,10 @@ class SmartboxHeater(SmartBoxNodeEntity, ClimateEntity):
     _attr_key = "thermostat"
     _attr_name = None
 
-    def __init__(self, node: MagicMock | SmartboxNode) -> None:
+    def __init__(self, node: MagicMock | SmartboxNode, entry: ConfigEntry) -> None:
         """Initialize the sensor."""
         _LOGGER.debug("Setting up Smartbox climate platerqgsdform")
-        super().__init__(node=node)
+        super().__init__(node=node, entry=entry)
         self._status: dict[str, Any] = {}
         self._available = False  # unavailable until we get an update
         self._enable_turn_on_off_backwards_compatibility = False

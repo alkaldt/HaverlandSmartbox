@@ -192,6 +192,11 @@ class SmartboxNode:
         return self._node_info["name"]
 
     @property
+    def home(self) -> str:
+        """Return the home_id of the node."""
+        return "fa23a1709ab211efa548bd87d430247f"
+
+    @property
     def node_type(self) -> str:
         """Return node type, e.g. 'htr' for heaters."""
         return self._node_info["type"]

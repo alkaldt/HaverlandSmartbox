@@ -40,3 +40,26 @@ PRESET_SELF_LEARN = "self_learn"
 SMARTBOX_DEVICES = "smartbox_devices"
 SMARTBOX_NODES = "smartbox_nodes"
 SMARTBOX_SESSIONS = "smartbox_sessions"
+
+SMARTBOX_RESAILER = {
+    "api-hjm": {
+        "name": "HJM",
+        "web_url": "https://api.calorhjm.com/",
+        "api_url": "api-hjm",
+    },
+    "api-elki": {
+        "name": "Elki",
+        "web_url": "https://app.helki.com/",
+        "api_url": "api-elki",
+    },
+    "api-haverland": {
+        "name": "Haverland",
+        "web_url": "https://i2control.haverland.com/",
+        "api_url": "api-haverland",
+    },
+    "api-helnur": {
+        "name": "Helnur",
+        "web_url": "https://remotecontrol.elnur.es/",
+        "api_url": "api-elnur",
+    },
+}

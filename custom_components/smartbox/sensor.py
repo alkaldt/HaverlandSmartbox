@@ -43,7 +43,7 @@ async def async_setup_entry(
     # Temperature
     async_add_entities(
         [
-            TemperatureSensor(node)
+            TemperatureSensor(node, entry)
             for node in hass.data[DOMAIN][SMARTBOX_NODES]
             if is_heater_node(node)
         ],
@@ -52,7 +52,7 @@ async def async_setup_entry(
     # Power
     async_add_entities(
         [
-            PowerSensor(node)
+            PowerSensor(node, entry)
             for node in hass.data[DOMAIN][SMARTBOX_NODES]
             if is_heater_node(node) and node.node_type != HEATER_NODE_TYPE_HTR_MOD
         ],
@@ -63,7 +63,7 @@ async def async_setup_entry(
     # to compute energy consumption
     async_add_entities(
         [
-            DutyCycleSensor(node)
+            DutyCycleSensor(node, entry)
             for node in hass.data[DOMAIN][SMARTBOX_NODES]
             if node.node_type == HEATER_NODE_TYPE_HTR
         ],
@@ -71,7 +71,7 @@ async def async_setup_entry(
     )
     async_add_entities(
         [
-            EnergySensor(node)
+            EnergySensor(node, entry)
             for node in hass.data[DOMAIN][SMARTBOX_NODES]
             if node.node_type == HEATER_NODE_TYPE_HTR
         ],
@@ -80,7 +80,7 @@ async def async_setup_entry(
     # Charge Level
     async_add_entities(
         [
-            ChargeLevelSensor(node)
+            ChargeLevelSensor(node, entry)
             for node in hass.data[DOMAIN][SMARTBOX_NODES]
             if is_heater_node(node) and node.node_type == HEATER_NODE_TYPE_ACM
         ],
@@ -93,9 +93,9 @@ async def async_setup_entry(
 class SmartboxSensorBase(SmartBoxNodeEntity, SensorEntity):
     """Base class for Smartbox sensor."""
 
-    def __init__(self, node: SmartboxNode | MagicMock) -> None:
+    def __init__(self, node: SmartboxNode | MagicMock, entry: ConfigEntry) -> None:
         """Initialize the Climate Entity."""
-        super().__init__(node=node)
+        super().__init__(node=node, entry=entry)
         self._status: dict[str, Any] = {}
         self._available = False  # unavailable until we get an update
         self._samples: dict[str, Any] = {}

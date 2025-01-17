@@ -25,17 +25,17 @@ async def async_setup_entry(
     switch_entities: list[SwitchEntity] = []
     for device in hass.data[DOMAIN][SMARTBOX_DEVICES]:
         _LOGGER.debug("Creating away switch for device %s", device.name)
-        switch_entities.append(AwaySwitch(device))
+        switch_entities.append(AwaySwitch(device, entry))
 
     for node in hass.data[DOMAIN][SMARTBOX_NODES]:
         if window_mode_available(node):
             _LOGGER.debug("Creating window_mode switch for node %s", node.name)
-            switch_entities.append(WindowModeSwitch(node))
+            switch_entities.append(WindowModeSwitch(node, entry))
         else:
             _LOGGER.info("Window mode not available for node %s", node.name)
         if true_radiant_available(node):
             _LOGGER.debug("Creating true_radiant switch for node %s", node.name)
-            switch_entities.append(TrueRadiantSwitch(node))
+            switch_entities.append(TrueRadiantSwitch(node, entry))
         else:
             _LOGGER.info("True radiant not available for node %s", node.name)
 
