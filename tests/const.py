@@ -13,9 +13,15 @@ from custom_components.smartbox.const import (
     HEATER_NODE_TYPE_ACM,
     HEATER_NODE_TYPE_HTR,
     HEATER_NODE_TYPE_HTR_MOD,
+    SMARTBOX_RESAILER,
 )
 
 CONF_DEVICE_IDS = "device_ids"
+SMARTBOX_RESAILER["test_api_name_1"] = {
+    "name": "Test API name",
+    "web_url": "https://web_url/",
+    "api_url": "test_api_name_1",
+}
 
 MOCK_SMARTBOX_CONFIG = {
     DOMAIN: {
