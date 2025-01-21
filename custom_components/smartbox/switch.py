@@ -49,13 +49,13 @@ class AwaySwitch(SmartBoxDeviceEntity, SwitchEntity):
 
     _attr_key = "away_status"
 
-    def turn_on(self, **kwargs):  # pylint: disable=unused-argument
+    async def async_turn_on(self, **kwargs):  # pylint: disable=unused-argument
         """Turn on the switch."""
-        return self._device.set_away_status(True)
+        return await self._device.set_away_status(True)
 
-    def turn_off(self, **kwargs):  # pylint: disable=unused-argument
+    async def async_turn_off(self, **kwargs):  # pylint: disable=unused-argument
         """Turn off the switch."""
-        return self._device.set_away_status(False)
+        return await self._device.set_away_status(False)
 
     @property
     def is_on(self):
@@ -68,13 +68,13 @@ class WindowModeSwitch(SmartBoxNodeEntity, SwitchEntity):
 
     _attr_key = "window_mode"
 
-    def turn_on(self, **kwargs):  # pylint: disable=unused-argument
+    async def async_turn_on(self, **kwargs):  # pylint: disable=unused-argument
         """Turn on the switch."""
-        return self._node.set_window_mode(True)
+        return await self._node.set_window_mode(True)
 
-    def turn_off(self, **kwargs):  # pylint: disable=unused-argument
+    async def async_turn_off(self, **kwargs):  # pylint: disable=unused-argument
         """Turn off the switch."""
-        return self._node.set_window_mode(False)
+        return await self._node.set_window_mode(False)
 
     @property
     def is_on(self):
@@ -87,13 +87,13 @@ class TrueRadiantSwitch(SmartBoxNodeEntity, SwitchEntity):
 
     _attr_key = "true_radiant"
 
-    def turn_on(self, **kwargs):  # pylint: disable=unused-argument
+    async def async_turn_on(self, **kwargs):  # pylint: disable=unused-argument
         """Turn on the switch."""
-        return self._node.set_true_radiant(True)
+        return await self._node.set_true_radiant(True)
 
-    def turn_off(self, **kwargs):  # pylint: disable=unused-argument
+    async def async_turn_off(self, **kwargs):  # pylint: disable=unused-argument
         """Turn off the switch."""
-        return self._node.set_true_radiant(False)
+        return await self._node.set_true_radiant(False)
 
     @property
     def is_on(self):

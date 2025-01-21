@@ -1,6 +1,6 @@
 from homeassistant.components.number import ATTR_VALUE
 from homeassistant.components.number import DOMAIN as NUMBER_DOMAIN
-from homeassistant.components.number import SERVICE_SET_VALUE
+from homeassistant.components.number.const import SERVICE_SET_VALUE
 from homeassistant.const import ATTR_ENTITY_ID, ATTR_FRIENDLY_NAME
 from mocks import (
     get_entity_id_from_unique_id,
@@ -21,8 +21,8 @@ async def test_power_limit(hass, mock_smartbox, config_entry):
     assert len(entries) == 1
 
     assert DOMAIN in hass.config.components
-    for mock_device in mock_smartbox.session.get_devices():
-        mock_node = mock_smartbox.session.get_nodes(mock_device["dev_id"])[0]
+    for mock_device in await mock_smartbox.session.get_devices():
+        mock_node = (await mock_smartbox.session.get_nodes(mock_device["dev_id"]))[0]
         entity_id = get_power_limit_number_entity_id(mock_node)
         state = hass.states.get(entity_id)
         # check basic properties
@@ -41,8 +41,8 @@ async def test_power_limit(hass, mock_smartbox, config_entry):
         assert state.state == "0"
 
     # Set device 1 power limit
-    mock_device_1 = mock_smartbox.session.get_devices()[0]
-    mock_node_1 = mock_smartbox.session.get_nodes(mock_device_1["dev_id"])[0]
+    mock_device_1 = (await mock_smartbox.session.get_devices())[0]
+    mock_node_1 = (await mock_smartbox.session.get_nodes(mock_device_1["dev_id"]))[0]
     mock_smartbox.dev_data_update(
         mock_device_1, {"htr_system": {"setup": {"power_limit": "1000"}}}
     )
@@ -52,8 +52,8 @@ async def test_power_limit(hass, mock_smartbox, config_entry):
     state = hass.states.get(entity_id)
     assert state.state == "1000"
 
-    mock_device_2 = mock_smartbox.session.get_devices()[1]
-    mock_node_2 = mock_smartbox.session.get_nodes(mock_device_2["dev_id"])[0]
+    mock_device_2 = (await mock_smartbox.session.get_devices())[1]
+    mock_node_2 = (await mock_smartbox.session.get_nodes(mock_device_2["dev_id"]))[0]
     entity_id = get_power_limit_number_entity_id(mock_node_2)
     await hass.helpers.entity_component.async_update_entity(entity_id)
     state = hass.states.get(entity_id)
@@ -67,6 +67,7 @@ async def test_power_limit(hass, mock_smartbox, config_entry):
         {ATTR_ENTITY_ID: entity_id, ATTR_VALUE: 0},
         blocking=True,
     )
+    await hass.helpers.entity_component.async_update_entity(entity_id)
     await hass.helpers.entity_component.async_update_entity(entity_id)
     state = hass.states.get(entity_id)
     assert state.state == "0"

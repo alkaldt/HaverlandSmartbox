@@ -68,7 +68,7 @@ def mock_smartbox(request):
     )
 
     with patch(
-        "custom_components.smartbox.Session",
+        "custom_components.smartbox.AsyncSmartboxSession",
         autospec=True,
         side_effect=mock_smartbox.get_mock_session,
     ):
@@ -92,7 +92,7 @@ def mock_smartbox_unavailable(request):
     )
 
     with patch(
-        "custom_components.smartbox.Session",
+        "custom_components.smartbox.AsyncSmartboxSession",
         autospec=True,
         side_effect=mock_smartbox.get_mock_session,
     ):

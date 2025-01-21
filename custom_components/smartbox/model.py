@@ -15,7 +15,7 @@ from homeassistant.components.climate import (
 )
 from homeassistant.const import UnitOfTemperature
 from homeassistant.core import HomeAssistant
-from smartbox import Session, UpdateManager
+from smartbox import AsyncSmartboxSession, UpdateManager
 
 from .const import (
     GITHUB_ISSUES_URL,
@@ -37,7 +37,7 @@ class SmartboxDevice:
     def __init__(
         self,
         device,
-        session: Session | MagicMock,
+        session: AsyncSmartboxSession | MagicMock,
     ) -> None:
         """Initialise a smartbox device."""
         self._device = device
@@ -47,20 +47,14 @@ class SmartboxDevice:
         self._nodes = {}
         self._watchdog_task: asyncio.Task | None = None
 
-    async def initialise_nodes(self, hass: HomeAssistant) -> None:
+    async def initialise_nodes(self) -> None:
         """Initilaise nodes."""
         # Would do in __init__, but needs to be a coroutine
-        session_nodes = await hass.async_add_executor_job(
-            self._session.get_nodes, self.dev_id
-        )
+        session_nodes = await self._session.get_nodes(self.dev_id)
 
         for node_info in session_nodes:
-            status = await hass.async_add_executor_job(
-                self._session.get_status, self.dev_id, node_info
-            )
-            setup = await hass.async_add_executor_job(
-                self._session.get_setup, self.dev_id, node_info
-            )
+            status = await self._session.get_node_status(self.dev_id, node_info)
+            setup = await self._session.get_node_setup(self.dev_id, node_info)
 
             node = SmartboxNode(self, node_info, self._session, status, setup)
 
@@ -147,9 +141,9 @@ class SmartboxDevice:
         """Is the device in away mode."""
         return self._away
 
-    def set_away_status(self, away: bool):
+    async def set_away_status(self, away: bool):
         """Set the away status."""
-        self._session.set_device_away_status(self.dev_id, {"away": away})
+        await self._session.set_device_away_status(self.dev_id, {"away": away})
         self._away = away
 
     @property
@@ -157,9 +151,9 @@ class SmartboxDevice:
         """Get the power limit of the device."""
         return self._power_limit
 
-    def set_power_limit(self, power_limit: int) -> None:
+    async def set_power_limit(self, power_limit: int) -> None:
         """Set the power limit of the device."""
-        self._session.set_device_power_limit(self.dev_id, power_limit)
+        await self._session.set_device_power_limit(self.dev_id, power_limit)
         self._power_limit = power_limit
 
 
@@ -170,7 +164,7 @@ class SmartboxNode:
         self,
         device: SmartboxDevice | MagicMock,
         node_info: dict[str, Any],
-        session: Session | MagicMock,
+        session: AsyncSmartboxSession | MagicMock,
         status: dict[str, Any],
         setup: dict[str, Any],
     ) -> None:
@@ -226,9 +220,11 @@ class SmartboxNode:
         _LOGGER.debug("Updating node %s setup: %s", self.name, setup)
         self._setup = setup
 
-    def set_status(self, **status_args) -> StatusDict:
+    async def set_status(self, **status_args) -> StatusDict:
         """Set status."""
-        self._session.set_status(self._device.dev_id, self._node_info, status_args)
+        await self._session.set_node_status(
+            self._device.dev_id, self._node_info, status_args
+        )
         # update our status locally until we get an update
         self._status |= {**status_args}
         return self._status
@@ -243,9 +239,9 @@ class SmartboxNode:
         """Return the device of the node."""
         return self._device
 
-    def update_device_away_status(self, away: bool):
+    async def update_device_away_status(self, away: bool):
         """Update device away status."""
-        self._device.set_away_status(away)
+        await self._device.set_away_status(away)
 
     async def async_update(self, hass: HomeAssistant) -> StatusDict:
         """Update status."""
@@ -260,9 +256,9 @@ class SmartboxNode:
             )
         return self._setup["window_mode_enabled"]
 
-    def set_window_mode(self, window_mode: bool):
+    async def set_window_mode(self, window_mode: bool):
         """Set window mode."""
-        self._session.set_setup(
+        await self._session.set_node_setup(
             self._device.dev_id, self._node_info, {"window_mode_enabled": window_mode}
         )
         self._setup["window_mode_enabled"] = window_mode
@@ -276,9 +272,9 @@ class SmartboxNode:
             )
         return self._setup["true_radiant_enabled"]
 
-    def set_true_radiant(self, true_radiant: bool):
+    async def set_true_radiant(self, true_radiant: bool):
         """Set true radiant."""
-        self._session.set_setup(
+        await self._session.set_node_setup(
             self._device.dev_id, self._node_info, {"true_radiant_enabled": true_radiant}
         )
         self._setup["true_radiant_enabled"] = true_radiant
@@ -315,14 +311,12 @@ def get_temperature_unit(status) -> None | Any:
 
 
 async def get_devices(
-    hass: HomeAssistant,
-    session: Session,
+    session: AsyncSmartboxSession,
 ) -> list[SmartboxDevice]:
     """Get the devices."""
-    session_devices = await hass.async_add_executor_job(session.get_devices)
+    session_devices = await session.get_devices()
     return [
         await create_smartbox_device(
-            hass,
             session_device,
             session,
         )
@@ -331,14 +325,13 @@ async def get_devices(
 
 
 async def create_smartbox_device(
-    hass: HomeAssistant,
     device: str,
-    session: Session | MagicMock,
+    session: AsyncSmartboxSession | MagicMock,
 ) -> SmartboxDevice | MagicMock:
     """Create factory function for smartboxdevices."""
 
     device = SmartboxDevice(device, session)
-    await device.initialise_nodes(hass)
+    await device.initialise_nodes()
     return device
 
 

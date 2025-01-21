@@ -121,12 +121,12 @@ class SmartboxHeater(SmartBoxNodeEntity, ClimateEntity):
         """Return the target temperature."""
         return get_target_temperature(self._node.node_type, self._status)
 
-    def set_temperature(self, **kwargs):
+    async def async_set_temperature(self, **kwargs):
         """Set new target temperature."""
         temp = kwargs.get(ATTR_TEMPERATURE)
         if temp is not None:
             status_args = set_temperature_args(self._node.node_type, self._status, temp)
-            self._node.set_status(**status_args)
+            await self._node.set_status(**status_args)
 
     @property
     def hvac_action(self) -> str:
@@ -147,11 +147,11 @@ class SmartboxHeater(SmartBoxNodeEntity, ClimateEntity):
         """Return the list of available operation modes."""
         return [HVACMode.HEAT, HVACMode.AUTO, HVACMode.OFF]
 
-    def set_hvac_mode(self, hvac_mode):
+    async def async_set_hvac_mode(self, hvac_mode):
         """Set operation mode."""
         _LOGGER.debug("Setting HVAC mode to %s", hvac_mode)
         status_args = set_hvac_mode_args(self._node.node_type, self._status, hvac_mode)
-        self._node.set_status(**status_args)
+        await self._node.set_status(**status_args)
 
     @property
     def preset_mode(self) -> str:
@@ -184,18 +184,18 @@ class SmartboxHeater(SmartBoxNodeEntity, ClimateEntity):
 
         return [PRESET_AWAY, PRESET_HOME]
 
-    def set_preset_mode(self, preset_mode: str) -> None:
+    async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set the mode."""
         if preset_mode == PRESET_AWAY:
-            self._node.update_device_away_status(True)
+            await self._node.update_device_away_status(True)
             return
         if self._node.away:
-            self._node.update_device_away_status(False)
+            await self._node.update_device_away_status(False)
         if self._node.node_type == HEATER_NODE_TYPE_HTR_MOD:
             status_update = set_preset_mode_status_update(
                 self._node.node_type, self._status, preset_mode
             )
-            self._node.set_status(**status_update)
+            await self._node.set_status(**status_update)
         elif preset_mode != PRESET_HOME:
             raise ValueError(
                 f"Unsupported preset_mode {preset_mode} for {self._node.node_type} node"

@@ -39,8 +39,8 @@ async def test_basic_temp(hass, mock_smartbox, config_entry):
 
     assert DOMAIN in hass.config.components
 
-    for mock_device in mock_smartbox.session.get_devices():
-        for mock_node in mock_smartbox.session.get_nodes(mock_device["dev_id"]):
+    for mock_device in await mock_smartbox.session.get_devices():
+        for mock_node in await mock_smartbox.session.get_nodes(mock_device["dev_id"]):
             entity_id = get_sensor_entity_id(mock_node, "temperature")
             state = hass.states.get(entity_id)
 
@@ -61,7 +61,7 @@ async def test_basic_temp(hass, mock_smartbox, config_entry):
                 hass, SENSOR_DOMAIN, unique_id
             )
 
-            mock_node_status = mock_smartbox.session.get_status(
+            mock_node_status = await mock_smartbox.session.get_status(
                 mock_device["dev_id"], mock_node
             )
             assert state.attributes[ATTR_LOCKED] == mock_node_status["locked"]
@@ -103,8 +103,8 @@ async def test_basic_power(hass, mock_smartbox, config_entry):
 
     assert DOMAIN in hass.config.components
 
-    for mock_device in mock_smartbox.session.get_devices():
-        for mock_node in mock_smartbox.session.get_nodes(mock_device["dev_id"]):
+    for mock_device in await mock_smartbox.session.get_devices():
+        for mock_node in await mock_smartbox.session.get_nodes(mock_device["dev_id"]):
             if mock_node["type"] == HEATER_NODE_TYPE_HTR_MOD:
                 continue
             entity_id = get_sensor_entity_id(mock_node, "power")
@@ -130,7 +130,7 @@ async def test_basic_power(hass, mock_smartbox, config_entry):
             )
             await hass.helpers.entity_component.async_update_entity(entity_id)
             state = hass.states.get(entity_id)
-            mock_node_status = mock_smartbox.session.get_status(
+            mock_node_status = await mock_smartbox.session.get_status(
                 mock_device["dev_id"], mock_node
             )
             assert state.attributes[ATTR_LOCKED] == mock_node_status["locked"]
@@ -144,7 +144,7 @@ async def test_basic_power(hass, mock_smartbox, config_entry):
             )
             await hass.helpers.entity_component.async_update_entity(entity_id)
             state = hass.states.get(entity_id)
-            mock_node_status = mock_smartbox.session.get_status(
+            mock_node_status = await mock_smartbox.session.get_status(
                 mock_device["dev_id"], mock_node
             )
             assert float(state.state) == 0
@@ -180,8 +180,8 @@ async def test_unavailable(hass, mock_smartbox_unavailable):
 
     assert DOMAIN in hass.config.components
 
-    for mock_device in mock_smartbox_unavailable.session.get_devices():
-        for mock_node in mock_smartbox_unavailable.session.get_nodes(
+    for mock_device in await mock_smartbox_unavailable.session.get_devices():
+        for mock_node in await mock_smartbox_unavailable.session.get_nodes(
             mock_device["dev_id"]
         ):
             sensor_types = (
@@ -205,8 +205,8 @@ async def test_basic_charge_level(hass, mock_smartbox, config_entry):
 
     assert DOMAIN in hass.config.components
 
-    for mock_device in mock_smartbox.session.get_devices():
-        for mock_node in mock_smartbox.session.get_nodes(mock_device["dev_id"]):
+    for mock_device in await mock_smartbox.session.get_devices():
+        for mock_node in await mock_smartbox.session.get_nodes(mock_device["dev_id"]):
             # Only supported on acm nodes
             if mock_node["type"] != HEATER_NODE_TYPE_ACM:
                 continue
@@ -239,7 +239,7 @@ async def test_basic_charge_level(hass, mock_smartbox, config_entry):
             )
             await hass.helpers.entity_component.async_update_entity(entity_id)
             state = hass.states.get(entity_id)
-            mock_node_status = mock_smartbox.session.get_status(
+            mock_node_status = await mock_smartbox.session.get_status(
                 mock_device["dev_id"], mock_node
             )
             assert state.attributes[ATTR_LOCKED] == mock_node_status["locked"]

@@ -38,6 +38,6 @@ class PowerLimit(SmartBoxDeviceEntity, NumberEntity):
         """Return the native value of the number."""
         return self._device.power_limit
 
-    def set_native_value(self, value: float) -> None:
+    async def async_set_native_value(self, value: float) -> None:
         """Update the current value."""
-        self._device.set_power_limit(int(value))
+        await self._device.set_power_limit(int(value))
