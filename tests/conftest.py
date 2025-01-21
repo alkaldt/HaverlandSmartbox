@@ -12,6 +12,7 @@ from const import (
     MOCK_SMARTBOX_NODE_INFO,
     MOCK_SMARTBOX_NODE_SETUP,
     MOCK_SMARTBOX_NODE_STATUS,
+    MOCK_SMARTBOX_HOME_INFO,
 )
 from homeassistant.core import HomeAssistant
 from mocks import MockSmartbox
@@ -61,6 +62,7 @@ def _get_node_status(units: str) -> Dict[str, Any]:
 def mock_smartbox(request):
     mock_smartbox = MockSmartbox(
         MOCK_SMARTBOX_CONFIG,
+        MOCK_SMARTBOX_HOME_INFO,
         MOCK_SMARTBOX_DEVICE_INFO,
         MOCK_SMARTBOX_NODE_INFO,
         deepcopy(MOCK_SMARTBOX_NODE_SETUP),
@@ -84,6 +86,7 @@ def mock_smartbox(request):
 def mock_smartbox_unavailable(request):
     mock_smartbox = MockSmartbox(
         MOCK_SMARTBOX_CONFIG,
+        MOCK_SMARTBOX_HOME_INFO,
         MOCK_SMARTBOX_DEVICE_INFO,
         MOCK_SMARTBOX_NODE_INFO,
         deepcopy(MOCK_SMARTBOX_NODE_SETUP),

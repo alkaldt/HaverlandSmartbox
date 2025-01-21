@@ -56,7 +56,7 @@ async def test_create_smartbox_device(hass):
             dev_1_id,
             mock_session,
         )
-        mock_dev.initialise_nodes()
+        await mock_dev.initialise_nodes()
         assert device == mock_dev
 
 
