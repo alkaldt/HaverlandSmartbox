@@ -16,7 +16,7 @@ class DefaultSmartBoxEntity(Entity):
         self._attr_translation_key = self._attr_key
         self._attr_unique_id = self._node.node_id
         self._resailer = SMARTBOX_RESAILER[entry.data[CONF_API_NAME]]
-        self._configuration_url = f"{self._resailer['web_url']}#/{self._node.home}/dev/{self._device_id}/{self._node.node_type}/{self._node.addr}/setup"
+        self._configuration_url = f"{self._resailer['web_url']}#/{self._node.device.home['id']}/dev/{self._device_id}/{self._node.node_type}/{self._node.addr}/setup"
 
     @property
     def unique_id(self) -> str:

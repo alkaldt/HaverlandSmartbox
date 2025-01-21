@@ -106,6 +106,11 @@ class SmartboxDevice:
             )
 
     @property
+    def home(self):
+        """Return home of the device."""
+        return self._device["home"]
+
+    @property
     def dev_id(self) -> str:
         """Return the devide id."""
         return self._device["dev_id"]
@@ -184,11 +189,6 @@ class SmartboxNode:
     def name(self) -> str:
         """Return the name of the node."""
         return self._node_info["name"]
-
-    @property
-    def home(self) -> str:
-        """Return the home_id of the node."""
-        return "fa23a1709ab211efa548bd87d430247f"
 
     @property
     def node_type(self) -> str:
@@ -311,17 +311,18 @@ def get_temperature_unit(status) -> None | Any:
 
 
 async def get_devices(
-    session: AsyncSmartboxSession,
+    session: AsyncSmartboxSession | MagicMock,
 ) -> list[SmartboxDevice]:
     """Get the devices."""
-    session_devices = await session.get_devices()
-    return [
-        await create_smartbox_device(
-            session_device,
-            session,
-        )
-        for session_device in session_devices
-    ]
+    homes = await session.get_homes()
+    devices: list[SmartboxDevice] = list()
+    for home in homes:
+        _home = home.copy()
+        del _home["devs"]
+        for session_device in home["devs"]:
+            session_device["home"] = _home
+            devices.append(await create_smartbox_device(session_device, session))
+    return devices
 
 
 async def create_smartbox_device(

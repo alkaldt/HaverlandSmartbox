@@ -42,6 +42,7 @@ MOCK_SESSION_CONFIG = {
     }
 }
 
+
 MOCK_SMARTBOX_DEVICE_INFO = {
     "device_1": {
         "dev_id": "device_1",
@@ -58,6 +59,15 @@ MOCK_SMARTBOX_DEVICE_INFO = {
         "serial_id": "serial_id_2",
     },
 }
+
+MOCK_SMARTBOX_HOME_INFO = [
+    {
+        "id": "home_1",
+        "name": "Home 1",
+        "owner": True,
+        "devs": [item for item in MOCK_SMARTBOX_DEVICE_INFO.values()],
+    },
+]
 
 MOCK_SMARTBOX_NODE_INFO = {
     "device_1": [

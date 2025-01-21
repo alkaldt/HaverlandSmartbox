@@ -144,6 +144,7 @@ class MockSmartbox(object):
     def __init__(
         self,
         mock_config,
+        mock_home_info,
         mock_device_info,
         mock_node_info,
         mock_node_setup: Dict[str, Dict[int, SetupDict]],
@@ -153,6 +154,7 @@ class MockSmartbox(object):
         self.config = mock_config
         assert len(mock_config[DOMAIN]) == 5
         config_dev_ids = mock_config[DOMAIN][CONF_DEVICE_IDS]
+        self._home_info = mock_home_info
         self._device_info = mock_device_info
         self._devices = list(map(self._get_device, config_dev_ids))
         self._node_info = mock_node_info
@@ -178,6 +180,11 @@ class MockSmartbox(object):
     def _create_mock_session(self):
         mock_session = AsyncMock()
         mock_session.get_devices.return_value = self._devices
+
+        def get_homes():
+            return self._home_info
+
+        mock_session.get_homes.side_effect = get_homes
 
         def get_nodes(dev_id):
             return self._node_info[dev_id]
