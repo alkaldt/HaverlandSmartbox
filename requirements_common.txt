@@ -1,1 +1,1 @@
-smartbox==2.0.0b2
+git+https://github.com/Delmael/smartbox.git@update
