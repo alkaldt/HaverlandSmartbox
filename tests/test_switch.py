@@ -28,8 +28,8 @@ async def test_away_status(hass, mock_smartbox, config_entry):
 
     assert DOMAIN in hass.config.components
 
-    for mock_device in mock_smartbox.session.get_devices():
-        mock_node = mock_smartbox.session.get_nodes(mock_device["dev_id"])[0]
+    for mock_device in await mock_smartbox.session.get_devices():
+        mock_node = (await mock_smartbox.session.get_nodes(mock_device["dev_id"]))[0]
         entity_id = get_away_status_switch_entity_id(mock_node)
         state = hass.states.get(entity_id)
 
@@ -49,8 +49,8 @@ async def test_away_status(hass, mock_smartbox, config_entry):
         assert state.state == "off"
 
     # Set device 1 to away
-    mock_device_1 = mock_smartbox.session.get_devices()[0]
-    mock_node_1 = mock_smartbox.session.get_nodes(mock_device_1["dev_id"])[0]
+    mock_device_1 = (await mock_smartbox.session.get_devices())[0]
+    mock_node_1 = (await mock_smartbox.session.get_nodes(mock_device_1["dev_id"]))[0]
     mock_smartbox.dev_data_update(mock_device_1, {"away_status": {"away": True}})
 
     entity_id = get_away_status_switch_entity_id(mock_node_1)
@@ -58,8 +58,8 @@ async def test_away_status(hass, mock_smartbox, config_entry):
     state = hass.states.get(entity_id)
     assert state.state == "on"
 
-    mock_device_2 = mock_smartbox.session.get_devices()[1]
-    mock_node_2 = mock_smartbox.session.get_nodes(mock_device_2["dev_id"])[0]
+    mock_device_2 = (await mock_smartbox.session.get_devices())[1]
+    mock_node_2 = (await mock_smartbox.session.get_nodes(mock_device_2["dev_id"]))[0]
     entity_id = get_away_status_switch_entity_id(mock_node_2)
     await hass.helpers.entity_component.async_update_entity(entity_id)
     state = hass.states.get(entity_id)
@@ -99,10 +99,10 @@ async def test_basic_window_mode(hass, mock_smartbox, config_entry, caplog):
 
     assert DOMAIN in hass.config.components
 
-    for mock_device in mock_smartbox.session.get_devices():
-        for mock_node in mock_smartbox.session.get_nodes(mock_device["dev_id"]):
+    for mock_device in await mock_smartbox.session.get_devices():
+        for mock_node in await mock_smartbox.session.get_nodes(mock_device["dev_id"]):
             entity_id = get_window_mode_switch_entity_id(mock_node)
-            mock_node_setup = mock_smartbox.session.get_setup(
+            mock_node_setup = await mock_smartbox.session.get_node_setup(
                 mock_device["dev_id"], mock_node
             )
 
@@ -188,10 +188,10 @@ async def test_basic_true_radiant(hass, mock_smartbox, config_entry, caplog):
 
     assert DOMAIN in hass.config.components
 
-    for mock_device in mock_smartbox.session.get_devices():
-        for mock_node in mock_smartbox.session.get_nodes(mock_device["dev_id"]):
+    for mock_device in await mock_smartbox.session.get_devices():
+        for mock_node in await mock_smartbox.session.get_nodes(mock_device["dev_id"]):
             entity_id = get_true_radiant_switch_entity_id(mock_node)
-            mock_node_setup = mock_smartbox.session.get_setup(
+            mock_node_setup = await mock_smartbox.session.get_node_setup(
                 mock_device["dev_id"], mock_node
             )
 

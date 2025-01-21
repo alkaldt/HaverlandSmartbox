@@ -106,7 +106,7 @@ class ConfigFlow(ConfigFlow, domain=DOMAIN):
                 placeholders["error"] = str(ex)
             except Exception as ex:
                 errors["base"] = "unknown"
-                placeholders["base"] = str(ex)
+                placeholders["error"] = str(ex)
             else:
                 await self.async_set_unique_id(user_input[CONF_USERNAME])
                 self._abort_if_unique_id_configured()

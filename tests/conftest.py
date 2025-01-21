@@ -24,7 +24,9 @@ pytest_plugins = "pytest_homeassistant_custom_component"
 # This fixture enables loading custom integrations in all tests.
 # Remove to enable selective use of this fixture
 @pytest.fixture(name="auto_enable_custom_integrations", autouse=True)
-def auto_enable_custom_integrations(hass: Any, enable_custom_integrations: Any) -> None:  # noqa: F811
+def auto_enable_custom_integrations(
+    hass: Any, enable_custom_integrations: Any
+) -> None:  # noqa: F811
     """Enable custom integrations defined in the test dir."""
 
 
@@ -66,7 +68,7 @@ def mock_smartbox(request):
     )
 
     with patch(
-        "custom_components.smartbox.Session",
+        "custom_components.smartbox.AsyncSmartboxSession",
         autospec=True,
         side_effect=mock_smartbox.get_mock_session,
     ):
@@ -90,7 +92,7 @@ def mock_smartbox_unavailable(request):
     )
 
     with patch(
-        "custom_components.smartbox.Session",
+        "custom_components.smartbox.AsyncSmartboxSession",
         autospec=True,
         side_effect=mock_smartbox.get_mock_session,
     ):

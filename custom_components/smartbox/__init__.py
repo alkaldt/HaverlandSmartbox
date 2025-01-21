@@ -9,7 +9,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
-from smartbox import Session
+from smartbox import AsyncSmartboxSession
 
 from .const import (
     CONF_API_NAME,
@@ -21,6 +21,7 @@ from .const import (
     SMARTBOX_NODES,
 )
 from .model import get_devices, is_supported_node
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 __version__ = "2.1.0"
 
@@ -40,7 +41,7 @@ class InvalidAuth(exceptions.HomeAssistantError):
 
 async def create_smartbox_session_from_entry(
     hass: HomeAssistant, entry: ConfigEntry | dict[str, Any] | None = None
-) -> Session:
+) -> AsyncSmartboxSession:
     """Create a Session class from smartbox."""
     data = {}
     if type(entry) is dict:
@@ -48,14 +49,15 @@ async def create_smartbox_session_from_entry(
     else:
         data = entry.data
     try:
-        session = await hass.async_add_executor_job(
-            Session,
+        websession = async_get_clientsession(hass)
+        session = AsyncSmartboxSession(
             data[CONF_API_NAME],
             data[CONF_BASIC_AUTH_CREDS],
             data[CONF_USERNAME],
             data[CONF_PASSWORD],
+            websession,
         )
-        await hass.async_add_executor_job(session.get_access_token)
+        await session.check_refresh_auth()
     except requests.exceptions.ConnectionError as ex:
         raise requests.exceptions.ConnectionError from ex
     except InvalidAuth as ex:
@@ -75,7 +77,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data[DOMAIN][SMARTBOX_DEVICES] = []
     hass.data[DOMAIN][SMARTBOX_NODES] = []
 
-    devices = await get_devices(hass=hass, session=session)
+    devices = await get_devices(session=session)
     for device in devices:
         _LOGGER.info("Setting up configured device %s", device.dev_id)
         hass.data[DOMAIN][SMARTBOX_DEVICES].append(device)

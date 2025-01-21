@@ -1,5 +1,5 @@
 import logging
-from unittest.mock import MagicMock, NonCallableMock, patch
+from unittest.mock import MagicMock, NonCallableMock, patch, AsyncMock
 
 import pytest
 from const import MOCK_SMARTBOX_DEVICE_INFO
@@ -42,14 +42,13 @@ _LOGGER = logging.getLogger(__name__)
 async def test_create_smartbox_device(hass):
     dev_1_id = "test_device_id_1"
     mock_dev = mock_device(dev_1_id, [])
-    mock_session = MagicMock()
+    mock_session = AsyncMock()
     with patch(
         "custom_components.smartbox.model.SmartboxDevice",
         autospec=True,
         return_value=mock_dev,
     ) as device_ctor_mock:
         device = await create_smartbox_device(
-            hass,
             dev_1_id,
             mock_session,
         )
@@ -57,7 +56,7 @@ async def test_create_smartbox_device(hass):
             dev_1_id,
             mock_session,
         )
-        mock_dev.initialise_nodes.assert_awaited_with(hass)
+        mock_dev.initialise_nodes()
         assert device == mock_dev
 
 
@@ -67,7 +66,7 @@ async def test_get_devices(hass, mock_smartbox):
             dev,
             mock_smartbox.session,
         )
-        for dev in mock_smartbox.session.get_devices()
+        for dev in await mock_smartbox.session.get_devices()
     ]
     with patch(
         "custom_components.smartbox.model.create_smartbox_device",
@@ -75,7 +74,7 @@ async def test_get_devices(hass, mock_smartbox):
         side_effect=test_devices,
     ):
         # check we called the smartbox API correctly
-        devices = await get_devices(hass, mock_smartbox.session)
+        devices = await get_devices(mock_smartbox.session)
         assert devices == test_devices
 
 
@@ -83,8 +82,8 @@ async def test_smartbox_device_init(hass, mock_smartbox):
     mock_device = mock_smartbox.get_devices()[0]
     dev_id = mock_device["dev_id"]
 
-    node_sentinel_1 = MagicMock()
-    node_sentinel_2 = MagicMock()
+    node_sentinel_1 = AsyncMock()
+    node_sentinel_2 = AsyncMock()
     with patch(
         "custom_components.smartbox.model.SmartboxNode",
         side_effect=[node_sentinel_1, node_sentinel_2],
@@ -92,29 +91,29 @@ async def test_smartbox_device_init(hass, mock_smartbox):
     ) as smartbox_node_ctor_mock:
         device = SmartboxDevice(mock_device, mock_smartbox.session)
         assert device.dev_id == dev_id
-        await device.initialise_nodes(hass)
+        await device.initialise_nodes()
         mock_smartbox.session.get_nodes.assert_called_with(dev_id)
 
         nodes = list(device.get_nodes())
-        mock_nodes = mock_smartbox.session.get_nodes(dev_id)
+        mock_nodes = await mock_smartbox.session.get_nodes(dev_id)
         assert len(nodes) == len(mock_nodes)
 
-        mock_smartbox.session.get_status.assert_any_call(dev_id, mock_nodes[0])
-        mock_smartbox.session.get_status.assert_any_call(dev_id, mock_nodes[1])
+        mock_smartbox.session.get_node_status.assert_any_call(dev_id, mock_nodes[0])
+        mock_smartbox.session.get_node_status.assert_any_call(dev_id, mock_nodes[1])
 
         smartbox_node_ctor_mock.assert_any_call(
             device,
             mock_nodes[0],
             mock_smartbox.session,
-            mock_smartbox.session.get_status(dev_id, mock_nodes[0]),
-            mock_smartbox.session.get_setup(dev_id, mock_nodes[0]),
+            await mock_smartbox.session.get_node_status(dev_id, mock_nodes[0]),
+            await mock_smartbox.session.get_node_setup(dev_id, mock_nodes[0]),
         )
         smartbox_node_ctor_mock.assert_any_call(
             device,
             mock_nodes[1],
             mock_smartbox.session,
-            mock_smartbox.session.get_status(dev_id, mock_nodes[1]),
-            mock_smartbox.session.get_setup(dev_id, mock_nodes[1]),
+            await mock_smartbox.session.get_node_status(dev_id, mock_nodes[1]),
+            await mock_smartbox.session.get_node_setup(dev_id, mock_nodes[1]),
         )
 
         assert mock_smartbox.get_socket(dev_id) is not None
@@ -235,14 +234,14 @@ async def test_smartbox_device_node_setup_update(hass, caplog):
 
 async def test_smartbox_node(hass):
     dev_id = "test_device_id_1"
-    mock_device = MagicMock()
+    mock_device = AsyncMock()
     mock_device.dev_id = dev_id
     mock_device.away = False
     node_addr = 3
     node_type = HEATER_NODE_TYPE_HTR
     node_name = "Bathroom Heater"
     node_info = {"addr": node_addr, "name": node_name, "type": node_type}
-    mock_session = MagicMock()
+    mock_session = AsyncMock()
     initial_status = {"mtemp": "21.4", "stemp": "22.5"}
     initial_setup = {"true_radiant_enabled": False, "window_mode_enabled": False}
 
@@ -259,8 +258,8 @@ async def test_smartbox_node(hass):
     node.update_status(new_status)
     assert node.status == new_status
 
-    node.set_status(stemp=23.5)
-    mock_session.set_status.assert_called_with(dev_id, node_info, {"stemp": 23.5})
+    await node.set_status(stemp=23.5)
+    mock_session.set_node_status.assert_called_with(dev_id, node_info, {"stemp": 23.5})
 
     assert not node.away
     mock_device.away = True

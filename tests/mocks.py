@@ -21,16 +21,16 @@ from tests.const import CONF_DEVICE_IDS
 _LOGGER = logging.getLogger(__name__)
 
 
-def mock_device(dev_id: str, nodes: List[MagicMock]) -> MagicMock:
-    dev = MagicMock()
+def mock_device(dev_id: str, nodes: List[AsyncMock]) -> AsyncMock:
+    dev = AsyncMock()
     dev.dev_id = dev_id
-    dev.get_nodes = MagicMock(return_value=nodes)
+    dev.get_nodes = AsyncMock(return_value=nodes)
     dev.initialise_nodes = AsyncMock()
     return dev
 
 
-def mock_node(dev_id: str, addr: int, node_type: str, mode="auto") -> MagicMock:
-    node = MagicMock()
+def mock_node(dev_id: str, addr: int, node_type: str, mode="auto") -> AsyncMock:
+    node = AsyncMock()
     node.node_type = node_type
     node.name = f"node_{addr}"
     node.node_id = f"{dev_id}_{addr}"
@@ -170,13 +170,13 @@ class MockSmartbox(object):
         self._session_node_status = deepcopy(self._socket_node_status)
 
         self._session = self._create_mock_session()
-        self._sockets: Dict[str, MagicMock] = {}
+        self._sockets: Dict[str, AsyncMock] = {}
 
     def _get_device(self, dev_id):
         return self._device_info[dev_id]
 
     def _create_mock_session(self):
-        mock_session = MagicMock()
+        mock_session = AsyncMock()
         mock_session.get_devices.return_value = self._devices
 
         def get_nodes(dev_id):
@@ -184,28 +184,31 @@ class MockSmartbox(object):
 
         mock_session.get_nodes.side_effect = get_nodes
 
-        def get_status(dev_id, node):
+        async def get_node_status(dev_id, node):
             return self._get_session_status(dev_id, node["addr"])
 
-        mock_session.get_status.side_effect = get_status
+        mock_session.get_status.side_effect = get_node_status
+        mock_session.get_node_status.side_effect = get_node_status
 
-        def set_status(dev_id, node, status_updates):
+        async def set_node_status(dev_id, node, status_updates):
             self._socket_node_status[dev_id][node["addr"]].update(status_updates)
             self._session_node_status = self._socket_node_status
 
-        mock_session.set_status = set_status
+        mock_session.set_status = set_node_status
+        mock_session.set_node_status = set_node_status
 
-        def get_setup(dev_id, node):
+        async def get_node_setup(dev_id, node):
             return self._session_node_setup[dev_id][node["addr"]]
 
-        mock_session.get_setup = get_setup
+        mock_session.get_node_setup = get_node_setup
+        mock_session.get__setup = get_node_setup
 
-        def set_setup(dev_id, node, setup_updates):
+        async def set_setup(dev_id, node, setup_updates):
             self._socket_node_setup[dev_id][node["addr"]].update(setup_updates)
             self._session_node_setup = self._socket_node_setup
 
         mock_session.set_setup = set_setup
-
+        mock_session.run = AsyncMock()
         return mock_session
 
     def get_mock_session(
@@ -214,12 +217,13 @@ class MockSmartbox(object):
         basic_auth_credentials: str,
         username: str,
         password: str,
+        websession,
     ):
         """Patched to custom_components.smartbox.model.Session"""
         return self._session
 
     def _create_mock_socket(self, dev_id, on_dev_data, on_update):
-        mock_socket = MagicMock()
+        mock_socket = AsyncMock()
         mock_socket.dev_id = dev_id
         mock_socket.on_dev_data = on_dev_data
         mock_socket.on_update = on_update
