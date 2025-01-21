@@ -251,7 +251,7 @@ async def test_basic_charge_level(hass, mock_smartbox, config_entry):
             )
             await hass.helpers.entity_component.async_update_entity(entity_id)
             state = hass.states.get(entity_id)
-            mock_node_status = mock_smartbox.session.get_status(
+            mock_node_status = await mock_smartbox.session.get_status(
                 mock_device["dev_id"], mock_node
             )
             assert int(state.state) == 5
