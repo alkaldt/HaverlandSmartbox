@@ -114,8 +114,9 @@ class ConfigFlow(ConfigFlow, domain=DOMAIN):
                 return self.async_create_entry(
                     title=user_input[CONF_USERNAME], data=user_input
                 )
-        self.context = dict(self.context)
-        self.context["title_placeholders"] = placeholders
+        context = dict(self.context)
+        context["title_placeholders"] = placeholders
+        self.context = context
         return self.async_show_form(
             step_id="user",
             data_schema=STEP_USER_DATA_SCHEMA,
@@ -156,15 +157,6 @@ class ConfigFlow(ConfigFlow, domain=DOMAIN):
             errors=errors,
             description_placeholders=placeholders,
         )
-
-    async def async_end(self):
-        """Finalization of the ConfigEntry creation"""
-        _LOGGER.info(
-            "Recreating entry %s due to configuration change",
-            self.config_entry.entry_id,
-        )
-        self.hass.config_entries.async_update_entry(self.config_entry, data=self._infos)
-        return self.async_create_entry(title=None, data=None)
 
     @staticmethod
     @callback
