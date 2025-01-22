@@ -136,3 +136,24 @@ def mock_create_smartbox_session():
         return_value=AsyncMock(),
     ) as mock:
         yield mock
+
+
+@pytest.fixture
+def mock_get_devices(mock_devices):
+    with patch("custom_components.smartbox.get_devices", return_value=mock_devices):
+        yield
+
+
+@pytest.fixture
+def mock_session():
+    session = AsyncMock()
+    session.check_refresh_auth = AsyncMock()
+    return session
+
+
+@pytest.fixture
+def mock_devices():
+    device = AsyncMock()
+    device.dev_id = "device_1"
+    device.get_nodes = AsyncMock(return_value=[])
+    return [device]
