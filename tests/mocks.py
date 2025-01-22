@@ -1,7 +1,7 @@
 import logging
 from copy import deepcopy
 from typing import Any, Dict, List
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 
 from homeassistant.components.climate.const import DOMAIN as CLIMATE_DOMAIN
 from homeassistant.components.number import DOMAIN as NUMBER_DOMAIN

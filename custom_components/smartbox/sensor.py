@@ -5,29 +5,16 @@ from datetime import datetime, timedelta
 from typing import Any
 from unittest.mock import MagicMock
 
-from homeassistant.components.sensor import (
-    SensorDeviceClass,
-    SensorEntity,
-    SensorStateClass,
-)
+from homeassistant.components.sensor import (SensorDeviceClass, SensorEntity,
+                                             SensorStateClass)
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    ATTR_LOCKED,
-    PERCENTAGE,
-    EntityCategory,
-    UnitOfEnergy,
-    UnitOfPower,
-)
+from homeassistant.const import (ATTR_LOCKED, PERCENTAGE, EntityCategory,
+                                 UnitOfEnergy, UnitOfPower)
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import (
-    DOMAIN,
-    HEATER_NODE_TYPE_ACM,
-    HEATER_NODE_TYPE_HTR,
-    HEATER_NODE_TYPE_HTR_MOD,
-    SMARTBOX_NODES,
-)
+from .const import (DOMAIN, HEATER_NODE_TYPE_ACM, HEATER_NODE_TYPE_HTR,
+                    HEATER_NODE_TYPE_HTR_MOD, SMARTBOX_NODES)
 from .entity import SmartBoxNodeEntity
 from .model import SmartboxNode, get_temperature_unit, is_heater_node
 

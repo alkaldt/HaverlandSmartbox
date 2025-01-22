@@ -1,5 +1,5 @@
 import logging
-from unittest.mock import MagicMock, NonCallableMock, patch, AsyncMock
+from unittest.mock import AsyncMock, MagicMock, NonCallableMock, patch
 
 import pytest
 from const import MOCK_SMARTBOX_DEVICE_INFO
@@ -10,6 +10,7 @@ from homeassistant.components.climate import (
     PRESET_ECO,
     PRESET_HOME,
     HVACMode,
+    UnitOfTemperature,
 )
 from mocks import mock_device, mock_node
 from test_utils import assert_log_message
@@ -25,10 +26,12 @@ from custom_components.smartbox.const import (
 from custom_components.smartbox.model import (
     SmartboxDevice,
     SmartboxNode,
+    _get_htr_mod_preset_mode,
     create_smartbox_device,
     get_devices,
     get_hvac_mode,
     get_target_temperature,
+    get_temperature_unit,
     is_heater_node,
     is_supported_node,
     set_hvac_mode_args,
@@ -596,3 +599,47 @@ def test_set_preset_mode_status_update():
         set_preset_mode_status_update(HEATER_NODE_TYPE_HTR_MOD, {}, PRESET_HOME)
     with pytest.raises(AssertionError):
         set_preset_mode_status_update(HEATER_NODE_TYPE_HTR_MOD, {}, PRESET_AWAY)
+
+
+def test_get_temperature_unit():
+    assert get_temperature_unit({"units": "C"}) == UnitOfTemperature.CELSIUS
+    assert get_temperature_unit({"units": "F"}) == UnitOfTemperature.FAHRENHEIT
+    assert get_temperature_unit({}) is None
+    with pytest.raises(ValueError) as exc_info:
+        get_temperature_unit({"units": "K"})
+    assert "Unknown temp unit K" in exc_info.exconly()
+
+
+def test_get_htr_mod_preset_mode():
+    assert (
+        _get_htr_mod_preset_mode(HEATER_NODE_TYPE_HTR_MOD, "manual", "comfort")
+        == PRESET_COMFORT
+    )
+    assert (
+        _get_htr_mod_preset_mode(HEATER_NODE_TYPE_HTR_MOD, "manual", "eco")
+        == PRESET_ECO
+    )
+    assert (
+        _get_htr_mod_preset_mode(HEATER_NODE_TYPE_HTR_MOD, "manual", "ice")
+        == PRESET_FROST
+    )
+    assert (
+        _get_htr_mod_preset_mode(HEATER_NODE_TYPE_HTR_MOD, "auto", "")
+        == PRESET_SCHEDULE
+    )
+    assert (
+        _get_htr_mod_preset_mode(HEATER_NODE_TYPE_HTR_MOD, "presence", "")
+        == PRESET_ACTIVITY
+    )
+    assert (
+        _get_htr_mod_preset_mode(HEATER_NODE_TYPE_HTR_MOD, "self_learn", "")
+        == PRESET_SELF_LEARN
+    )
+
+    with pytest.raises(ValueError) as exc_info:
+        _get_htr_mod_preset_mode(HEATER_NODE_TYPE_HTR_MOD, "manual", "unknown")
+    assert "Unexpected 'selected_temp' value unknown" in exc_info.exconly()
+
+    with pytest.raises(ValueError) as exc_info:
+        _get_htr_mod_preset_mode(HEATER_NODE_TYPE_HTR_MOD, "unknown_mode", "")
+    assert "Unknown smartbox node mode unknown_mode" in exc_info.exconly()

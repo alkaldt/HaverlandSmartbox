@@ -1,29 +1,20 @@
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 
+import requests
 from const import (
     CONF_PASSWORD,
     CONF_USERNAME,
     MOCK_SESSION_CONFIG,
     MOCK_SMARTBOX_CONFIG,
+    DOMAIN,
 )
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
-import requests
-from custom_components.smartbox.const import DOMAIN
-from unittest.mock import AsyncMock
-from custom_components.smartbox.config_flow import ConfigFlow
-import pytest
-from unittest.mock import patch, AsyncMock
+
 from custom_components.smartbox import InvalidAuth
-from custom_components.smartbox.const import (
-    DOMAIN,
-    CONF_USERNAME,
-    CONF_PASSWORD,
-    CONF_API_NAME,
-    CONF_BASIC_AUTH_CREDS,
-)
+from custom_components.smartbox.config_flow import ConfigFlow
 
 
 async def test_show_form(hass: HomeAssistant) -> None:

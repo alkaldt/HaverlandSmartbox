@@ -9,10 +9,10 @@ from const import (
     DOMAIN,
     MOCK_SMARTBOX_CONFIG,
     MOCK_SMARTBOX_DEVICE_INFO,
+    MOCK_SMARTBOX_HOME_INFO,
     MOCK_SMARTBOX_NODE_INFO,
     MOCK_SMARTBOX_NODE_SETUP,
     MOCK_SMARTBOX_NODE_STATUS,
-    MOCK_SMARTBOX_HOME_INFO,
 )
 from homeassistant.core import HomeAssistant
 from mocks import MockSmartbox

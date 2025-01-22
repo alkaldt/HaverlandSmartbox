@@ -9,6 +9,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from smartbox import AsyncSmartboxSession
 
 from .const import (
@@ -21,7 +22,6 @@ from .const import (
     SMARTBOX_NODES,
 )
 from .model import get_devices, is_supported_node
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 __version__ = "2.1.0"
 
