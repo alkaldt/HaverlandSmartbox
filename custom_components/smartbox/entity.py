@@ -1,8 +1,9 @@
 """Draft of generic entity"""
 
-from homeassistant.helpers.entity import DeviceInfo, Entity
 from homeassistant.config_entries import ConfigEntry
-from custom_components.smartbox.const import DOMAIN, SMARTBOX_RESAILER, CONF_API_NAME
+from homeassistant.helpers.entity import DeviceInfo, Entity
+
+from custom_components.smartbox.const import CONF_API_NAME, DOMAIN, SMARTBOX_RESAILER
 from custom_components.smartbox.model import SmartboxDevice, SmartboxNode
 
 

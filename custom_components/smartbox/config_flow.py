@@ -2,7 +2,7 @@
 
 import logging
 from typing import Any
-from awesomeversion import AwesomeVersion
+
 import homeassistant.helpers.config_validation as cv
 import requests
 import voluptuous as vol
@@ -15,15 +15,15 @@ from homeassistant.config_entries import (
 )
 from homeassistant.core import callback
 from homeassistant.helpers.selector import (
+    SelectOptionDict,
+    SelectSelector,
+    SelectSelectorConfig,
+    SelectSelectorMode,
     TextSelector,
     TextSelectorConfig,
-    SelectSelectorConfig,
-    SelectOptionDict,
-    SelectSelectorMode,
     TextSelectorType,
-    SelectSelector,
 )
-from homeassistant.const import __version__ as HAVERSION
+
 from . import InvalidAuth, create_smartbox_session_from_entry
 from .const import (
     CONF_API_NAME,
@@ -172,8 +172,7 @@ class OptionsFlowHandler(OptionsFlow):
 
     def __init__(self, config_entry: ConfigEntry) -> None:
         """Initilisation of class."""
-        if AwesomeVersion(HAVERSION) < "2024.11.99":
-            self.config_entry = config_entry
+        self.config_entry_options = config_entry.options
 
     async def async_step_init(self, user_input: dict | None = None) -> ConfigFlowResult:
         """Manage the Netatmo options."""
@@ -189,6 +188,6 @@ class OptionsFlowHandler(OptionsFlow):
         return self.async_show_form(
             step_id="session_options",
             data_schema=self.add_suggested_values_to_schema(
-                vol.Schema(SESSION_DATA_SCHEMA), self.config_entry.options
+                vol.Schema(SESSION_DATA_SCHEMA), self.config_entry_options
             ),
         )
