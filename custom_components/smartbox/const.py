@@ -47,18 +47,18 @@ SMARTBOX_RESAILER = {
         "web_url": "https://api.calorhjm.com/",
         "api_url": "api-hjm",
     },
-    "api-elki": {
-        "name": "Elki",
+    "api-helki": {
+        "name": "Helki",
         "web_url": "https://app.helki.com/",
-        "api_url": "api-elki",
+        "api_url": "api-helki",
     },
     "api-haverland": {
         "name": "Haverland",
         "web_url": "https://i2control.haverland.com/",
         "api_url": "api-haverland",
     },
-    "api-helnur": {
-        "name": "Helnur",
+    "api-elnur": {
+        "name": "Elnur",
         "web_url": "https://remotecontrol.elnur.es/",
         "api_url": "api-elnur",
     },

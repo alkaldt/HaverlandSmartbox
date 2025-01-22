@@ -2,7 +2,7 @@
 
 import logging
 from typing import Any
-
+from awesomeversion import AwesomeVersion
 import homeassistant.helpers.config_validation as cv
 import requests
 import voluptuous as vol
@@ -23,7 +23,7 @@ from homeassistant.helpers.selector import (
     TextSelectorType,
     SelectSelector,
 )
-
+from homeassistant.const import __version__ as HAVERSION
 from . import InvalidAuth, create_smartbox_session_from_entry
 from .const import (
     CONF_API_NAME,
@@ -65,6 +65,7 @@ SESSION_DATA_SCHEMA = {
     vol.Required(CONF_SOCKET_RECONNECT_ATTEMPTS, default=3): cv.positive_int,
     vol.Required(CONF_SOCKET_BACKOFF_FACTOR, default=0.1): cv.small_float,
 }
+
 STEP_USER_DATA_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_API_NAME): SelectSelector(
@@ -113,6 +114,7 @@ class ConfigFlow(ConfigFlow, domain=DOMAIN):
                 return self.async_create_entry(
                     title=user_input[CONF_USERNAME], data=user_input
                 )
+        self.context = dict(self.context)
         self.context["title_placeholders"] = placeholders
         return self.async_show_form(
             step_id="user",
@@ -155,6 +157,15 @@ class ConfigFlow(ConfigFlow, domain=DOMAIN):
             description_placeholders=placeholders,
         )
 
+    async def async_end(self):
+        """Finalization of the ConfigEntry creation"""
+        _LOGGER.info(
+            "Recreating entry %s due to configuration change",
+            self.config_entry.entry_id,
+        )
+        self.hass.config_entries.async_update_entry(self.config_entry, data=self._infos)
+        return self.async_create_entry(title=None, data=None)
+
     @staticmethod
     @callback
     def async_get_options_flow(
@@ -169,7 +180,8 @@ class OptionsFlowHandler(OptionsFlow):
 
     def __init__(self, config_entry: ConfigEntry) -> None:
         """Initilisation of class."""
-        self.config_entry = config_entry
+        if AwesomeVersion(HAVERSION) < "2024.11.99":
+            self.config_entry = config_entry
 
     async def async_step_init(self, user_input: dict | None = None) -> ConfigFlowResult:
         """Manage the Netatmo options."""
