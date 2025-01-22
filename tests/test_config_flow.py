@@ -179,3 +179,54 @@ async def test_async_step_user_unknown_error(hass: HomeAssistant) -> None:
     assert result["type"] == FlowResultType.FORM
     assert result["errors"] == {"base": "unknown"}
     assert flow.context["title_placeholders"]["error"] == "Unknown error"
+
+
+async def test_async_step_reauth_confirm_show_form(hass: HomeAssistant) -> None:
+    """Test that the reauth confirm form is served with no input."""
+    flow = ConfigFlow()
+    flow.hass = hass
+    flow.current_user_inputs = MOCK_SMARTBOX_CONFIG[DOMAIN]
+    result = await flow.async_step_reauth_confirm(user_input=None)
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "reauth_confirm"
+    assert result["errors"] == {}
+
+
+async def test_async_step_reauth_confirm_invalid_auth(hass: HomeAssistant) -> None:
+    """Test handling invalid auth error during reauth confirm."""
+    flow = ConfigFlow()
+    flow.hass = hass
+    flow.current_user_inputs = MOCK_SMARTBOX_CONFIG[DOMAIN]
+    with patch(
+        "custom_components.smartbox.config_flow.create_smartbox_session_from_entry",
+        side_effect=InvalidAuth("Invalid auth"),
+    ):
+        result = await flow.async_step_reauth_confirm(
+            user_input={
+                CONF_USERNAME: "user@email.com",
+                CONF_PASSWORD: "new_password",
+            }
+        )
+    assert result["type"] == FlowResultType.FORM
+    assert result["errors"] == {"base": "invalid_auth"}
+    assert flow.context["title_placeholders"]["error"] == "Invalid auth"
+
+
+async def test_async_step_reauth_confirm_unknown_error(hass: HomeAssistant) -> None:
+    """Test handling unknown error during reauth confirm."""
+    flow = ConfigFlow()
+    flow.hass = hass
+    flow.current_user_inputs = MOCK_SMARTBOX_CONFIG[DOMAIN]
+    with patch(
+        "custom_components.smartbox.config_flow.create_smartbox_session_from_entry",
+        side_effect=Exception("Unknown error"),
+    ):
+        result = await flow.async_step_reauth_confirm(
+            user_input={
+                CONF_USERNAME: "user@email.com",
+                CONF_PASSWORD: "new_password",
+            }
+        )
+    assert result["type"] == FlowResultType.FORM
+    assert result["errors"] == {"base": "unknown"}
+    assert flow.context["title_placeholders"]["error"] == "Unknown error"
