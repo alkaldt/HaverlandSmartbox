@@ -638,7 +638,10 @@ def test_get_htr_mod_preset_mode():
 
     with pytest.raises(ValueError) as exc_info:
         _get_htr_mod_preset_mode(HEATER_NODE_TYPE_HTR_MOD, "manual", "unknown")
-    assert "Unexpected 'selected_temp' value unknown" in exc_info.exconly()
+    assert (
+        "Unexpected 'selected_temp' value selected_temp found for htr_mod"
+        in exc_info.exconly()
+    )
 
     with pytest.raises(ValueError) as exc_info:
         _get_htr_mod_preset_mode(HEATER_NODE_TYPE_HTR_MOD, "unknown_mode", "")
