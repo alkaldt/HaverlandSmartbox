@@ -127,3 +127,12 @@ def mock_config_entry_fixture(hass: HomeAssistant) -> MockConfigEntry:
     mock_entry.add_to_hass(hass)
 
     return mock_entry
+
+
+@pytest.fixture
+def mock_create_smartbox_session():
+    with patch(
+        "custom_components.smartbox.config_flow.create_smartbox_session_from_entry",
+        return_value=AsyncMock(),
+    ) as mock:
+        yield mock

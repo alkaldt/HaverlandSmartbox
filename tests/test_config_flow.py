@@ -10,8 +10,20 @@ from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
-
+import requests
 from custom_components.smartbox.const import DOMAIN
+from unittest.mock import AsyncMock
+from custom_components.smartbox.config_flow import ConfigFlow
+import pytest
+from unittest.mock import patch, AsyncMock
+from custom_components.smartbox import InvalidAuth
+from custom_components.smartbox.const import (
+    DOMAIN,
+    CONF_USERNAME,
+    CONF_PASSWORD,
+    CONF_API_NAME,
+    CONF_BASIC_AUTH_CREDS,
+)
 
 
 async def test_show_form(hass: HomeAssistant) -> None:
@@ -115,3 +127,55 @@ async def test_step_reauth(hass: HomeAssistant, mock_smartbox) -> None:
 
     assert len(hass.config_entries.async_entries()) == 1
     assert entry.data[CONF_PASSWORD] == "new_password"
+
+
+async def test_async_step_user_show_form(hass: HomeAssistant) -> None:
+    """Test that the form is served with no input."""
+    flow = ConfigFlow()
+    flow.hass = hass
+    result = await flow.async_step_user(user_input=None)
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "user"
+    assert result["errors"] == {}
+
+
+async def test_async_step_user_cannot_connect(hass: HomeAssistant) -> None:
+    """Test handling cannot connect error."""
+    flow = ConfigFlow()
+    flow.hass = hass
+    with patch(
+        "custom_components.smartbox.config_flow.create_smartbox_session_from_entry",
+        side_effect=requests.exceptions.ConnectionError("Cannot connect"),
+    ):
+        result = await flow.async_step_user(user_input=MOCK_SMARTBOX_CONFIG[DOMAIN])
+    assert result["type"] == FlowResultType.FORM
+    assert result["errors"] == {"base": "cannot_connect"}
+    assert flow.context["title_placeholders"]["error"] == "Cannot connect"
+
+
+async def test_async_step_user_invalid_auth(hass: HomeAssistant) -> None:
+    """Test handling invalid auth error."""
+    flow = ConfigFlow()
+    flow.hass = hass
+    with patch(
+        "custom_components.smartbox.config_flow.create_smartbox_session_from_entry",
+        side_effect=InvalidAuth("Invalid auth"),
+    ):
+        result = await flow.async_step_user(user_input=MOCK_SMARTBOX_CONFIG[DOMAIN])
+    assert result["type"] == FlowResultType.FORM
+    assert result["errors"] == {"base": "invalid_auth"}
+    assert flow.context["title_placeholders"]["error"] == "Invalid auth"
+
+
+async def test_async_step_user_unknown_error(hass: HomeAssistant) -> None:
+    """Test handling unknown error."""
+    flow = ConfigFlow()
+    flow.hass = hass
+    with patch(
+        "custom_components.smartbox.config_flow.create_smartbox_session_from_entry",
+        side_effect=Exception("Unknown error"),
+    ):
+        result = await flow.async_step_user(user_input=MOCK_SMARTBOX_CONFIG[DOMAIN])
+    assert result["type"] == FlowResultType.FORM
+    assert result["errors"] == {"base": "unknown"}
+    assert flow.context["title_placeholders"]["error"] == "Unknown error"
