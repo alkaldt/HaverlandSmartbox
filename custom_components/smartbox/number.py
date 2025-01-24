@@ -6,7 +6,7 @@ from homeassistant.components.number import NumberEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-
+from homeassistant.const import EntityCategory
 from .const import DOMAIN, SMARTBOX_DEVICES
 from .entity import SmartBoxDeviceEntity
 
@@ -32,6 +32,7 @@ class PowerLimit(SmartBoxDeviceEntity, NumberEntity):
 
     _attr_key = "power_limit"
     native_max_value: float = _MAX_POWER_LIMIT
+    _attr_entity_category = EntityCategory.CONFIG
 
     @property
     def native_value(self) -> float:
