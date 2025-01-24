@@ -6,7 +6,7 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-
+from homeassistant.const import EntityCategory
 from .const import DOMAIN, SMARTBOX_DEVICES, SMARTBOX_NODES
 from .entity import SmartBoxDeviceEntity, SmartBoxNodeEntity
 from .model import true_radiant_available, window_mode_available
@@ -67,6 +67,7 @@ class WindowModeSwitch(SmartBoxNodeEntity, SwitchEntity):
     """Smartbox node window mode switch."""
 
     _attr_key = "window_mode"
+    _attr_entity_category = EntityCategory.CONFIG
 
     async def async_turn_on(self, **kwargs):  # pylint: disable=unused-argument
         """Turn on the switch."""
@@ -86,6 +87,7 @@ class TrueRadiantSwitch(SmartBoxNodeEntity, SwitchEntity):
     """Smartbox node true radiant switch."""
 
     _attr_key = "true_radiant"
+    _attr_entity_category = EntityCategory.CONFIG
 
     async def async_turn_on(self, **kwargs):  # pylint: disable=unused-argument
         """Turn on the switch."""
