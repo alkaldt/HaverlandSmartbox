@@ -77,11 +77,12 @@ async def test_option_flow(hass: HomeAssistant, config_entry) -> None:
         "session_backoff_factor": 0.4,
         "socket_reconnect_attempts": 6,
         "socket_backoff_factor": 0.5,
+        "history_consumption": "off",
     }
     result = await hass.config_entries.options.async_init(config_entry.entry_id)
 
     assert result["type"] is FlowResultType.FORM
-    assert result["step_id"] == "session_options"
+    assert result["step_id"] == "options"
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], user_input=valid_option
     )

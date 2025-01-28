@@ -8,8 +8,8 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from smartbox import APIUnavailable, AsyncSmartboxSession, InvalidAuth, SmartboxError
-
+from smartbox import AsyncSmartboxSession
+from smartbox.error import APIUnavailable, InvalidAuth, SmartboxError
 from .const import (
     CONF_API_NAME,
     CONF_BASIC_AUTH_CREDS,

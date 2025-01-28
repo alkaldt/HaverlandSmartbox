@@ -323,9 +323,9 @@ class SmartboxNode:
     def total_energy(self) -> float | None:
         """Get the energy used."""
         samples = self._samples
-        if samples is None:
+        if samples is None or "samples" not in samples or not samples["samples"]:
             return None
-        sample: dict[str, int] = samples["samples"]
+        sample: list[dict[str, int]] = samples["samples"]
         return sample[-1]["counter"]
 
 

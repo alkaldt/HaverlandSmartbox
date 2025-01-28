@@ -274,30 +274,21 @@ class TotalConsumptionSensor(SmartboxSensorBase):
             cancel_on_shutdown=True,
         )
 
-    async def update_statistics(self, *_: Any) -> None:
+    async def update_statistics(self, *args, **kwargs) -> None:
         """Update statistics from samples."""
-        # await self._node.update_samples()
         history_status = HistoryConsumptionStatus(
             self.config_entry.options.get(
                 CONF_HISTORY_CONSUMPTION, HistoryConsumptionStatus.START
             )
         )
         statistic_id = f"{self.entity_id}"
-        last_stats = await get_instance(self.hass).async_add_executor_job(
-            get_last_statistics,
-            self.hass,
-            1,
-            statistic_id,
-            False,
-            {"sum"},
-        )
         hourly_data = []
         if history_status == HistoryConsumptionStatus.START:
             # last 3 years
             for year in (3, 2, 1):
                 year_sample = await self._node.get_samples(
-                    time.time() - (year * 365 * 24 * 60 * 50),
-                    time.time() - ((year - 1) * 365 * 24 * 60 * 50 - 3600),
+                    time.time() - (year * 365 * 24 * 60 * 60),
+                    time.time() - ((year - 1) * 365 * 24 * 60 * 60 - 3600),
                 )
                 hourly_data.extend(year_sample["samples"])
             self.hass.config_entries.async_update_entry(
@@ -311,8 +302,8 @@ class TotalConsumptionSensor(SmartboxSensorBase):
             # last day
             hourly_data = (
                 await self._node.get_samples(
-                    last_stats[statistic_id][0]["end"] - (24 * 60 * 50),
-                    last_stats[statistic_id][0]["end"] + 3600,
+                    time.time() - (24 * 60 * 50),
+                    time.time() + 3600,
                 )
             )["samples"]
             if hourly_data is None or len(hourly_data) == 0:
