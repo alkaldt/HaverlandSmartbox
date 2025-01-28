@@ -36,15 +36,17 @@
   },
   "options": {
     "step": {
-      "session_options": {
-        "title": "Session options",
+      "options": {
+        "title": "Options",
         "data": {
+          "history_consumption": "Consumption history",
           "session_retry_attempts": "Session retry attempts",
           "session_backoff_factor": "Session backoff factor",
           "socket_reconnect_attempts": "Socket reconnect attempts",
           "socket_backoff_factor": "Socket backoff factor"
         },
         "data_description": {
+          "history_consumption": "Consumption history recovery mode. Auto: forces the data. Start: initialization. Off: no data recovery (be careful, some values ​​may be aberrant).",
           "session_retry_attempts": "How many times to retry session REST operations",
           "session_backoff_factor": "How much to backoff between REST retries",
           "socket_reconnect_attempts": "How many times to try reconnecting the socket.io socket",
@@ -60,6 +62,9 @@
       },
       "duty_cycle": {
         "name": "Duty Cycle"
+      },
+      "total_consumption": {
+        "name": "Total Consumption"
       }
     },
     "number": {

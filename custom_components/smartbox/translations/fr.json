@@ -36,15 +36,17 @@
   },
   "options": {
     "step": {
-      "session_options": {
-        "title": "Options de session",
+      "options": {
+        "title": "Options",
         "data": {
+          "history_consumption": "Historique de consommation",
           "session_retry_attempts": "Nombre de tentatives d'opérations REST",
           "session_backoff_factor": "Intervalle entre chaque tentatives REST",
           "socket_reconnect_attempts": "Nombre de tentative de connexion aux sockets",
           "socket_backoff_factor": "Intervalle entre chaque tentative sockets"
         },
         "data_description": {
+          "history_consumption": "Mode de récupération de l'historique de consommation. Auto: force les données. Start: initialisation. Off: aucune récupération des données (attention, certaines valeurs peuvent être abérantes).",
           "session_retry_attempts": "Nombre de tentatives d'opérations REST.",
           "session_backoff_factor": "Intervalle entre chaque tentatives REST",
           "socket_reconnect_attempts": "Nombre de tentative de connexion aux sockets",
@@ -57,6 +59,12 @@
     "sensor": {
       "charge_level": {
         "name": "Niveau de charge"
+      },
+      "hourly_consumption": {
+        "name": "Consommation horaire"
+      },
+      "total_consumption": {
+        "name": "Consommation total"
       },
       "duty_cycle": {
         "name": "Cycle de service"

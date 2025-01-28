@@ -1,6 +1,7 @@
 """Constants for the Smartbox integration."""
 
 from datetime import timedelta
+from enum import StrEnum
 
 from smartbox.session import _DEFAULT_BACKOFF_FACTOR, _DEFAULT_RETRY_ATTEMPTS
 
@@ -63,3 +64,13 @@ SMARTBOX_RESAILER = {
         "api_url": "api-elnur",
     },
 }
+
+CONF_HISTORY_CONSUMPTION = "history_consumption"
+
+
+class HistoryConsumptionStatus(StrEnum):
+    """Consumption History Status."""
+
+    START = "start"
+    AUTO = "auto"
+    OFF = "off"

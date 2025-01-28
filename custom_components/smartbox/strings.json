@@ -37,15 +37,17 @@
   },
   "options": {
     "step": {
-      "session_options": {
+      "options": {
         "title": "[%key:common::config_flow::title%]",
         "data": {
+          "history_consumption": "[%key:common::options::data::history_consumption%]",
           "session_retry_attempts": "[%key:common::options::data::session_retry_attempts%]",
           "session_backoff_factor": "[%key:common::options::data::session_backoff_factor%]",
           "socket_reconnect_attempts": "[%key:common::options::data::socket_reconnect_attempts%]",
           "socket_backoff_factor": "[%key:common::options::data::socket_backoff_factor%]"
         },
         "data_description": {
+          "history_consumption": "[%key:common::options::data_description::history_consumption%]",
           "session_retry_attempts": "[%key:common::options::data_description::session_retry_attempts%]",
           "session_backoff_factor": "[%key:common::options::data_description::session_backoff_factor%]",
           "socket_reconnect_attempts": "[%key:common::options::data_description::socket_reconnect_attempts%]",

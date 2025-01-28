@@ -37,15 +37,17 @@
   },
   "options": {
     "step": {
-      "session_options": {
-        "title": "Opciones de sesión",
+      "options": {
+        "title": "Opciones",
         "data": {
+          "history_consumption": "Historial de consumo",
           "session_retry_attempts": "Intentos de reintento de sesión",
           "session_backoff_factor": "Factor de retardo de sesión",
           "socket_reconnect_attempts": "Intentos de reconexión del socket",
           "socket_backoff_factor": "Factor de retardo del socket"
         },
         "data_description": {
+          "history_consumption": "Modo de recuperación del historial de consumo. Auto: fuerza los datos. Inicio: inicialización. Apagado: no hay recuperación de datos (cuidado, algunos valores pueden ser aberrantes).",
           "session_retry_attempts": "Cuántas veces reintentar las operaciones REST de la sesión",
           "session_backoff_factor": "Cuánto tiempo de espera entre reintentos REST",
           "socket_reconnect_attempts": "Cuántas veces intentar reconectar el socket.io",
@@ -58,6 +60,9 @@
     "sensor": {
       "charge_level": {
         "name": "Nivel de carga"
+      },
+      "total_consumption": {
+        "name": "Consumo total"
       },
       "duty_cycle": {
         "name": "Ciclo de trabajo"
