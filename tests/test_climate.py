@@ -826,3 +826,88 @@ async def test_turn_on(hass, mock_smartbox, config_entry):
             if mock_node["type"] == HEATER_NODE_TYPE_HTR_MOD:
                 assert mock_node_status["on"]
             assert mock_node_status["mode"] == "auto"
+
+
+async def test_turn_on(hass, mock_smartbox, config_entry):
+    assert await hass.config_entries.async_setup(config_entry.entry_id)
+    await hass.async_block_till_done()
+    assert len(hass.states.async_entity_ids(CLIMATE_DOMAIN)) == 8
+    entries = hass.config_entries.async_entries(DOMAIN)
+    assert len(entries) == 1
+
+    assert DOMAIN in hass.config.components
+
+    for mock_device in await mock_smartbox.session.get_devices():
+        for mock_node in await mock_smartbox.session.get_nodes(mock_device["dev_id"]):
+            entity_id = get_climate_entity_id(mock_node)
+
+            await hass.services.async_call(
+                CLIMATE_DOMAIN,
+                SERVICE_SET_HVAC_MODE,
+                {ATTR_HVAC_MODE: HVACMode.OFF, ATTR_ENTITY_ID: entity_id},
+                blocking=True,
+            )
+
+            await hass.helpers.entity_component.async_update_entity(entity_id)
+            state = hass.states.get(entity_id)
+            assert state.state == HVACMode.OFF
+
+            await hass.services.async_call(
+                CLIMATE_DOMAIN,
+                SERVICE_SET_HVAC_MODE,
+                {ATTR_HVAC_MODE: HVACMode.AUTO, ATTR_ENTITY_ID: entity_id},
+                blocking=True,
+            )
+
+            await hass.helpers.entity_component.async_update_entity(entity_id)
+            state = hass.states.get(entity_id)
+            assert state.state == HVACMode.AUTO
+            mock_node_status = await mock_smartbox.session.get_status(
+                mock_device["dev_id"], mock_node
+            )
+            if mock_node["type"] == HEATER_NODE_TYPE_HTR_MOD:
+                assert mock_node_status["on"]
+            assert mock_node_status["mode"] == "auto"
+
+
+async def test_turn_off(hass, mock_smartbox, config_entry):
+    assert await hass.config_entries.async_setup(config_entry.entry_id)
+    await hass.async_block_till_done()
+    assert len(hass.states.async_entity_ids(CLIMATE_DOMAIN)) == 8
+    entries = hass.config_entries.async_entries(DOMAIN)
+    assert len(entries) == 1
+
+    assert DOMAIN in hass.config.components
+
+    for mock_device in await mock_smartbox.session.get_devices():
+        for mock_node in await mock_smartbox.session.get_nodes(mock_device["dev_id"]):
+            entity_id = get_climate_entity_id(mock_node)
+
+            await hass.services.async_call(
+                CLIMATE_DOMAIN,
+                SERVICE_SET_HVAC_MODE,
+                {ATTR_HVAC_MODE: HVACMode.AUTO, ATTR_ENTITY_ID: entity_id},
+                blocking=True,
+            )
+
+            await hass.helpers.entity_component.async_update_entity(entity_id)
+            state = hass.states.get(entity_id)
+            assert state.state == HVACMode.AUTO
+
+            await hass.services.async_call(
+                CLIMATE_DOMAIN,
+                SERVICE_SET_HVAC_MODE,
+                {ATTR_HVAC_MODE: HVACMode.OFF, ATTR_ENTITY_ID: entity_id},
+                blocking=True,
+            )
+
+            await hass.helpers.entity_component.async_update_entity(entity_id)
+            state = hass.states.get(entity_id)
+            assert state.state == HVACMode.OFF
+            mock_node_status = await mock_smartbox.session.get_status(
+                mock_device["dev_id"], mock_node
+            )
+            if mock_node["type"] == HEATER_NODE_TYPE_HTR_MOD:
+                assert not mock_node_status["on"]
+            else:
+                assert mock_node_status["mode"] == "off"

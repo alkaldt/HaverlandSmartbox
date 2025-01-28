@@ -306,8 +306,6 @@ class TotalConsumptionSensor(SmartboxSensorBase):
                     time.time() + 3600,
                 )
             )["samples"]
-            if hourly_data is None or len(hourly_data) == 0:
-                return
 
         hourly_data = sorted(hourly_data, key=lambda x: x["t"])
         statistics: list[StatisticData] = [
