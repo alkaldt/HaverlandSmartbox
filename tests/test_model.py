@@ -263,6 +263,7 @@ async def test_smartbox_node(hass):
     assert node.name == node_name
     assert node.node_type == node_type
     assert node.addr == node_addr
+    assert node.node_info == node_info
 
     assert node.status == initial_status
     new_status = {"mtemp": "21.6", "stemp": "22.5"}
@@ -654,3 +655,41 @@ def test_get_htr_mod_preset_mode():
     with pytest.raises(ValueError) as exc_info:
         _get_htr_mod_preset_mode(HEATER_NODE_TYPE_HTR_MOD, "unknown_mode", "")
     assert "Unknown smartbox node mode unknown_mode" in exc_info.exconly()
+
+
+async def test_update_samples(hass):
+    dev_id = "test_device_id_1"
+    mock_device = AsyncMock()
+    mock_device.dev_id = dev_id
+    mock_device.away = False
+    node_addr = 3
+    node_type = HEATER_NODE_TYPE_HTR
+    node_name = "Bathroom Heater"
+    node_info = {"addr": node_addr, "name": node_name, "type": node_type}
+    mock_session = AsyncMock()
+    initial_status = {"mtemp": "21.4", "stemp": "22.5"}
+    initial_setup = {"true_radiant_enabled": False, "window_mode_enabled": False}
+    node_sample = {"samples": [{"t": 1735686000, "temp": "11.3", "counter": 247426}]}
+
+    node = SmartboxNode(
+        mock_device, node_info, mock_session, initial_status, initial_setup, node_sample
+    )
+    assert node.total_energy == 247426
+    # Test case where get_samples returns less than 2 samples
+    mock_session.get_node_samples.return_value = [{"counter": 100}]
+    await node.update_samples()
+    assert node._samples == node_sample
+
+    # Test case where get_samples returns 2 or more samples
+    mock_session.get_node_samples.return_value = [{"counter": 100}, {"counter": 200}]
+    await node.update_samples()
+    assert node._samples == [{"counter": 100}, {"counter": 200}]
+
+    # Test case where get_samples returns more than 2 samples
+    mock_session.get_node_samples.return_value = [
+        {"counter": 100},
+        {"counter": 200},
+        {"counter": 300},
+    ]
+    await node.update_samples()
+    assert node._samples == [{"counter": 200}, {"counter": 300}]
