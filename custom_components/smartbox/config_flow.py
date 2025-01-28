@@ -4,7 +4,6 @@ import logging
 from typing import Any
 
 import homeassistant.helpers.config_validation as cv
-import requests
 import voluptuous as vol
 from homeassistant.config_entries import (
     ConfigEntry,
@@ -24,10 +23,16 @@ from homeassistant.helpers.selector import (
     TextSelectorType,
 )
 
-from . import InvalidAuth, create_smartbox_session_from_entry
+from . import (
+    APIUnavailable,
+    InvalidAuth,
+    SmartboxError,
+    create_smartbox_session_from_entry,
+)
 from .const import (
     CONF_API_NAME,
     CONF_BASIC_AUTH_CREDS,
+    CONF_HISTORY_CONSUMPTION,
     CONF_PASSWORD,
     CONF_SESSION_BACKOFF_FACTOR,
     CONF_SESSION_RETRY_ATTEMPTS,
@@ -38,6 +43,7 @@ from .const import (
     DEFAULT_SOCKET_BACKOFF_FACTOR,
     DOMAIN,
     SMARTBOX_RESAILER,
+    HistoryConsumptionStatus,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -53,7 +59,13 @@ LOGIN_DATA_SCHEMA = {
     ),
 }
 
-SESSION_DATA_SCHEMA = {
+OPTIONS_DATA_SCHEMA = {
+    vol.Required(CONF_HISTORY_CONSUMPTION): SelectSelector(
+        SelectSelectorConfig(
+            options=[e.value for e in HistoryConsumptionStatus],
+            mode=SelectSelectorMode.DROPDOWN,
+        )
+    ),
     vol.Required(
         CONF_SESSION_RETRY_ATTEMPTS,
         default=DEFAULT_SESSION_RETRY_ATTEMPTS,
@@ -65,6 +77,7 @@ SESSION_DATA_SCHEMA = {
     vol.Required(CONF_SOCKET_RECONNECT_ATTEMPTS, default=3): cv.positive_int,
     vol.Required(CONF_SOCKET_BACKOFF_FACTOR, default=0.1): cv.small_float,
 }
+
 
 STEP_USER_DATA_SCHEMA = vol.Schema(
     {
@@ -99,13 +112,13 @@ class ConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             try:
                 await create_smartbox_session_from_entry(self.hass, user_input)
-            except requests.exceptions.ConnectionError as ex:
+            except APIUnavailable as ex:
                 errors["base"] = "cannot_connect"
                 placeholders["error"] = str(ex)
             except InvalidAuth as ex:
                 errors["base"] = "invalid_auth"
                 placeholders["error"] = str(ex)
-            except Exception as ex:
+            except SmartboxError as ex:
                 errors["base"] = "unknown"
                 placeholders["error"] = str(ex)
             else:
@@ -176,9 +189,9 @@ class OptionsFlowHandler(OptionsFlow):
 
     async def async_step_init(self, user_input: dict | None = None) -> ConfigFlowResult:
         """Manage the Netatmo options."""
-        return await self.async_step_session_options()
+        return await self.async_step_options()
 
-    async def async_step_session_options(
+    async def async_step_options(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Manage the options."""
@@ -186,8 +199,8 @@ class OptionsFlowHandler(OptionsFlow):
             return self.async_create_entry(title=None, data=user_input)
 
         return self.async_show_form(
-            step_id="session_options",
+            step_id="options",
             data_schema=self.add_suggested_values_to_schema(
-                vol.Schema(SESSION_DATA_SCHEMA), self.config_entry_options
+                vol.Schema(OPTIONS_DATA_SCHEMA), self.config_entry_options
             ),
         )

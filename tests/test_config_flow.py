@@ -1,19 +1,18 @@
 from unittest.mock import AsyncMock, patch
 
-import requests
 from const import (
     CONF_PASSWORD,
     CONF_USERNAME,
+    DOMAIN,
     MOCK_SESSION_CONFIG,
     MOCK_SMARTBOX_CONFIG,
-    DOMAIN,
 )
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.smartbox import InvalidAuth
+from custom_components.smartbox import APIUnavailable, InvalidAuth, SmartboxError
 from custom_components.smartbox.config_flow import ConfigFlow
 
 
@@ -136,7 +135,7 @@ async def test_async_step_user_cannot_connect(hass: HomeAssistant) -> None:
     flow.hass = hass
     with patch(
         "custom_components.smartbox.config_flow.create_smartbox_session_from_entry",
-        side_effect=requests.exceptions.ConnectionError("Cannot connect"),
+        side_effect=APIUnavailable("Cannot connect"),
     ):
         result = await flow.async_step_user(user_input=MOCK_SMARTBOX_CONFIG[DOMAIN])
     assert result["type"] == FlowResultType.FORM
@@ -164,7 +163,7 @@ async def test_async_step_user_unknown_error(hass: HomeAssistant) -> None:
     flow.hass = hass
     with patch(
         "custom_components.smartbox.config_flow.create_smartbox_session_from_entry",
-        side_effect=Exception("Unknown error"),
+        side_effect=SmartboxError("Unknown error"),
     ):
         result = await flow.async_step_user(user_input=MOCK_SMARTBOX_CONFIG[DOMAIN])
     assert result["type"] == FlowResultType.FORM
@@ -210,7 +209,7 @@ async def test_async_step_reauth_confirm_unknown_error(hass: HomeAssistant) -> N
     flow.current_user_inputs = MOCK_SMARTBOX_CONFIG[DOMAIN]
     with patch(
         "custom_components.smartbox.config_flow.create_smartbox_session_from_entry",
-        side_effect=Exception("Unknown error"),
+        side_effect=SmartboxError("Unknown error"),
     ):
         result = await flow.async_step_reauth_confirm(
             user_input={

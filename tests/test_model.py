@@ -1,4 +1,5 @@
 import logging
+import time
 from unittest.mock import AsyncMock, MagicMock, NonCallableMock, patch
 
 import pytest
@@ -110,6 +111,9 @@ async def test_smartbox_device_init(hass, mock_smartbox):
             mock_smartbox.session,
             await mock_smartbox.session.get_node_status(dev_id, mock_nodes[0]),
             await mock_smartbox.session.get_node_setup(dev_id, mock_nodes[0]),
+            await mock_smartbox.session.get_node_samples(
+                dev_id, mock_nodes[0], int(time.time()), int(time.time())
+            ),
         )
         smartbox_node_ctor_mock.assert_any_call(
             device,
@@ -117,6 +121,9 @@ async def test_smartbox_device_init(hass, mock_smartbox):
             mock_smartbox.session,
             await mock_smartbox.session.get_node_status(dev_id, mock_nodes[1]),
             await mock_smartbox.session.get_node_setup(dev_id, mock_nodes[1]),
+            await mock_smartbox.session.get_node_samples(
+                dev_id, mock_nodes[1], int(time.time()), int(time.time())
+            ),
         )
 
         assert mock_smartbox.get_socket(dev_id) is not None
@@ -244,12 +251,13 @@ async def test_smartbox_node(hass):
     node_type = HEATER_NODE_TYPE_HTR
     node_name = "Bathroom Heater"
     node_info = {"addr": node_addr, "name": node_name, "type": node_type}
+    node_sample = {"t": 1735686000, "temp": "11.3", "counter": 247426}
     mock_session = AsyncMock()
     initial_status = {"mtemp": "21.4", "stemp": "22.5"}
     initial_setup = {"true_radiant_enabled": False, "window_mode_enabled": False}
 
     node = SmartboxNode(
-        mock_device, node_info, mock_session, initial_status, initial_setup
+        mock_device, node_info, mock_session, initial_status, initial_setup, node_sample
     )
     assert node.node_id == f"{dev_id}_{node_addr}"
     assert node.name == node_name

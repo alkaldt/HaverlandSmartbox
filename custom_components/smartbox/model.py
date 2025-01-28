@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import time
 from typing import Any, cast
 from unittest.mock import MagicMock
 
@@ -14,7 +15,6 @@ from homeassistant.components.climate import (
     HVACMode,
 )
 from homeassistant.const import UnitOfTemperature
-from homeassistant.core import HomeAssistant
 from smartbox import AsyncSmartboxSession, UpdateManager
 
 from .const import (
@@ -26,7 +26,7 @@ from .const import (
     PRESET_SCHEDULE,
     PRESET_SELF_LEARN,
 )
-from .types import FactoryOptionsDict, SetupDict, StatusDict
+from .types import FactoryOptionsDict, SamplesDict, SetupDict, StatusDict
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -55,8 +55,13 @@ class SmartboxDevice:
         for node_info in session_nodes:
             status = await self._session.get_node_status(self.dev_id, node_info)
             setup = await self._session.get_node_setup(self.dev_id, node_info)
-
-            node = SmartboxNode(self, node_info, self._session, status, setup)
+            samples = await self._session.get_node_samples(
+                self.dev_id,
+                node_info,
+                int(time.time() - (3600 * 3)),
+                int(time.time()),
+            )
+            node = SmartboxNode(self, node_info, self._session, status, setup, samples)
 
             self._nodes[(node.node_type, node.addr)] = node
 
@@ -88,6 +93,7 @@ class SmartboxDevice:
         node = self._nodes.get((node_type, addr), None)
         if node is not None:
             node.update_status(node_status)
+
         else:
             _LOGGER.error(
                 "Received status update for unknown node %s %s", node_type, addr
@@ -172,6 +178,7 @@ class SmartboxNode:
         session: AsyncSmartboxSession | MagicMock,
         status: dict[str, Any],
         setup: dict[str, Any],
+        samples: dict[str, Any],
     ) -> None:
         """Initialise a smartbox node."""
         self._device = device
@@ -179,6 +186,12 @@ class SmartboxNode:
         self._session = session
         self._status = status
         self._setup = setup
+        self._samples = samples
+
+    @property
+    def node_info(self) -> dict[str, Any]:
+        """Return the node info."""
+        return self._node_info
 
     @property
     def node_id(self) -> str:
@@ -243,7 +256,7 @@ class SmartboxNode:
         """Update device away status."""
         await self._device.set_away_status(away)
 
-    async def async_update(self, hass: HomeAssistant) -> StatusDict:
+    async def async_update(self, _) -> StatusDict:
         """Update status."""
         return self.status
 
@@ -286,6 +299,34 @@ class SmartboxNode:
             if self.node_type == HEATER_NODE_TYPE_ACM
             else status["active"]
         )
+
+    async def update_samples(self) -> None:
+        """Update the samples."""
+        sample = await self.get_samples(
+            int(time.time() - (3600 * 3)),
+            int(time.time()),
+        )
+        if len(sample) >= 2:
+            self._samples = sample[-2:]
+            _LOGGER.debug("Updating node %s samples: %s", self.name, self._samples)
+
+    async def get_samples(self, start_time, end_time) -> SamplesDict:
+        """Update the samples."""
+        return await self._session.get_node_samples(
+            self.device.dev_id,
+            self._node_info,
+            start_time,
+            end_time,
+        )
+
+    @property
+    def total_energy(self) -> float | None:
+        """Get the energy used."""
+        samples = self._samples
+        if samples is None:
+            return None
+        sample: dict[str, int] = samples["samples"]
+        return sample[-1]["counter"]
 
 
 def is_heater_node(node: SmartboxNode | MagicMock) -> bool:

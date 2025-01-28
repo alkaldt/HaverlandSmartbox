@@ -4,9 +4,10 @@ import logging
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.const import EntityCategory
+
 from .const import DOMAIN, SMARTBOX_DEVICES, SMARTBOX_NODES
 from .entity import SmartBoxDeviceEntity, SmartBoxNodeEntity
 from .model import true_radiant_available, window_mode_available

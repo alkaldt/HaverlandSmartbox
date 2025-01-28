@@ -3,14 +3,12 @@
 import logging
 from typing import Any
 
-import requests
-from homeassistant import exceptions
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from smartbox import AsyncSmartboxSession
+from smartbox import APIUnavailable, AsyncSmartboxSession, InvalidAuth, SmartboxError
 
 from .const import (
     CONF_API_NAME,
@@ -23,6 +21,7 @@ from .const import (
 )
 from .model import get_devices, is_supported_node
 
+
 __version__ = "2.1.0"
 
 _LOGGER = logging.getLogger(__name__)
@@ -33,10 +32,6 @@ PLATFORMS: list[Platform] = [
     Platform.SENSOR,
     Platform.SWITCH,
 ]
-
-
-class InvalidAuth(exceptions.HomeAssistantError):
-    """Error to indicate there is invalid auth."""
 
 
 async def create_smartbox_session_from_entry(
@@ -57,11 +52,14 @@ async def create_smartbox_session_from_entry(
             data[CONF_PASSWORD],
             websession,
         )
+        await session.health_check()
         await session.check_refresh_auth()
-    except requests.exceptions.ConnectionError as ex:
-        raise requests.exceptions.ConnectionError from ex
+    except APIUnavailable as ex:
+        raise APIUnavailable from ex
     except InvalidAuth as ex:
         raise InvalidAuth from ex
+    except SmartboxError as ex:
+        raise SmartboxError from ex
     else:
         return session
 
