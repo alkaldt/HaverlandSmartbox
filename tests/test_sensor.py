@@ -13,6 +13,15 @@ from mocks import (
 from pytest import approx
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 from test_utils import convert_temp, round_temp
+from unittest.mock import AsyncMock, patch
+from datetime import datetime, timedelta
+import time
+from custom_components.smartbox.sensor import TotalConsumptionSensor
+from homeassistant.components.recorder.models.statistics import (
+    StatisticData,
+    StatisticMetaData,
+)
+from homeassistant.components.recorder.statistics import async_import_statistics
 
 from custom_components.smartbox.const import (
     DOMAIN,
@@ -271,3 +280,92 @@ async def test_basic_charge_level(hass, mock_smartbox, config_entry):
             await hass.helpers.entity_component.async_update_entity(entity_id)
             state = hass.states.get(entity_id)
             assert state.state != STATE_UNAVAILABLE
+
+
+from custom_components.smartbox.const import (
+    CONF_HISTORY_CONSUMPTION,
+    HistoryConsumptionStatus,
+)
+
+
+async def test_update_statistics_start(hass, mock_smartbox, config_entry):
+    mock_node = AsyncMock()
+    mock_node.get_samples = AsyncMock(
+        return_value={"samples": [{"t": time.time(), "counter": 100}]}
+    )
+    sensor = TotalConsumptionSensor(mock_node, config_entry)
+    sensor.hass = hass
+    hass.config_entries.async_update_entry(
+        entry=config_entry,
+        options={
+            **config_entry.options,
+            CONF_HISTORY_CONSUMPTION: HistoryConsumptionStatus.START,
+        },
+    )
+
+    with patch.object(
+        hass.config_entries, "async_update_entry"
+    ) as mock_update_entry, patch(
+        "custom_components.smartbox.sensor.async_import_statistics"
+    ) as mock_import_statistics:
+        await sensor.update_statistics()
+
+        assert mock_node.get_samples.call_count == 3
+        mock_update_entry.assert_called_once_with(
+            entry=config_entry,
+            options={
+                **config_entry.options,
+                CONF_HISTORY_CONSUMPTION: HistoryConsumptionStatus.AUTO,
+            },
+        )
+        assert mock_import_statistics.called
+
+
+async def test_update_statistics_auto(hass, mock_smartbox, config_entry):
+    assert await hass.config_entries.async_setup(config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    mock_node = AsyncMock()
+    mock_node.get_samples = AsyncMock(
+        return_value={"samples": [{"t": time.time(), "counter": 100}]}
+    )
+    sensor = TotalConsumptionSensor(mock_node, config_entry)
+    sensor.hass = hass
+    hass.config_entries.async_update_entry(
+        entry=config_entry,
+        options={
+            **config_entry.options,
+            CONF_HISTORY_CONSUMPTION: HistoryConsumptionStatus.AUTO,
+        },
+    )
+
+    with patch(
+        "custom_components.smartbox.sensor.async_import_statistics"
+    ) as mock_import_statistics:
+        await sensor.update_statistics()
+
+        mock_node.get_samples.assert_called_once()
+        assert mock_import_statistics.called
+
+
+async def test_update_statistics_off(hass, mock_smartbox, config_entry):
+    mock_node = AsyncMock()
+    mock_node.get_samples = AsyncMock(
+        return_value={"samples": [{"t": time.time(), "counter": 100}]}
+    )
+    sensor = TotalConsumptionSensor(mock_node, config_entry)
+    sensor.hass = hass
+    hass.config_entries.async_update_entry(
+        entry=config_entry,
+        options={
+            **config_entry.options,
+            CONF_HISTORY_CONSUMPTION: HistoryConsumptionStatus.OFF,
+        },
+    )
+
+    with patch(
+        "custom_components.smartbox.sensor.async_import_statistics"
+    ) as mock_import_statistics:
+        await sensor.update_statistics()
+
+        mock_import_statistics.assert_not_called()
