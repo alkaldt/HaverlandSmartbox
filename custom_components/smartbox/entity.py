@@ -3,7 +3,7 @@
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import DeviceInfo, Entity
 
-from custom_components.smartbox.const import CONF_API_NAME, DOMAIN, SMARTBOX_RESAILER
+from custom_components.smartbox.const import DOMAIN
 from custom_components.smartbox.model import SmartboxDevice, SmartboxNode
 
 
@@ -16,8 +16,8 @@ class DefaultSmartBoxEntity(Entity):
         self._attr_has_entity_name = True
         self._attr_translation_key = self._attr_key
         self._attr_unique_id = self._node.node_id
-        self._resailer = SMARTBOX_RESAILER[entry.data[CONF_API_NAME]]
-        self._configuration_url = f"{self._resailer['web_url']}#/{self._node.device.home['id']}/dev/{self._device_id}/{self._node.node_type}/{self._node.addr}/setup"
+        self._resailer = self._node.session.resailer
+        self._configuration_url = f"{self._resailer.web_url}#/{self._node.device.home['id']}/dev/{self._device_id}/{self._node.node_type}/{self._node.addr}/setup"
 
     @property
     def unique_id(self) -> str:
@@ -30,7 +30,7 @@ class DefaultSmartBoxEntity(Entity):
         return DeviceInfo(
             identifiers={(DOMAIN, self._device_id)},
             name=self._node.name,
-            manufacturer=self._resailer["name"],
+            manufacturer=self._resailer.name,
             model_id=self._node.device.model_id,
             sw_version=self._node.device.sw_version,
             serial_number=self._node.device.serial_number,

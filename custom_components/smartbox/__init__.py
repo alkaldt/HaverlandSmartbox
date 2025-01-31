@@ -10,9 +10,9 @@ from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from smartbox import AsyncSmartboxSession
 from smartbox.error import APIUnavailable, InvalidAuth, SmartboxError
-from .const import (
+
+from .const import (  # CONF_BASIC_AUTH_CREDS,; SMARTBOX_RESAILER,
     CONF_API_NAME,
-    CONF_BASIC_AUTH_CREDS,
     CONF_PASSWORD,
     CONF_USERNAME,
     DOMAIN,
@@ -20,7 +20,6 @@ from .const import (
     SMARTBOX_NODES,
 )
 from .model import get_devices, is_supported_node
-
 
 __version__ = "2.1.0"
 
@@ -46,11 +45,10 @@ async def create_smartbox_session_from_entry(
     try:
         websession = async_get_clientsession(hass)
         session = AsyncSmartboxSession(
-            data[CONF_API_NAME],
-            data[CONF_BASIC_AUTH_CREDS],
-            data[CONF_USERNAME],
-            data[CONF_PASSWORD],
-            websession,
+            api_name=data[CONF_API_NAME],
+            username=data[CONF_USERNAME],
+            password=data[CONF_PASSWORD],
+            websession=websession,
         )
         await session.health_check()
         await session.check_refresh_auth()

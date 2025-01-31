@@ -14,8 +14,6 @@ from homeassistant.components.recorder.models.statistics import (
 )
 from homeassistant.components.recorder.statistics import (
     async_import_statistics,
-    get_instance,
-    get_last_statistics,
 )
 from homeassistant.components.sensor import (
     SensorDeviceClass,

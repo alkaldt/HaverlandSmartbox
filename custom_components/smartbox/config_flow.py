@@ -22,6 +22,7 @@ from homeassistant.helpers.selector import (
     TextSelectorConfig,
     TextSelectorType,
 )
+from smartbox import AvailableResailers
 
 from . import (
     APIUnavailable,
@@ -31,7 +32,6 @@ from . import (
 )
 from .const import (
     CONF_API_NAME,
-    CONF_BASIC_AUTH_CREDS,
     CONF_HISTORY_CONSUMPTION,
     CONF_PASSWORD,
     CONF_SESSION_BACKOFF_FACTOR,
@@ -42,7 +42,6 @@ from .const import (
     DEFAULT_SESSION_RETRY_ATTEMPTS,
     DEFAULT_SOCKET_BACKOFF_FACTOR,
     DOMAIN,
-    SMARTBOX_RESAILER,
     HistoryConsumptionStatus,
 )
 
@@ -84,16 +83,13 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
         vol.Required(CONF_API_NAME): SelectSelector(
             SelectSelectorConfig(
                 options=[
-                    SelectOptionDict(value=resailer["api_url"], label=resailer["name"])
-                    for resailer in SMARTBOX_RESAILER.values()
+                    SelectOptionDict(value=resailer.api_url, label=resailer.name)
+                    for resailer in AvailableResailers.resailers.values()
                 ],
                 mode=SelectSelectorMode.DROPDOWN,
             )
         ),
         **LOGIN_DATA_SCHEMA,
-        vol.Required(CONF_BASIC_AUTH_CREDS): TextSelector(
-            TextSelectorConfig(type=TextSelectorType.PASSWORD)
-        ),
     },
 )
 
@@ -122,10 +118,13 @@ class ConfigFlow(ConfigFlow, domain=DOMAIN):
                 errors["base"] = "unknown"
                 placeholders["error"] = str(ex)
             else:
-                await self.async_set_unique_id(user_input[CONF_USERNAME])
+                await self.async_set_unique_id(
+                    f"{AvailableResailers(api_url=user_input[CONF_API_NAME]).api_url}_{user_input[CONF_USERNAME]}"
+                )
                 self._abort_if_unique_id_configured()
                 return self.async_create_entry(
-                    title=user_input[CONF_USERNAME], data=user_input
+                    title=f"{AvailableResailers(api_url=user_input[CONF_API_NAME]).name} {user_input[CONF_USERNAME]}",
+                    data=user_input,
                 )
         context = dict(self.context)
         context["title_placeholders"] = placeholders
@@ -153,11 +152,19 @@ class ConfigFlow(ConfigFlow, domain=DOMAIN):
             user_input = {**self.current_user_inputs, **user_input}
             try:
                 await create_smartbox_session_from_entry(self.hass, user_input)
-            except Exception as ex:
+            except APIUnavailable as ex:
+                errors["base"] = "cannot_connect"
+                placeholders["error"] = str(ex)
+            except InvalidAuth as ex:
                 errors["base"] = "invalid_auth"
                 placeholders["error"] = str(ex)
+            except SmartboxError as ex:
+                errors["base"] = "unknown"
+                placeholders["error"] = str(ex)
             else:
-                await self.async_set_unique_id(user_input[CONF_USERNAME])
+                await self.async_set_unique_id(
+                    f"{AvailableResailers(api_url=user_input[CONF_API_NAME]).api_url}_{user_input[CONF_USERNAME]}"
+                )
                 self._abort_if_unique_id_mismatch(reason="invalid_auth")
                 return self.async_update_reload_and_abort(
                     self._get_reauth_entry(),

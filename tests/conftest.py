@@ -18,6 +18,7 @@ from homeassistant.core import HomeAssistant
 from mocks import MockSmartbox
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 from test_utils import simple_celsius_to_fahrenheit
+from smartbox.resailer import SmartboxResailer
 
 pytest_plugins = "pytest_homeassistant_custom_component"
 
@@ -157,3 +158,22 @@ def mock_devices():
     device.dev_id = "device_1"
     device.get_nodes = AsyncMock(return_value=[])
     return [device]
+
+
+@pytest.fixture
+def resailer(mocker):
+    mock = mocker.patch(
+        "smartbox.resailer.AvailableResailers.resailers",
+        new_callable=mocker.PropertyMock,
+        return_value={
+            "test_api_name_1": SmartboxResailer(
+                name="Test API name",
+                api_url="test_api_name_1",
+                basic_auth="test_credentials",
+                serial_id=10,
+                web_url="https://web_url/",
+            )
+        },
+    )
+
+    yield mock

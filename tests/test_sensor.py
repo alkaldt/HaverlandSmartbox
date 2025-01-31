@@ -1,4 +1,6 @@
 import logging
+import time
+from unittest.mock import AsyncMock, patch
 
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 from homeassistant.const import ATTR_FRIENDLY_NAME, ATTR_LOCKED, STATE_UNAVAILABLE
@@ -13,22 +15,15 @@ from mocks import (
 from pytest import approx
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 from test_utils import convert_temp, round_temp
-from unittest.mock import AsyncMock, patch
-from datetime import datetime, timedelta
-import time
-from custom_components.smartbox.sensor import TotalConsumptionSensor
-from homeassistant.components.recorder.models.statistics import (
-    StatisticData,
-    StatisticMetaData,
-)
-from homeassistant.components.recorder.statistics import async_import_statistics
 
 from custom_components.smartbox.const import (
     DOMAIN,
     HEATER_NODE_TYPE_ACM,
-    HEATER_NODE_TYPE_HTR,
     HEATER_NODE_TYPE_HTR_MOD,
+    CONF_HISTORY_CONSUMPTION,
+    HistoryConsumptionStatus,
 )
+from custom_components.smartbox.sensor import TotalConsumptionSensor
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -282,12 +277,6 @@ async def test_basic_charge_level(hass, mock_smartbox, config_entry):
             assert state.state != STATE_UNAVAILABLE
 
 
-from custom_components.smartbox.const import (
-    CONF_HISTORY_CONSUMPTION,
-    HistoryConsumptionStatus,
-)
-
-
 async def test_update_statistics_start(hass, mock_smartbox, config_entry):
     mock_node = AsyncMock()
     mock_node.get_samples = AsyncMock(
@@ -303,11 +292,12 @@ async def test_update_statistics_start(hass, mock_smartbox, config_entry):
         },
     )
 
-    with patch.object(
-        hass.config_entries, "async_update_entry"
-    ) as mock_update_entry, patch(
-        "custom_components.smartbox.sensor.async_import_statistics"
-    ) as mock_import_statistics:
+    with (
+        patch.object(hass.config_entries, "async_update_entry") as mock_update_entry,
+        patch(
+            "custom_components.smartbox.sensor.async_import_statistics"
+        ) as mock_import_statistics,
+    ):
         await sensor.update_statistics()
 
         assert mock_node.get_samples.call_count == 3

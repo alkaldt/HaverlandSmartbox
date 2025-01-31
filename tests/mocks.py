@@ -8,6 +8,7 @@ from homeassistant.components.number import DOMAIN as NUMBER_DOMAIN
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 from homeassistant.helpers import entity_registry
+from smartbox.resailer import SmartboxResailer
 
 from custom_components.smartbox.const import (
     DOMAIN,
@@ -152,7 +153,7 @@ class MockSmartbox(object):
         start_available=True,
     ):
         self.config = mock_config
-        assert len(mock_config[DOMAIN]) == 5
+        assert len(mock_config[DOMAIN]) == 4
         config_dev_ids = mock_config[DOMAIN][CONF_DEVICE_IDS]
         self._home_info = mock_home_info
         self._device_info = mock_device_info
@@ -180,6 +181,13 @@ class MockSmartbox(object):
     def _create_mock_session(self):
         mock_session = AsyncMock()
         mock_session.get_devices.return_value = self._devices
+        mock_session.resailer = SmartboxResailer(
+            name="Test API name",
+            api_url="test_api_name_1",
+            basic_auth="test_credentials",
+            serial_id=10,
+            web_url="https://web_url/",
+        )
 
         def get_homes():
             return self._home_info
@@ -221,7 +229,7 @@ class MockSmartbox(object):
     def get_mock_session(
         self,
         api_name: str,
-        basic_auth_credentials: str,
+        # basic_auth_credentials: str,
         username: str,
         password: str,
         websession,

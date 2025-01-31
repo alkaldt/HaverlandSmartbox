@@ -1,12 +1,11 @@
 from unittest.mock import AsyncMock, patch
 
 import pytest
-import requests
 from homeassistant.exceptions import ConfigEntryAuthFailed
 
 from custom_components.smartbox import (
-    InvalidAuth,
     APIUnavailable,
+    InvalidAuth,
     SmartboxError,
     async_setup_entry,
     create_smartbox_session_from_entry,
