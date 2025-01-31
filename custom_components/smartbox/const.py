@@ -8,7 +8,7 @@ from smartbox.session import _DEFAULT_BACKOFF_FACTOR, _DEFAULT_RETRY_ATTEMPTS
 DOMAIN = "smartbox"
 
 CONF_API_NAME = "api_name"
-CONF_BASIC_AUTH_CREDS = "basic_auth_creds"
+# CONF_BASIC_AUTH_CREDS = "basic_auth_creds"
 CONF_PASSWORD = "password"
 CONF_USERNAME = "username"
 CONF_SESSION_RETRY_ATTEMPTS = "session_retry_attempts"
@@ -42,28 +42,6 @@ SMARTBOX_DEVICES = "smartbox_devices"
 SMARTBOX_NODES = "smartbox_nodes"
 SMARTBOX_SESSIONS = "smartbox_sessions"
 
-SMARTBOX_RESAILER = {
-    "api-hjm": {
-        "name": "HJM",
-        "web_url": "https://api.calorhjm.com/",
-        "api_url": "api-hjm",
-    },
-    "api-helki": {
-        "name": "Helki",
-        "web_url": "https://app.helki.com/",
-        "api_url": "api-helki",
-    },
-    "api-haverland": {
-        "name": "Haverland",
-        "web_url": "https://i2control.haverland.com/",
-        "api_url": "api-haverland",
-    },
-    "api-elnur": {
-        "name": "Elnur",
-        "web_url": "https://remotecontrol.elnur.es/",
-        "api_url": "api-elnur",
-    },
-}
 
 CONF_HISTORY_CONSUMPTION = "history_consumption"
 

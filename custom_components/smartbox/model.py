@@ -252,6 +252,11 @@ class SmartboxNode:
         """Return the device of the node."""
         return self._device
 
+    @property
+    def session(self):
+        """Return the smartbox session."""
+        return self._session
+
     async def update_device_away_status(self, away: bool):
         """Update device away status."""
         await self._device.set_away_status(away)

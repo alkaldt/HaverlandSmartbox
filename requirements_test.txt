@@ -9,4 +9,5 @@ pytest-aiohttp
 pytest-cov
 pytest-homeassistant-custom-component==0.13.203
 pytest-sugar
+pytest-mock
 tox

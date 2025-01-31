@@ -2,7 +2,6 @@ from typing import Any, Dict, List
 
 from custom_components.smartbox.const import (
     CONF_API_NAME,
-    CONF_BASIC_AUTH_CREDS,
     CONF_PASSWORD,
     CONF_SESSION_BACKOFF_FACTOR,
     CONF_SESSION_RETRY_ATTEMPTS,
@@ -13,15 +12,9 @@ from custom_components.smartbox.const import (
     HEATER_NODE_TYPE_ACM,
     HEATER_NODE_TYPE_HTR,
     HEATER_NODE_TYPE_HTR_MOD,
-    SMARTBOX_RESAILER,
 )
 
 CONF_DEVICE_IDS = "device_ids"
-SMARTBOX_RESAILER["test_api_name_1"] = {
-    "name": "Test API name",
-    "web_url": "https://web_url/",
-    "api_url": "test_api_name_1",
-}
 
 MOCK_SMARTBOX_CONFIG = {
     DOMAIN: {
@@ -29,7 +22,6 @@ MOCK_SMARTBOX_CONFIG = {
         CONF_USERNAME: "test_username_1",
         CONF_PASSWORD: "test_password_1",
         CONF_DEVICE_IDS: ["device_1", "device_2"],
-        CONF_BASIC_AUTH_CREDS: "test_basic_auth_creds",
     }
 }
 
