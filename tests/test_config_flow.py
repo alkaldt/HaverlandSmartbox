@@ -45,35 +45,6 @@ async def test_integration_already_exists(
     assert result["reason"] == "already_configured"
 
 
-# async def test_form(
-#     hass: HomeAssistant, mock_setup_entry: AsyncMock, mock_smartbox, resailer
-# ) -> None:
-#     """Test we get the form."""
-#     result = await hass.config_entries.flow.async_init(
-#         DOMAIN, context={"source": config_entries.SOURCE_USER}
-#     )
-#     assert result["type"] == FlowResultType.FORM
-#     assert result["errors"] == {}
-#     data = {
-#         "api_name": "test_api_name_1",
-#         CONF_USERNAME: MOCK_SMARTBOX_CONFIG[DOMAIN][CONF_USERNAME],
-#         "password": "test_password_1",
-#     }
-#     result = await hass.config_entries.flow.async_configure(
-#         result["flow_id"],
-#         data,
-#     )
-#     await hass.async_block_till_done()
-
-#     assert result["type"] == FlowResultType.CREATE_ENTRY
-#     assert (
-#         result["title"]
-#         == f"test_api_name_1_{MOCK_SMARTBOX_CONFIG[DOMAIN][CONF_USERNAME]}"
-#     )
-#     assert result["data"] == data
-#     assert len(mock_setup_entry.mock_calls) == 1
-
-
 async def test_option_flow(hass: HomeAssistant, config_entry) -> None:
     """Test config flow options."""
     valid_option = {
@@ -225,3 +196,23 @@ async def test_async_step_reauth_confirm_unknown_error(hass: HomeAssistant) -> N
     assert result["type"] == FlowResultType.FORM
     assert result["errors"] == {"base": "unknown"}
     assert flow.context["title_placeholders"]["error"] == "Unknown error"
+
+
+async def test_async_step_reauth_confirm_api_unavailable(hass: HomeAssistant) -> None:
+    """Test handling api unavailable error during reauth confirm."""
+    flow = ConfigFlow()
+    flow.hass = hass
+    flow.current_user_inputs = MOCK_SMARTBOX_CONFIG[DOMAIN]
+    with patch(
+        "custom_components.smartbox.config_flow.create_smartbox_session_from_entry",
+        side_effect=APIUnavailable("Cannot connect"),
+    ):
+        result = await flow.async_step_reauth_confirm(
+            user_input={
+                CONF_USERNAME: "user@email.com",
+                CONF_PASSWORD: "new_password",
+            }
+        )
+    assert result["type"] == FlowResultType.FORM
+    assert result["errors"] == {"base": "cannot_connect"}
+    assert flow.context["title_placeholders"]["error"] == "Cannot connect"
