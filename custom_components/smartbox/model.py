@@ -61,6 +61,9 @@ class SmartboxDevice:
                 int(time.time() - (3600 * 3)),
                 int(time.time()),
             )
+            self._away = (await self._session.get_device_away_status(self.dev_id))[
+                "away"
+            ]
             node = SmartboxNode(self, node_info, self._session, status, setup, samples)
 
             self._nodes[(node.node_type, node.addr)] = node

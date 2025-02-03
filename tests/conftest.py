@@ -13,6 +13,7 @@ from const import (
     MOCK_SMARTBOX_NODE_INFO,
     MOCK_SMARTBOX_NODE_SETUP,
     MOCK_SMARTBOX_NODE_STATUS,
+    MOCK_SMARTBOX_NODE_AWAY,
 )
 from homeassistant.core import HomeAssistant
 from mocks import MockSmartbox
@@ -67,6 +68,7 @@ def mock_smartbox(request):
         MOCK_SMARTBOX_DEVICE_INFO,
         MOCK_SMARTBOX_NODE_INFO,
         deepcopy(MOCK_SMARTBOX_NODE_SETUP),
+        MOCK_SMARTBOX_NODE_AWAY,
         _get_node_status(request.param),
     )
 
@@ -91,6 +93,7 @@ def mock_smartbox_unavailable(request):
         MOCK_SMARTBOX_DEVICE_INFO,
         MOCK_SMARTBOX_NODE_INFO,
         deepcopy(MOCK_SMARTBOX_NODE_SETUP),
+        MOCK_SMARTBOX_NODE_AWAY,
         _get_node_status(request.param),
         False,
     )

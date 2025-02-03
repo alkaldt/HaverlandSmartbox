@@ -14,6 +14,7 @@ from homeassistant.config_entries import (
 )
 from homeassistant.core import callback
 from homeassistant.helpers.selector import (
+    BooleanSelector,
     SelectOptionDict,
     SelectSelector,
     SelectSelectorConfig,
@@ -32,6 +33,7 @@ from . import (
 )
 from .const import (
     CONF_API_NAME,
+    CONF_DISPLAY_ENTITY_PICTURES,
     CONF_HISTORY_CONSUMPTION,
     CONF_PASSWORD,
     CONF_SESSION_BACKOFF_FACTOR,
@@ -65,6 +67,7 @@ OPTIONS_DATA_SCHEMA = {
             mode=SelectSelectorMode.DROPDOWN,
         )
     ),
+    vol.Required(CONF_DISPLAY_ENTITY_PICTURES, default=False): BooleanSelector(),
     vol.Required(
         CONF_SESSION_RETRY_ATTEMPTS,
         default=DEFAULT_SESSION_RETRY_ATTEMPTS,

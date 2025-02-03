@@ -3,7 +3,7 @@
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import DeviceInfo, Entity
 
-from custom_components.smartbox.const import DOMAIN
+from custom_components.smartbox.const import DOMAIN, CONF_DISPLAY_ENTITY_PICTURES
 from custom_components.smartbox.model import SmartboxDevice, SmartboxNode
 
 
@@ -18,6 +18,9 @@ class DefaultSmartBoxEntity(Entity):
         self._attr_unique_id = self._node.node_id
         self._resailer = self._node.session.resailer
         self._configuration_url = f"{self._resailer.web_url}#/{self._node.device.home['id']}/dev/{self._device_id}/{self._node.node_type}/{self._node.addr}/setup"
+        if entry.options.get(CONF_DISPLAY_ENTITY_PICTURES, False) is True:
+            self._attr_entity_picture = f"{self._resailer.web_url}img/favicon.ico"
+            print(self._attr_entity_picture)
 
     @property
     def unique_id(self) -> str:

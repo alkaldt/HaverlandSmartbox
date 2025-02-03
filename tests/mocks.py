@@ -149,6 +149,7 @@ class MockSmartbox(object):
         mock_device_info,
         mock_node_info,
         mock_node_setup: Dict[str, Dict[int, SetupDict]],
+        mock_node_away: Dict[str, str],
         mock_node_status: Dict[str, Dict[int, StatusDict]],
         start_available=True,
     ):
@@ -162,7 +163,8 @@ class MockSmartbox(object):
         # socket has most up to date status/setup
         self._socket_node_setup = mock_node_setup
         self._session_node_setup = deepcopy(self._socket_node_setup)
-        self._socket_node_status = mock_node_status
+        self._socket_node_status = deepcopy(mock_node_status)
+        self._mock_node_away = mock_node_away
         if not start_available:
             for dev in self._devices:
                 for node_info in self._node_info[dev["dev_id"]]:
@@ -216,7 +218,12 @@ class MockSmartbox(object):
             return self._session_node_setup[dev_id][node["addr"]]
 
         mock_session.get_node_setup = get_node_setup
-        mock_session.get__setup = get_node_setup
+        mock_session.get_setup = get_node_setup
+
+        async def get_device_away_status(dev_id):
+            return self._mock_node_away[dev_id]
+
+        mock_session.get_device_away_status = get_device_away_status
 
         async def set_setup(dev_id, node, setup_updates):
             self._socket_node_setup[dev_id][node["addr"]].update(setup_updates)

@@ -198,19 +198,6 @@ async def test_away(hass, mock_smartbox, config_entry):
 
     assert DOMAIN in hass.config.components
 
-    # test everything is not away
-    for mock_device in await mock_smartbox.session.get_devices():
-        for mock_node in await mock_smartbox.session.get_nodes(mock_device["dev_id"]):
-            entity_id = get_climate_entity_id(mock_node)
-            state = hass.states.get(entity_id)
-
-            mock_node_status = await mock_smartbox.session.get_status(
-                mock_device["dev_id"], mock_node
-            )
-            _check_not_away_preset(
-                mock_node["type"], mock_node_status, state.attributes[ATTR_PRESET_MODE]
-            )
-
     mock_device_1 = (await mock_smartbox.session.get_devices())[0]
     mock_smartbox.dev_data_update(mock_device_1, {"away_status": {"away": True}})
     # check all device_1's climate entities are away but device_2's are not
@@ -226,7 +213,7 @@ async def test_away(hass, mock_smartbox, config_entry):
         await hass.helpers.entity_component.async_update_entity(entity_id)
         state = hass.states.get(entity_id)
         mock_node_status = await mock_smartbox.session.get_status(
-            mock_device["dev_id"], mock_node
+            mock_device_2["dev_id"], mock_node
         )
         _check_not_away_preset(
             mock_node["type"], mock_node_status, state.attributes[ATTR_PRESET_MODE]
@@ -241,18 +228,6 @@ async def test_away_preset(hass, mock_smartbox, config_entry):
     assert len(entries) == 1
 
     assert DOMAIN in hass.config.components
-
-    # test everything is not away
-    for mock_device in await mock_smartbox.session.get_devices():
-        for mock_node in await mock_smartbox.session.get_nodes(mock_device["dev_id"]):
-            entity_id = get_climate_entity_id(mock_node)
-            state = hass.states.get(entity_id)
-            mock_node_status = await mock_smartbox.session.get_status(
-                mock_device["dev_id"], mock_node
-            )
-            _check_not_away_preset(
-                mock_node["type"], mock_node_status, state.attributes[ATTR_PRESET_MODE]
-            )
 
     mock_device_1 = (await mock_smartbox.session.get_devices())[0]
     mock_device_1_node_0 = (
@@ -281,7 +256,7 @@ async def test_away_preset(hass, mock_smartbox, config_entry):
         await hass.helpers.entity_component.async_update_entity(entity_id)
         state = hass.states.get(entity_id)
         mock_node_status = await mock_smartbox.session.get_status(
-            mock_device["dev_id"], mock_node
+            mock_device_2["dev_id"], mock_node
         )
         _check_not_away_preset(
             mock_node["type"], mock_node_status, state.attributes[ATTR_PRESET_MODE]

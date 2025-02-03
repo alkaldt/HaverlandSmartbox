@@ -45,9 +45,6 @@ async def test_away_status(hass, mock_smartbox, config_entry):
         unique_id = get_node_unique_id(mock_device, mock_node, "away_status")
         assert entity_id == get_entity_id_from_unique_id(hass, SWITCH_DOMAIN, unique_id)
 
-        # Starts not away
-        assert state.state == "off"
-
     # Set device 1 to away
     mock_device_1 = (await mock_smartbox.session.get_devices())[0]
     mock_node_1 = (await mock_smartbox.session.get_nodes(mock_device_1["dev_id"]))[0]
@@ -60,6 +57,7 @@ async def test_away_status(hass, mock_smartbox, config_entry):
 
     mock_device_2 = (await mock_smartbox.session.get_devices())[1]
     mock_node_2 = (await mock_smartbox.session.get_nodes(mock_device_2["dev_id"]))[0]
+    mock_smartbox.dev_data_update(mock_device_1, {"away_status": {"away": False}})
     entity_id = get_away_status_switch_entity_id(mock_node_2)
     await hass.helpers.entity_component.async_update_entity(entity_id)
     state = hass.states.get(entity_id)

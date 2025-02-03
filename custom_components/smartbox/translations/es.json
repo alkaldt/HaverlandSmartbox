@@ -41,6 +41,7 @@
         "title": "Opciones",
         "data": {
           "history_consumption": "Historial de consumo",
+          "resailer_entity": "resailer_entity",
           "session_retry_attempts": "Intentos de reintento de sesión",
           "session_backoff_factor": "Factor de retardo de sesión",
           "socket_reconnect_attempts": "Intentos de reconexión del socket",
