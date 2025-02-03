@@ -196,6 +196,11 @@ MOCK_SMARTBOX_NODE_SETUP: Dict[str, List[Dict[str, Any]]] = {
     ],
 }
 
+MOCK_SMARTBOX_NODE_AWAY: Dict[str, List[Dict[str, Any]]] = {
+    "device_1": {"enabled": True, "away": True, "forced": True},
+    "device_2": {"enabled": False, "away": False, "forced": False},
+}
+
 MOCK_SMARTBOX_NODE_STATUS: Dict[str, List[Dict[str, Any]]] = {
     "device_1": [
         {

@@ -40,6 +40,7 @@
         "title": "Options",
         "data": {
           "history_consumption": "Consumption history",
+          "resailer_entity": "Resailer logo for entities",
           "session_retry_attempts": "Session retry attempts",
           "session_backoff_factor": "Session backoff factor",
           "socket_reconnect_attempts": "Socket reconnect attempts",

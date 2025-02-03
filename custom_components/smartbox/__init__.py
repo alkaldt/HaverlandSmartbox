@@ -11,7 +11,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from smartbox import AsyncSmartboxSession
 from smartbox.error import APIUnavailable, InvalidAuth, SmartboxError
 
-from .const import (  # CONF_BASIC_AUTH_CREDS,; SMARTBOX_RESAILER,
+from .const import (
     CONF_API_NAME,
     CONF_PASSWORD,
     CONF_USERNAME,

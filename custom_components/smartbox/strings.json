@@ -41,6 +41,7 @@
         "title": "[%key:common::config_flow::title%]",
         "data": {
           "history_consumption": "[%key:common::options::data::history_consumption%]",
+          "resailer_entity": "[%key:common::options::data::resailer_entity%]",
           "session_retry_attempts": "[%key:common::options::data::session_retry_attempts%]",
           "session_backoff_factor": "[%key:common::options::data::session_backoff_factor%]",
           "socket_reconnect_attempts": "[%key:common::options::data::socket_reconnect_attempts%]",
