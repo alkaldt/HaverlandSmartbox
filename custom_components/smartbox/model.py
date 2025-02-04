@@ -36,7 +36,7 @@ class SmartboxDevice:
 
     def __init__(
         self,
-        device,
+        device: dict[str, Any],
         session: AsyncSmartboxSession | MagicMock,
     ) -> None:
         """Initialise a smartbox device."""
@@ -121,7 +121,7 @@ class SmartboxDevice:
 
     @property
     def dev_id(self) -> str:
-        """Return the devide id."""
+        """Return the device id."""
         return self._device["dev_id"]
 
     def get_nodes(self):
@@ -451,7 +451,7 @@ def set_temperature_args(
     }
 
 
-def get_hvac_mode(node_type: str, status: dict[str, Any]) -> str:
+def get_hvac_mode(node_type: str, status: dict[str, Any]) -> HVACMode | None:
     """Get the mode of HVAC."""
     _check_status_key("mode", node_type, status)
     if (

@@ -12,7 +12,11 @@ from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.smartbox import APIUnavailable, InvalidAuth, SmartboxError
+from custom_components.smartbox import (
+    APIUnavailableError,
+    InvalidAuthError,
+    SmartboxError,
+)
 from custom_components.smartbox.config_flow import ConfigFlow
 
 
@@ -93,6 +97,7 @@ async def test_step_reauth(hass: HomeAssistant, mock_smartbox, resailer) -> None
 
     assert len(hass.config_entries.async_entries()) == 1
     assert entry.data[CONF_PASSWORD] == "new_password"
+    await hass.async_block_till_done()
 
 
 async def test_async_step_user_show_form(hass: HomeAssistant) -> None:
@@ -111,7 +116,7 @@ async def test_async_step_user_cannot_connect(hass: HomeAssistant) -> None:
     flow.hass = hass
     with patch(
         "custom_components.smartbox.config_flow.create_smartbox_session_from_entry",
-        side_effect=APIUnavailable("Cannot connect"),
+        side_effect=APIUnavailableError("Cannot connect"),
     ):
         result = await flow.async_step_user(user_input=MOCK_SMARTBOX_CONFIG[DOMAIN])
     assert result["type"] == FlowResultType.FORM
@@ -125,7 +130,7 @@ async def test_async_step_user_invalid_auth(hass: HomeAssistant) -> None:
     flow.hass = hass
     with patch(
         "custom_components.smartbox.config_flow.create_smartbox_session_from_entry",
-        side_effect=InvalidAuth("Invalid auth"),
+        side_effect=InvalidAuthError("Invalid auth"),
     ):
         result = await flow.async_step_user(user_input=MOCK_SMARTBOX_CONFIG[DOMAIN])
     assert result["type"] == FlowResultType.FORM
@@ -165,7 +170,7 @@ async def test_async_step_reauth_confirm_invalid_auth(hass: HomeAssistant) -> No
     flow.current_user_inputs = MOCK_SMARTBOX_CONFIG[DOMAIN]
     with patch(
         "custom_components.smartbox.config_flow.create_smartbox_session_from_entry",
-        side_effect=InvalidAuth("Invalid auth"),
+        side_effect=InvalidAuthError("Invalid auth"),
     ):
         result = await flow.async_step_reauth_confirm(
             user_input={
@@ -205,7 +210,7 @@ async def test_async_step_reauth_confirm_api_unavailable(hass: HomeAssistant) ->
     flow.current_user_inputs = MOCK_SMARTBOX_CONFIG[DOMAIN]
     with patch(
         "custom_components.smartbox.config_flow.create_smartbox_session_from_entry",
-        side_effect=APIUnavailable("Cannot connect"),
+        side_effect=APIUnavailableError("Cannot connect"),
     ):
         result = await flow.async_step_reauth_confirm(
             user_input={

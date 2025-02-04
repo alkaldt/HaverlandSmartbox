@@ -9,7 +9,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from smartbox import AsyncSmartboxSession
-from smartbox.error import APIUnavailable, InvalidAuth, SmartboxError
+from smartbox.error import APIUnavailableError, InvalidAuthError, SmartboxError
 
 from .const import (
     CONF_API_NAME,
@@ -38,9 +38,9 @@ async def create_smartbox_session_from_entry(
 ) -> AsyncSmartboxSession:
     """Create a Session class from smartbox."""
     data = {}
-    if type(entry) is dict:
+    if isinstance(entry, dict):
         data = entry
-    else:
+    elif isinstance(entry, ConfigEntry):
         data = entry.data
     try:
         websession = async_get_clientsession(hass)
@@ -52,10 +52,10 @@ async def create_smartbox_session_from_entry(
         )
         await session.health_check()
         await session.check_refresh_auth()
-    except APIUnavailable as ex:
-        raise APIUnavailable from ex
-    except InvalidAuth as ex:
-        raise InvalidAuth from ex
+    except APIUnavailableError as ex:
+        raise APIUnavailableError from ex
+    except InvalidAuthError as ex:
+        raise InvalidAuthError from ex
     except SmartboxError as ex:
         raise SmartboxError from ex
     else:
