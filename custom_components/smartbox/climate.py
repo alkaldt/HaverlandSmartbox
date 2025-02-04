@@ -92,7 +92,7 @@ class SmartboxHeater(SmartBoxNodeEntity, ClimateEntity):
         await self.async_set_hvac_mode(HVACMode.AUTO)
 
     @property
-    def supported_features(self) -> int:
+    def supported_features(self) -> ClimateEntityFeature:
         """Return the list of supported features."""
         return self._supported_features
 
@@ -129,7 +129,7 @@ class SmartboxHeater(SmartBoxNodeEntity, ClimateEntity):
             await self._node.set_status(**status_args)
 
     @property
-    def hvac_action(self) -> str:
+    def hvac_action(self) -> HVACAction | None:
         """Return current operation ie. heat or idle."""
         return (
             HVACAction.HEATING
@@ -138,12 +138,12 @@ class SmartboxHeater(SmartBoxNodeEntity, ClimateEntity):
         )
 
     @property
-    def hvac_mode(self) -> str:
+    def hvac_mode(self) -> HVACMode | None:
         """Return hvac target hvac state."""
         return get_hvac_mode(self._node.node_type, self._status)
 
     @property
-    def hvac_modes(self) -> list[str]:
+    def hvac_modes(self) -> list[HVACMode]:
         """Return the list of available operation modes."""
         return [HVACMode.HEAT, HVACMode.AUTO, HVACMode.OFF]
 

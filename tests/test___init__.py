@@ -4,8 +4,8 @@ import pytest
 from homeassistant.exceptions import ConfigEntryAuthFailed
 
 from custom_components.smartbox import (
-    APIUnavailable,
-    InvalidAuth,
+    APIUnavailableError,
+    InvalidAuthError,
     SmartboxError,
     async_setup_entry,
     create_smartbox_session_from_entry,
@@ -51,10 +51,10 @@ async def test_create_smartbox_session_from_entry_api_unavailable(hass, config_e
         ),
         patch(
             "custom_components.smartbox.AsyncSmartboxSession",
-            side_effect=APIUnavailable,
+            side_effect=APIUnavailableError,
         ),
     ):
-        with pytest.raises(APIUnavailable):
+        with pytest.raises(APIUnavailableError):
             await create_smartbox_session_from_entry(hass, config_entry)
 
 
@@ -66,10 +66,11 @@ async def test_create_smartbox_session_from_entry_invalid_auth(hass, config_entr
             return_value=AsyncMock(),
         ),
         patch(
-            "custom_components.smartbox.AsyncSmartboxSession", side_effect=InvalidAuth
+            "custom_components.smartbox.AsyncSmartboxSession",
+            side_effect=InvalidAuthError,
         ),
     ):
-        with pytest.raises(InvalidAuth):
+        with pytest.raises(InvalidAuthError):
             await create_smartbox_session_from_entry(hass, config_entry)
 
 

@@ -26,8 +26,8 @@ from homeassistant.helpers.selector import (
 from smartbox import AvailableResailers
 
 from . import (
-    APIUnavailable,
-    InvalidAuth,
+    APIUnavailableError,
+    InvalidAuthError,
     SmartboxError,
     create_smartbox_session_from_entry,
 )
@@ -111,10 +111,10 @@ class ConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             try:
                 await create_smartbox_session_from_entry(self.hass, user_input)
-            except APIUnavailable as ex:
+            except APIUnavailableError as ex:
                 errors["base"] = "cannot_connect"
                 placeholders["error"] = str(ex)
-            except InvalidAuth as ex:
+            except InvalidAuthError as ex:
                 errors["base"] = "invalid_auth"
                 placeholders["error"] = str(ex)
             except SmartboxError as ex:
@@ -155,10 +155,10 @@ class ConfigFlow(ConfigFlow, domain=DOMAIN):
             user_input = {**self.current_user_inputs, **user_input}
             try:
                 await create_smartbox_session_from_entry(self.hass, user_input)
-            except APIUnavailable as ex:
+            except APIUnavailableError as ex:
                 errors["base"] = "cannot_connect"
                 placeholders["error"] = str(ex)
-            except InvalidAuth as ex:
+            except InvalidAuthError as ex:
                 errors["base"] = "invalid_auth"
                 placeholders["error"] = str(ex)
             except SmartboxError as ex:
@@ -194,7 +194,7 @@ class OptionsFlowHandler(OptionsFlow):
     """Options flow."""
 
     def __init__(self, config_entry: ConfigEntry) -> None:
-        """Initilisation of class."""
+        """Initialisation of class."""
         self.config_entry_options = config_entry.options
 
     async def async_step_init(self, user_input: dict | None = None) -> ConfigFlowResult:

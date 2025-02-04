@@ -26,7 +26,7 @@
     "error": {
       "cannot_connect": "Cannot connect: {error}",
       "invalid_auth": "Invalid authentication: {error}",
-      "unknown": "Unknow error: {error}"
+      "unknown": "Unknown error: {error}"
     },
     "abort": {
       "unknown": "Unknown error: {error}.",
