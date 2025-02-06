@@ -7,7 +7,7 @@
   "documentation": "https://github.com/ajtudela/hass-smartbox",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/ajtudela/hass-smartbox/issues",
-  "requirements": ["./config/smartbox"],
+  "requirements": ["smartbox==2.1.0.b2"],
   "quality_scale": "custom",
-  "version": "2.1.0"
+  "version": "2.1.0.b2"
 }
