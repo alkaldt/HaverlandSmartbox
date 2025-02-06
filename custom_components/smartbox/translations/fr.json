@@ -24,7 +24,7 @@
       }
     },
     "error": {
-      "cannot_connect": "Impossible de se connecter {error}",
+      "cannot_connect": "Impossible de se connecter à l'API {error}",
       "invalid_auth": "Authentification invalide {error}",
       "unknown": "Erreur inconnue {error}"
     },
@@ -40,7 +40,7 @@
         "title": "Options",
         "data": {
           "history_consumption": "Historique de consommation",
-          "resailer_entity": "Logo du revendeur poru les entités",
+          "resailer_entity": "Logo du revendeur pour les entités",
           "session_retry_attempts": "Nombre de tentatives d'opérations REST",
           "session_backoff_factor": "Intervalle entre chaque tentatives REST",
           "socket_reconnect_attempts": "Nombre de tentative de connexion aux sockets",

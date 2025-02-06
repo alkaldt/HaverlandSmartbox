@@ -1,9 +1,11 @@
 """Type for smartbox."""
 
+from typing import Any
+
 FactoryOptionsDict = dict[str, bool]
 
-SetupDict = dict[str, bool | float | str | FactoryOptionsDict]
+SetupDict = dict[str, Any]
 
-StatusDict = dict[str, bool | int | float | str]
+StatusDict = dict[str, Any]
 
-SamplesDict = dict[str, bool | int | float | str]
+SamplesDict = dict[str, Any]

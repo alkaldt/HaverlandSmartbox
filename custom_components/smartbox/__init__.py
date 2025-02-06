@@ -53,11 +53,11 @@ async def create_smartbox_session_from_entry(
         await session.health_check()
         await session.check_refresh_auth()
     except APIUnavailableError as ex:
-        raise APIUnavailableError from ex
+        raise APIUnavailableError(ex) from ex
     except InvalidAuthError as ex:
-        raise InvalidAuthError from ex
+        raise InvalidAuthError(ex) from ex
     except SmartboxError as ex:
-        raise SmartboxError from ex
+        raise SmartboxError(ex) from ex
     else:
         return session
 

@@ -10,6 +10,9 @@ from custom_components.smartbox.model import SmartboxDevice, SmartboxNode
 class DefaultSmartBoxEntity(Entity):
     """Default Smartbox Entity."""
 
+    _node: SmartboxNode
+    _attr_key: str
+
     def __init__(self, entry: ConfigEntry) -> None:
         """Initialize the default Device Entity."""
         self._device_id = self._node.node_id
