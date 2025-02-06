@@ -12,9 +12,7 @@ from smartbox.resailer import SmartboxResailer
 
 from custom_components.smartbox.const import (
     DOMAIN,
-    HEATER_NODE_TYPE_ACM,
-    HEATER_NODE_TYPE_HTR,
-    HEATER_NODE_TYPE_HTR_MOD,
+    SmartboxNodeType,
 )
 from custom_components.smartbox.types import SetupDict, StatusDict
 from tests.const import CONF_DEVICE_IDS
@@ -43,14 +41,14 @@ def mock_node(dev_id: str, addr: int, node_type: str, mode="auto") -> AsyncMock:
         "power": "854",
         "mode": mode,
     }
-    if node_type == HEATER_NODE_TYPE_ACM:
+    if node_type == SmartboxNodeType.ACM:
         node.status["charging"] = True
         node.status["charge_level"] = "4"
     else:
         node.status["active"] = True
-    if node_type == HEATER_NODE_TYPE_HTR:
+    if node_type == SmartboxNodeType.HTR:
         node.status["duty"] = "50"
-    if node_type == HEATER_NODE_TYPE_HTR_MOD:
+    if node_type == SmartboxNodeType.HTR_MOD:
         node.status["on"] = True
         node.status["selected_temp"] = "comfort"
         node.status["comfort_temp"] = "22"
@@ -320,13 +318,13 @@ class MockSmartbox(object):
         status = self._socket_node_status[dev_id][addr]
         temp_increment = 0.1 if status["units"] == "C" else 1
         status["mtemp"] = str(float(status["mtemp"]) + temp_increment)
-        if mock_node["type"] == HEATER_NODE_TYPE_HTR_MOD:
+        if mock_node["type"] == SmartboxNodeType.HTR_MOD:
             status["comfort_temp"] = str(float(status["comfort_temp"]) + temp_increment)
         else:
             status["stemp"] = str(float(status["stemp"]) + temp_increment)
         # always set back to in-sync status
         status["sync_status"] = "ok"
-        if mock_node["type"] != HEATER_NODE_TYPE_HTR_MOD:
+        if mock_node["type"] != SmartboxNodeType.HTR_MOD:
             status["power"] = str(float(status["power"]) + 1)
         self._socket_node_status[dev_id][addr] = status
 
@@ -364,6 +362,6 @@ class MockSmartbox(object):
 def active_or_charging_update(node_type: str, active: bool) -> StatusDict:
     return (
         {"charging": active}
-        if node_type == HEATER_NODE_TYPE_ACM
+        if node_type == SmartboxNodeType.ACM
         else {"active": active}
     )

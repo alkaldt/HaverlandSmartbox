@@ -41,7 +41,7 @@ from test_utils import assert_no_log_errors, convert_temp, round_temp
 from custom_components.smartbox.climate import get_hvac_mode
 from custom_components.smartbox.const import (
     DOMAIN,
-    HEATER_NODE_TYPE_HTR_MOD,
+    SmartboxNodeType,
     PRESET_FROST,
     PRESET_SCHEDULE,
     PRESET_SELF_LEARN,
@@ -59,7 +59,7 @@ def _check_state(hass, mock_node, mock_node_status, state):
         convert_temp(hass, mock_node_status["units"], float(mock_node_status["mtemp"])),
     )
     # ATTR_TEMPERATURE actually stores the target temperature
-    if mock_node["type"] == HEATER_NODE_TYPE_HTR_MOD:
+    if mock_node["type"] == SmartboxNodeType.HTR_MOD:
         if mock_node_status["selected_temp"] == "comfort":
             target_temp = float(mock_node_status["comfort_temp"])
         elif mock_node_status["selected_temp"] == "eco":
@@ -167,7 +167,7 @@ async def test_unavailable(hass, mock_smartbox, config_entry):
 
 
 def _check_not_away_preset(node_type, status, preset_mode):
-    if node_type == HEATER_NODE_TYPE_HTR_MOD:
+    if node_type == SmartboxNodeType.HTR_MOD:
         if status["mode"] == "auto":
             assert preset_mode == PRESET_SCHEDULE
         elif status["mode"] == "manual":
@@ -581,7 +581,7 @@ async def test_set_hvac_mode(hass, mock_smartbox, config_entry):
             mock_node_status = await mock_smartbox.session.get_status(
                 mock_device["dev_id"], mock_node
             )
-            if mock_node["type"] == HEATER_NODE_TYPE_HTR_MOD:
+            if mock_node["type"] == SmartboxNodeType.HTR_MOD:
                 assert mock_node_status["on"]
             assert mock_node_status["mode"] == "auto"
 
@@ -601,7 +601,7 @@ async def test_set_hvac_mode(hass, mock_smartbox, config_entry):
             mock_node_status = await mock_smartbox.session.get_status(
                 mock_device["dev_id"], mock_node
             )
-            if mock_node["type"] == HEATER_NODE_TYPE_HTR_MOD:
+            if mock_node["type"] == SmartboxNodeType.HTR_MOD:
                 assert mock_node_status["on"]
             assert mock_node_status["mode"] == "manual"
 
@@ -621,7 +621,7 @@ async def test_set_hvac_mode(hass, mock_smartbox, config_entry):
             mock_node_status = await mock_smartbox.session.get_status(
                 mock_device["dev_id"], mock_node
             )
-            if mock_node["type"] == HEATER_NODE_TYPE_HTR_MOD:
+            if mock_node["type"] == SmartboxNodeType.HTR_MOD:
                 assert not mock_node_status["on"]
             else:
                 assert mock_node_status["mode"] == "off"
@@ -646,7 +646,7 @@ async def test_set_target_temp(hass, mock_smartbox, config_entry):
             )
             old_target_temp = state.attributes[f"current_{ATTR_TEMPERATURE}"]
             if (
-                mock_node["type"] == HEATER_NODE_TYPE_HTR_MOD
+                mock_node["type"] == SmartboxNodeType.HTR_MOD
                 and mock_node_status["selected_temp"] == "ice"
             ):
                 # We can't set temperatures in ice mode
@@ -766,7 +766,7 @@ async def test_turn_on(hass, mock_smartbox, config_entry):
             mock_node_status = await mock_smartbox.session.get_status(
                 mock_device["dev_id"], mock_node
             )
-            if mock_node["type"] == HEATER_NODE_TYPE_HTR_MOD:
+            if mock_node["type"] == SmartboxNodeType.HTR_MOD:
                 assert mock_node_status["on"]
             assert mock_node_status["mode"] == "auto"
 
@@ -808,7 +808,7 @@ async def test_turn_off(hass, mock_smartbox, config_entry):
             mock_node_status = await mock_smartbox.session.get_status(
                 mock_device["dev_id"], mock_node
             )
-            if mock_node["type"] == HEATER_NODE_TYPE_HTR_MOD:
+            if mock_node["type"] == SmartboxNodeType.HTR_MOD:
                 assert not mock_node_status["on"]
             else:
                 assert mock_node_status["mode"] == "off"

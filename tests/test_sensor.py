@@ -18,8 +18,7 @@ from test_utils import convert_temp, round_temp
 
 from custom_components.smartbox.const import (
     DOMAIN,
-    HEATER_NODE_TYPE_ACM,
-    HEATER_NODE_TYPE_HTR_MOD,
+    SmartboxNodeType,
     CONF_HISTORY_CONSUMPTION,
     HistoryConsumptionStatus,
 )
@@ -110,7 +109,7 @@ async def test_basic_power(hass, mock_smartbox, config_entry):
 
     for mock_device in await mock_smartbox.session.get_devices():
         for mock_node in await mock_smartbox.session.get_nodes(mock_device["dev_id"]):
-            if mock_node["type"] == HEATER_NODE_TYPE_HTR_MOD:
+            if mock_node["type"] == SmartboxNodeType.HTR_MOD:
                 continue
             entity_id = get_sensor_entity_id(mock_node, "power")
             state = hass.states.get(entity_id)
@@ -191,7 +190,7 @@ async def test_unavailable(hass, mock_smartbox_unavailable):
         ):
             sensor_types = (
                 ["temperature"]
-                if mock_node["type"] == HEATER_NODE_TYPE_HTR_MOD
+                if mock_node["type"] == SmartboxNodeType.HTR_MOD
                 else ["temperature", "power"]
             )
             for sensor_type in sensor_types:
@@ -213,7 +212,7 @@ async def test_basic_charge_level(hass, mock_smartbox, config_entry):
     for mock_device in await mock_smartbox.session.get_devices():
         for mock_node in await mock_smartbox.session.get_nodes(mock_device["dev_id"]):
             # Only supported on acm nodes
-            if mock_node["type"] != HEATER_NODE_TYPE_ACM:
+            if mock_node["type"] != SmartboxNodeType.ACM:
                 continue
 
             entity_id = get_sensor_entity_id(mock_node, "charge_level")

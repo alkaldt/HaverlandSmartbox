@@ -35,9 +35,7 @@ from homeassistant.helpers.event import async_track_time_interval
 from .const import (
     CONF_HISTORY_CONSUMPTION,
     DOMAIN,
-    HEATER_NODE_TYPE_ACM,
-    HEATER_NODE_TYPE_HTR,
-    HEATER_NODE_TYPE_HTR_MOD,
+    SmartboxNodeType,
     SMARTBOX_NODES,
     HistoryConsumptionStatus,
 )
@@ -66,7 +64,7 @@ async def async_setup_entry(
         [
             PowerSensor(node, entry)
             for node in hass.data[DOMAIN][SMARTBOX_NODES]
-            if is_heater_node(node) and node.node_type != HEATER_NODE_TYPE_HTR_MOD
+            if is_heater_node(node) and node.node_type != SmartboxNodeType.HTR_MOD
         ],
         True,
     )
@@ -77,7 +75,7 @@ async def async_setup_entry(
         [
             DutyCycleSensor(node, entry)
             for node in hass.data[DOMAIN][SMARTBOX_NODES]
-            if node.node_type == HEATER_NODE_TYPE_HTR
+            if node.node_type == SmartboxNodeType.HTR
         ],
         True,
     )
@@ -85,7 +83,7 @@ async def async_setup_entry(
         [
             EnergySensor(node, entry)
             for node in hass.data[DOMAIN][SMARTBOX_NODES]
-            if node.node_type == HEATER_NODE_TYPE_HTR
+            if node.node_type == SmartboxNodeType.HTR
         ],
         True,
     )
@@ -93,7 +91,7 @@ async def async_setup_entry(
         [
             TotalConsumptionSensor(node, entry)
             for node in hass.data[DOMAIN][SMARTBOX_NODES]
-            if node.node_type == HEATER_NODE_TYPE_HTR
+            if node.node_type == SmartboxNodeType.HTR
         ],
         True,
     )
@@ -103,7 +101,7 @@ async def async_setup_entry(
         [
             ChargeLevelSensor(node, entry)
             for node in hass.data[DOMAIN][SMARTBOX_NODES]
-            if is_heater_node(node) and node.node_type == HEATER_NODE_TYPE_ACM
+            if is_heater_node(node) and node.node_type == SmartboxNodeType.ACM
         ],
         True,
     )

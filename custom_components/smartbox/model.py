@@ -15,12 +15,10 @@ from homeassistant.components.climate import (
     HVACMode,
 )
 from homeassistant.const import UnitOfTemperature
-from smartbox import AsyncSmartboxSession, UpdateManager
+from smartbox import AsyncSmartboxSession, UpdateManager, SmartboxNodeType
 
 from .const import (
     GITHUB_ISSUES_URL,
-    HEATER_NODE_TYPE_ACM,
-    HEATER_NODE_TYPE_HTR_MOD,
     HEATER_NODE_TYPES,
     PRESET_FROST,
     PRESET_SCHEDULE,
@@ -53,9 +51,13 @@ class SmartboxDevice:
         session_nodes = await self._session.get_nodes(self.dev_id)
 
         for node_info in session_nodes:
-            status = await self._session.get_node_status(self.dev_id, node_info)
-            setup = await self._session.get_node_setup(self.dev_id, node_info)
-            samples = await self._session.get_node_samples(
+            status: StatusDict = await self._session.get_node_status(
+                self.dev_id, node_info
+            )
+            setup: SetupDict = await self._session.get_node_setup(
+                self.dev_id, node_info
+            )
+            samples: SamplesDict = await self._session.get_node_samples(
                 self.dev_id,
                 node_info,
                 int(time.time() - (3600 * 3)),
@@ -179,9 +181,9 @@ class SmartboxNode:
         device: SmartboxDevice | MagicMock,
         node_info: dict[str, Any],
         session: AsyncSmartboxSession | MagicMock,
-        status: dict[str, Any],
-        setup: dict[str, Any],
-        samples: dict[str, Any],
+        status: StatusDict,
+        setup: SetupDict,
+        samples: SamplesDict,
     ) -> None:
         """Initialise a smartbox node."""
         self._device = device
@@ -277,12 +279,13 @@ class SmartboxNode:
             )
         return self._setup["window_mode_enabled"]
 
-    async def set_window_mode(self, window_mode: bool):
+    async def set_window_mode(self, window_mode: bool) -> bool:
         """Set window mode."""
         await self._session.set_node_setup(
             self._device.dev_id, self._node_info, {"window_mode_enabled": window_mode}
         )
         self._setup["window_mode_enabled"] = window_mode
+        return window_mode
 
     @property
     def true_radiant(self) -> bool:
@@ -304,7 +307,7 @@ class SmartboxNode:
         """Is heating."""
         return (
             status["charging"]
-            if self.node_type == HEATER_NODE_TYPE_ACM
+            if self.node_type == SmartboxNodeType.ACM
             else status["active"]
         )
 
@@ -363,7 +366,7 @@ async def get_devices(
     session: AsyncSmartboxSession | MagicMock,
 ) -> list[SmartboxDevice]:
     """Get the devices."""
-    homes = await session.get_homes()
+    homes: list[dict[str, Any]] = await session.get_homes()
     devices: list[SmartboxDevice] = list()
     for home in homes:
         _home = home.copy()
@@ -375,14 +378,14 @@ async def get_devices(
 
 
 async def create_smartbox_device(
-    device: str,
+    device: dict[str, Any],
     session: AsyncSmartboxSession | MagicMock,
 ) -> SmartboxDevice | MagicMock:
     """Create factory function for smartboxdevices."""
 
-    device = SmartboxDevice(device, session)
-    await device.initialise_nodes()
-    return device
+    _device = SmartboxDevice(device, session)
+    await _device.initialise_nodes()
+    return _device
 
 
 def _check_status_key(key: str, node_type: str, status: dict[str, Any]):
@@ -395,7 +398,7 @@ def _check_status_key(key: str, node_type: str, status: dict[str, Any]):
 
 def get_target_temperature(node_type: str, status: dict[str, Any]) -> float:
     """Get the target temperature."""
-    if node_type == HEATER_NODE_TYPE_HTR_MOD:
+    if node_type == SmartboxNodeType.HTR_MOD:
         _check_status_key("selected_temp", node_type, status)
         if status["selected_temp"] == "comfort":
             _check_status_key("comfort_temp", node_type, status)
@@ -421,7 +424,7 @@ def set_temperature_args(
 ) -> dict[str, Any]:
     """Set targeted temperature."""
     _check_status_key("units", node_type, status)
-    if node_type == HEATER_NODE_TYPE_HTR_MOD:
+    if node_type == SmartboxNodeType.HTR_MOD:
         if status["selected_temp"] == "comfort":
             target_temp = temp
         elif status["selected_temp"] == "eco":
@@ -456,7 +459,7 @@ def get_hvac_mode(node_type: str, status: dict[str, Any]) -> HVACMode | None:
     _check_status_key("mode", node_type, status)
     if (
         status["mode"] == "off"
-        or node_type == HEATER_NODE_TYPE_HTR_MOD
+        or node_type == SmartboxNodeType.HTR_MOD
         and not status["on"]
     ):
         return HVACMode.OFF
@@ -478,7 +481,7 @@ def set_hvac_mode_args(
     node_type: str, status: dict[str, Any], hvac_mode: str
 ) -> dict[str, Any]:
     """Set the mode of HVAC."""
-    if node_type == HEATER_NODE_TYPE_HTR_MOD:
+    if node_type == SmartboxNodeType.HTR_MOD:
         if hvac_mode == HVACMode.OFF:
             return {"on": False}
         if hvac_mode == HVACMode.HEAT:
@@ -527,7 +530,7 @@ def set_preset_mode_status_update(
     node_type: str, status: dict[str, Any], preset_mode: str
 ) -> dict[str, Any]:
     """Set preset mode status update."""
-    if node_type != HEATER_NODE_TYPE_HTR_MOD:
+    if node_type != SmartboxNodeType.HTR_MOD:
         raise ValueError(f"{node_type} nodes do not support preset {preset_mode}")
     # PRESET_HOME and PRESET_AWAY are not handled via status updates
     assert preset_mode not in (PRESET_HOME, PRESET_AWAY)

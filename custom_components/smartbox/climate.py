@@ -22,11 +22,11 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
     DOMAIN,
-    HEATER_NODE_TYPE_HTR_MOD,
     PRESET_FROST,
     PRESET_SCHEDULE,
     PRESET_SELF_LEARN,
     SMARTBOX_NODES,
+    SmartboxNodeType,
 )
 from .entity import SmartBoxNodeEntity
 from .model import (
@@ -158,7 +158,7 @@ class SmartboxHeater(SmartBoxNodeEntity, ClimateEntity):
         """Get preset mode."""
         if self._node.away:
             return PRESET_AWAY
-        if self._node.node_type == HEATER_NODE_TYPE_HTR_MOD:
+        if self._node.node_type == SmartboxNodeType.HTR_MOD:
             _check_status_key("mode", self._node.node_type, self._status)
             _check_status_key("selected_temp", self._node.node_type, self._status)
             return _get_htr_mod_preset_mode(
@@ -171,7 +171,7 @@ class SmartboxHeater(SmartBoxNodeEntity, ClimateEntity):
     @property
     def preset_modes(self) -> list[str]:
         """Get the preset_modes."""
-        if self._node.node_type == HEATER_NODE_TYPE_HTR_MOD:
+        if self._node.node_type == SmartboxNodeType.HTR_MOD:
             return [
                 PRESET_ACTIVITY,
                 PRESET_AWAY,
@@ -191,7 +191,7 @@ class SmartboxHeater(SmartBoxNodeEntity, ClimateEntity):
             return
         if self._node.away:
             await self._node.update_device_away_status(False)
-        if self._node.node_type == HEATER_NODE_TYPE_HTR_MOD:
+        if self._node.node_type == SmartboxNodeType.HTR_MOD:
             status_update = set_preset_mode_status_update(
                 self._node.node_type, self._status, preset_mode
             )
