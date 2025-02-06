@@ -1,9 +1,10 @@
 {
   "domain": "smartbox",
   "name": "Smartbox",
+  "after_dependencies": ["recorder"],
   "codeowners": ["@ajtudela", "@Delmael"],
   "config_flow": true,
-  "dependencies": ["recorder"],
+  "dependencies": [],
   "documentation": "https://github.com/ajtudela/hass-smartbox",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/ajtudela/hass-smartbox/issues",
