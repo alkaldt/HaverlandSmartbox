@@ -2,11 +2,8 @@
 ![hassfest](https://github.com/ajtudela/hass-smartbox/workflows/Validate%20with%20hassfest/badge.svg) [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration) [![codecov](https://codecov.io/gh/ajtudela/hass-smartbox/branch/main/graph/badge.svg?token=C6J448TUQ8)](https://codecov.io/gh/ajtudela/hass-smartbox) [![Total downloads](https://img.shields.io/github/downloads/ajtudela/hass-smartbox/total)](https://github.com/ajtudela/hass-smartbox/releases) [![Downloads of latest version (latest by SemVer)](https://img.shields.io/github/downloads/ajtudela/hass-smartbox/latest/total?sort=semver)](https://github.com/ajtudela/hass-smartbox/releases/latest) [![Current version](https://img.shields.io/github/v/release/ajtudela/hass-smartbox)](https://github.com/ajtudela/hass-smartbox/releases/latest)
 
 
-
-
 Home Assistant integration for Haverland (and other brands) heating smartboxes.
 
-**NOTE**: The initial version of this integration was made by [graham33](https://github.com/graham33) but it was not maintained. I have taken over the project and will try to keep it up to date.
 
 ## Installation
 
@@ -43,8 +40,8 @@ If there is an issue during the process or authentication, the errors will be di
 ### Additional Options
 You can also specify the following options (although they have reasonable defaults):
 
-#### Consumption history
-We are currently getting the consumption history of device throuw the API and we inject it in statistics and TotalConsumption sensor
+#### Consumption history options
+We are currently getting the [consumption](#consumption) of device throuw the API and we inject it in statistics and TotalConsumption sensor
 * start : we will get the last 3 years of consumption and set the option to auto.
 * auto : every hour, we get the last 24 hours.
 * off : stop the automatic collect. We will still update the sensor every hour.
@@ -61,9 +58,9 @@ You can activate this option to display the logo of the resailer instead.
   socket_backoff_factor: 0.1 # how much to backoff between initial socket connect attempts
 ```
 
-## Supported Node types
+## Features
 
-### Heaters
+### Heaters Supported Node types
 These are modelled as Home Assistant Climate entities.
 
 * `htr` and `acm` (accumulator) nodes
@@ -84,6 +81,28 @@ The modes and presets for htr_mod heaters are mapped as follows:
 | self\_learn   | *                      | AUTO         | SELF\_LEARN |
 | presence      | *                      | AUTO         | ACTIVITY    |
 
+### Consumption
+The smartbox API is only giving the hourly consumption from a start and an end period of time.
+You can't have real time consumption of a device and this consumption is always increasing.
+
+At every beginning of an hour, during around 15/20 minutes, the API do not provide data for the current hour.
+So we always get a period of two hour to have at least some data, and get the most recent one to not have drop of consumption.
+
+Every hour, we are updating data sensor with the most recent data. You are able to see the consumption directly into the history graph of the sensor.
+
+But to be sure we ensure the right data to the right hour, we also get the last 24 hours and upsert these data into statistics to avoid time difference and some data drop.
+> [!TIP]
+> If you don't want to upsert these 24 hours, you have to set the [option](#consumption-history-options) to `off`.
+
+#### History
+The first time we create a config entry (or when the [option](#consumption-history-options) of the config entry is set to `start`) we get the last 3 years of consumption.
+As it is not possible to add it directly to the sensor data, we insert it into the statistics of the sensor.
+So it let the energy dashboard working with the current and back history.
+
+
+> [!TIP]
+> If you want to reset all the data, you have to set the [option](#consumption-history-options) to `start`.
+
 ## Debugging
 
 Debug logging can be enabled by increasing the log level for the smartbox custom
@@ -99,8 +118,9 @@ component and the underlying [smartbox] python module in the Home Assistant
    ...
 ```
 
-**Warning: currently logs might include credentials, so please be careful when
-sharing excerpts from logs**
+> [!WARNING]
+> Currently logs might include credentials, so please be careful when
+sharing excerpts from logs
 
 See the [Home Assistant logger docs] for how to view the actual logs. Please
 file a [Github issue] with any problems.
@@ -108,6 +128,10 @@ file a [Github issue] with any problems.
 ## TODO
 * Graceful cleanup/shutdown of update task
 * use a coordinator to update data (and use the websocket to propagate data)
+
+
+> [!NOTE]
+> The initial version of this integration was made by [graham33](https://github.com/graham33) but it was not maintained.
 
 [custom repository]: https://hacs.xyz/docs/faq/custom_repositories
 [Github issue]: https://github.com/ajtudela/hass-smartbox/issues
