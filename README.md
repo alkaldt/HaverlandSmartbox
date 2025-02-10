@@ -103,6 +103,13 @@ So it let the energy dashboard working with the current and back history.
 > [!TIP]
 > If you want to reset all the data, you have to set the [option](#consumption-history-options) to `start`.
 
+## Known errors
+### Negative consumption
+There might be a huge negative consumption in your energy dashboard. The consumption [history](#history) should deal with it. But sometimes it didn't work.
+You have two options:
+* Settings the [option](#consumption-history-options) to `start` : it will force load all data.
+* Go to [![Open your Home Assistant instance and show your statistics developer tools.](https://my.home-assistant.io/badges/developer_statistics.svg)](https://my.home-assistant.io/redirect/developer_statistics/), select the total consumption entity, outliers and patch the negative value with 0.
+
 ## Debugging
 
 Debug logging can be enabled by increasing the log level for the smartbox custom
