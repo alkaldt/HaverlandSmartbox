@@ -14,6 +14,8 @@ from homeassistant.components.climate import (
     PRESET_HOME,
     HVACMode,
 )
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.const import UnitOfTemperature
 from smartbox import AsyncSmartboxSession, UpdateManager, SmartboxNodeType
 
@@ -23,6 +25,7 @@ from .const import (
     PRESET_FROST,
     PRESET_SCHEDULE,
     PRESET_SELF_LEARN,
+    DOMAIN,
 )
 from .types import FactoryOptionsDict, SamplesDict, SetupDict, StatusDict
 
@@ -36,6 +39,7 @@ class SmartboxDevice:
         self,
         device: dict[str, Any],
         session: AsyncSmartboxSession | MagicMock,
+        hass: HomeAssistant,
     ) -> None:
         """Initialise a smartbox device."""
         self._device = device
@@ -44,6 +48,7 @@ class SmartboxDevice:
         self._power_limit: int = 0
         self._nodes = {}
         self._watchdog_task: asyncio.Task | None = None
+        self._hass = hass
 
     async def initialise_nodes(self) -> None:
         """Initilaise nodes."""
@@ -85,23 +90,35 @@ class SmartboxDevice:
 
     def _away_status_update(self, away_status: dict[str, bool]) -> None:
         _LOGGER.debug("Away status update: %s", away_status)
-        self._away = away_status["away"]
+        if self._away != away_status["away"]:
+            self._away = away_status["away"]
+            async_dispatcher_send(
+                self._hass, f"{DOMAIN}_{self.dev_id}_away_status", self._away
+            )
 
     def _power_limit_update(self, power_limit: int) -> None:
         _LOGGER.debug("power_limit update: %s", power_limit)
-        self._power_limit = power_limit
+        if self._power_limit != power_limit:
+            self._power_limit = power_limit
+            async_dispatcher_send(
+                self._hass, f"{DOMAIN}_{self.dev_id}_power_limit", power_limit
+            )
 
     def _node_status_update(
         self, node_type: str, addr: int, node_status: StatusDict
     ) -> None:
         _LOGGER.debug("Node status update: %s", node_status)
         node = self._nodes.get((node_type, addr), None)
-        if node is not None:
+        if node is not None and node.status != node_status:
             node.update_status(node_status)
-
+            async_dispatcher_send(
+                self._hass, f"{DOMAIN}_{node.node_id}_status", node_status
+            )
         else:
             _LOGGER.error(
-                "Received status update for unknown node %s %s", node_type, addr
+                "Received status update for unknown node %s %s",
+                node_type,
+                addr,
             )
 
     def _node_setup_update(
@@ -109,8 +126,11 @@ class SmartboxDevice:
     ) -> None:
         _LOGGER.debug("Node setup update: %s", node_setup)
         node = self._nodes.get((node_type, addr), None)
-        if node is not None:
+        if node is not None and node.setup != node_setup:
             node.update_setup(node_setup)
+            async_dispatcher_send(
+                self._hass, f"{DOMAIN}_{node.node_id}_setup", node_setup
+            )
         else:
             _LOGGER.error(
                 "Received setup update for unknown node %s %s", node_type, addr
@@ -226,7 +246,7 @@ class SmartboxNode:
     def update_status(self, status: StatusDict) -> None:
         """Update status."""
         _LOGGER.debug("Updating node %s status: %s", self.name, status)
-        self._status = status
+        self._status |= {**status}
 
     @property
     def setup(self) -> SetupDict:
@@ -363,7 +383,7 @@ def get_temperature_unit(status) -> None | Any:
 
 
 async def get_devices(
-    session: AsyncSmartboxSession | MagicMock,
+    session: AsyncSmartboxSession | MagicMock, hass: HomeAssistant
 ) -> list[SmartboxDevice]:
     """Get the devices."""
     homes: list[dict[str, Any]] = await session.get_homes()
@@ -373,17 +393,18 @@ async def get_devices(
         del _home["devs"]
         for session_device in home["devs"]:
             session_device["home"] = _home
-            devices.append(await create_smartbox_device(session_device, session))
+            devices.append(await create_smartbox_device(session_device, session, hass))
     return devices
 
 
 async def create_smartbox_device(
     device: dict[str, Any],
     session: AsyncSmartboxSession | MagicMock,
+    hass: HomeAssistant,
 ) -> SmartboxDevice | MagicMock:
     """Create factory function for smartboxdevices."""
 
-    _device = SmartboxDevice(device, session)
+    _device = SmartboxDevice(device, session, hass)
     await _device.initialise_nodes()
     return _device
 

@@ -32,6 +32,7 @@ class PowerLimit(SmartBoxDeviceEntity, NumberEntity):
     """Smartbox device power limit."""
 
     _attr_key = "power_limit"
+    _attr_websocket_event = "power_limit"
     native_max_value: float = _MAX_POWER_LIMIT
     _attr_entity_category = EntityCategory.CONFIG
     native_unit_of_measurement = UnitOfPower.WATT

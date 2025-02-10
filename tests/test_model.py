@@ -50,13 +50,11 @@ async def test_create_smartbox_device(hass):
         autospec=True,
         return_value=mock_dev,
     ) as device_ctor_mock:
-        device = await create_smartbox_device(
-            dev_1_id,
-            mock_session,
-        )
+        device = await create_smartbox_device({"dev_id": dev_1_id}, mock_session, hass)
         device_ctor_mock.assert_called_with(
-            dev_1_id,
+            {"dev_id": dev_1_id},
             mock_session,
+            hass,
         )
         await mock_dev.initialise_nodes()
         assert device == mock_dev
@@ -64,10 +62,7 @@ async def test_create_smartbox_device(hass):
 
 async def test_get_devices(hass, mock_smartbox):
     test_devices = [
-        SmartboxDevice(
-            dev,
-            mock_smartbox.session,
-        )
+        SmartboxDevice(dev, mock_smartbox.session, hass)
         for dev in await mock_smartbox.session.get_devices()
     ]
     with patch(
@@ -76,7 +71,7 @@ async def test_get_devices(hass, mock_smartbox):
         side_effect=test_devices,
     ):
         # check we called the smartbox API correctly
-        devices = await get_devices(mock_smartbox.session)
+        devices = await get_devices(mock_smartbox.session, hass)
         assert devices == test_devices
 
 
@@ -91,7 +86,7 @@ async def test_smartbox_device_init(hass, mock_smartbox):
         side_effect=[node_sentinel_1, node_sentinel_2],
         autospec=True,
     ) as smartbox_node_ctor_mock:
-        device = SmartboxDevice(mock_device, mock_smartbox.session)
+        device = SmartboxDevice(mock_device, mock_smartbox.session, hass)
         assert device.dev_id == dev_id
         await device.initialise_nodes()
         mock_smartbox.session.get_nodes.assert_called_with(dev_id)
@@ -138,7 +133,7 @@ async def test_smartbox_device_dev_data_updates(hass):
         "custom_components.smartbox.model.SmartboxDevice.initialise_nodes",
         new_callable=NonCallableMock,
     ):
-        device = SmartboxDevice(MOCK_SMARTBOX_DEVICE_INFO[dev_id], mock_session)
+        device = SmartboxDevice(MOCK_SMARTBOX_DEVICE_INFO[dev_id], mock_session, hass)
         device._nodes = {
             (SmartboxNodeType.HTR, 1): mock_node_1,
             (SmartboxNodeType.ACM, 2): mock_node_2,
@@ -167,7 +162,7 @@ async def test_smartbox_device_node_status_update(hass, caplog):
         "custom_components.smartbox.model.SmartboxDevice.initialise_nodes",
         new_callable=NonCallableMock,
     ):
-        device = SmartboxDevice(MOCK_SMARTBOX_DEVICE_INFO[dev_id], mock_session)
+        device = SmartboxDevice(MOCK_SMARTBOX_DEVICE_INFO[dev_id], mock_session, hass)
         device._nodes = {
             (SmartboxNodeType.HTR, 1): mock_node_1,
             (SmartboxNodeType.ACM, 2): mock_node_2,
@@ -209,7 +204,7 @@ async def test_smartbox_device_node_setup_update(hass, caplog):
         "custom_components.smartbox.model.SmartboxDevice.initialise_nodes",
         new_callable=NonCallableMock,
     ):
-        device = SmartboxDevice(MOCK_SMARTBOX_DEVICE_INFO[dev_id], mock_session)
+        device = SmartboxDevice(MOCK_SMARTBOX_DEVICE_INFO[dev_id], mock_session, hass)
         device._nodes = {
             (SmartboxNodeType.HTR, 1): mock_node_1,
             (SmartboxNodeType.ACM, 2): mock_node_2,

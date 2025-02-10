@@ -122,6 +122,7 @@ class SmartboxSensorBase(SmartBoxNodeEntity, SensorEntity):
         self._available = False  # unavailable until we get an update
         self._last_update: datetime | None = None
         self._time_since_last_update: timedelta | None = None
+        self._attr_websocket_event = "status"
         _LOGGER.debug("Created node unique_id=%s", self.unique_id)
 
     @property

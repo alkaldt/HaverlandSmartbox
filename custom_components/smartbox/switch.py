@@ -49,6 +49,7 @@ class AwaySwitch(SmartBoxDeviceEntity, SwitchEntity):
     """Smartbox device away switch."""
 
     _attr_key = "away_status"
+    _attr_websocket_event = "away_status"
 
     async def async_turn_on(self, **kwargs):  # pylint: disable=unused-argument
         """Turn on the switch."""
@@ -69,6 +70,7 @@ class WindowModeSwitch(SmartBoxNodeEntity, SwitchEntity):
 
     _attr_key = "window_mode"
     _attr_entity_category = EntityCategory.CONFIG
+    _attr_websocket_event = "setup"
 
     async def async_turn_on(self, **kwargs):  # pylint: disable=unused-argument
         """Turn on the switch."""
@@ -89,6 +91,7 @@ class TrueRadiantSwitch(SmartBoxNodeEntity, SwitchEntity):
 
     _attr_key = "true_radiant"
     _attr_entity_category = EntityCategory.CONFIG
+    _attr_websocket_event = "setup"
 
     async def async_turn_on(self, **kwargs):  # pylint: disable=unused-argument
         """Turn on the switch."""

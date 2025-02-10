@@ -67,6 +67,7 @@ class SmartboxHeater(SmartBoxNodeEntity, ClimateEntity):
 
     _attr_key = "thermostat"
     _attr_name = None
+    _attr_websocket_event = "status"
 
     def __init__(self, node: MagicMock | SmartboxNode, entry: ConfigEntry) -> None:
         """Initialize the sensor."""
@@ -95,11 +96,6 @@ class SmartboxHeater(SmartBoxNodeEntity, ClimateEntity):
     def supported_features(self) -> ClimateEntityFeature:
         """Return the list of supported features."""
         return self._supported_features
-
-    @property
-    def should_poll(self) -> bool:
-        """Return the polling state."""
-        return True
 
     @property
     def temperature_unit(self) -> str:

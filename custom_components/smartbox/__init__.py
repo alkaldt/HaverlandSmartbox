@@ -73,7 +73,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data[DOMAIN][SMARTBOX_DEVICES] = []
     hass.data[DOMAIN][SMARTBOX_NODES] = []
 
-    devices = await get_devices(session=session)
+    devices = await get_devices(session=session, hass=hass)
     for device in devices:
         _LOGGER.info("Setting up configured device %s", device.dev_id)
         hass.data[DOMAIN][SMARTBOX_DEVICES].append(device)
