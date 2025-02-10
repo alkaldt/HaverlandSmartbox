@@ -17,10 +17,10 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from test_utils import convert_temp, round_temp
 
 from custom_components.smartbox.const import (
-    DOMAIN,
-    SmartboxNodeType,
     CONF_HISTORY_CONSUMPTION,
+    DOMAIN,
     HistoryConsumptionStatus,
+    SmartboxNodeType,
 )
 from custom_components.smartbox.sensor import TotalConsumptionSensor
 

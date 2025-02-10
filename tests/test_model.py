@@ -17,10 +17,10 @@ from mocks import mock_device, mock_node
 from test_utils import assert_log_message
 
 from custom_components.smartbox.const import (
-    SmartboxNodeType,
     PRESET_FROST,
     PRESET_SCHEDULE,
     PRESET_SELF_LEARN,
+    SmartboxNodeType,
 )
 from custom_components.smartbox.model import (
     SmartboxDevice,

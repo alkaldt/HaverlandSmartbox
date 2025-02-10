@@ -41,10 +41,10 @@ from test_utils import assert_no_log_errors, convert_temp, round_temp
 from custom_components.smartbox.climate import get_hvac_mode
 from custom_components.smartbox.const import (
     DOMAIN,
-    SmartboxNodeType,
     PRESET_FROST,
     PRESET_SCHEDULE,
     PRESET_SELF_LEARN,
+    SmartboxNodeType,
 )
 
 _LOGGER = logging.getLogger(__name__)

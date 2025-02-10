@@ -1,12 +1,13 @@
 """Draft of generic entity"""
 
 from typing import Any
-from homeassistant.core import callback
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.entity import DeviceInfo, Entity
-from homeassistant.helpers.dispatcher import async_dispatcher_connect
 
-from custom_components.smartbox.const import DOMAIN, CONF_DISPLAY_ENTITY_PICTURES
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import callback
+from homeassistant.helpers.dispatcher import async_dispatcher_connect
+from homeassistant.helpers.entity import DeviceInfo, Entity
+
+from custom_components.smartbox.const import CONF_DISPLAY_ENTITY_PICTURES, DOMAIN
 from custom_components.smartbox.model import SmartboxDevice, SmartboxNode
 
 

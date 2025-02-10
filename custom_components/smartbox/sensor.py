@@ -12,9 +12,7 @@ from homeassistant.components.recorder.models.statistics import (
     StatisticData,
     StatisticMetaData,
 )
-from homeassistant.components.recorder.statistics import (
-    async_import_statistics,
-)
+from homeassistant.components.recorder.statistics import async_import_statistics
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
@@ -35,9 +33,9 @@ from homeassistant.helpers.event import async_track_time_interval
 from .const import (
     CONF_HISTORY_CONSUMPTION,
     DOMAIN,
-    SmartboxNodeType,
     SMARTBOX_NODES,
     HistoryConsumptionStatus,
+    SmartboxNodeType,
 )
 from .entity import SmartBoxNodeEntity
 from .model import SmartboxNode, get_temperature_unit, is_heater_node

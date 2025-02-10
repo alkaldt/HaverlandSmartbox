@@ -10,16 +10,16 @@ from const import (
     MOCK_SMARTBOX_CONFIG,
     MOCK_SMARTBOX_DEVICE_INFO,
     MOCK_SMARTBOX_HOME_INFO,
+    MOCK_SMARTBOX_NODE_AWAY,
     MOCK_SMARTBOX_NODE_INFO,
     MOCK_SMARTBOX_NODE_SETUP,
     MOCK_SMARTBOX_NODE_STATUS,
-    MOCK_SMARTBOX_NODE_AWAY,
 )
 from homeassistant.core import HomeAssistant
 from mocks import MockSmartbox
 from pytest_homeassistant_custom_component.common import MockConfigEntry
-from test_utils import simple_celsius_to_fahrenheit
 from smartbox.resailer import SmartboxResailer
+from test_utils import simple_celsius_to_fahrenheit
 
 pytest_plugins = "pytest_homeassistant_custom_component"
 
@@ -27,9 +27,7 @@ pytest_plugins = "pytest_homeassistant_custom_component"
 # This fixture enables loading custom integrations in all tests.
 # Remove to enable selective use of this fixture
 @pytest.fixture(name="auto_enable_custom_integrations", autouse=True)
-def auto_enable_custom_integrations(
-    hass: Any, enable_custom_integrations: Any
-) -> None:  # noqa: F811
+def auto_enable_custom_integrations(hass: Any, enable_custom_integrations: Any) -> None:  # noqa: F811
     """Enable custom integrations defined in the test dir."""
 
 

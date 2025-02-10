@@ -14,18 +14,18 @@ from homeassistant.components.climate import (
     PRESET_HOME,
     HVACMode,
 )
+from homeassistant.const import UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.dispatcher import async_dispatcher_send
-from homeassistant.const import UnitOfTemperature
-from smartbox import AsyncSmartboxSession, UpdateManager, SmartboxNodeType
+from smartbox import AsyncSmartboxSession, SmartboxNodeType, UpdateManager
 
 from .const import (
+    DOMAIN,
     GITHUB_ISSUES_URL,
     HEATER_NODE_TYPES,
     PRESET_FROST,
     PRESET_SCHEDULE,
     PRESET_SELF_LEARN,
-    DOMAIN,
 )
 from .types import FactoryOptionsDict, SamplesDict, SetupDict, StatusDict
 
