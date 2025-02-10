@@ -74,7 +74,6 @@ class SmartboxDevice:
             node = SmartboxNode(self, node_info, self._session, status, setup, samples)
 
             self._nodes[(node.node_type, node.addr)] = node
-
         _LOGGER.debug("Creating SocketSession for device %s", self.dev_id)
         update_manager = UpdateManager(
             self._session,
@@ -108,29 +107,29 @@ class SmartboxDevice:
         self, node_type: str, addr: int, node_status: StatusDict
     ) -> None:
         _LOGGER.debug("Node status update: %s", node_status)
-        node = self._nodes.get((node_type, addr), None)
-        if node is not None and node.status != node_status:
-            node.update_status(node_status)
-            async_dispatcher_send(
-                self._hass, f"{DOMAIN}_{node.node_id}_status", node_status
-            )
+        if (node_type, addr) in self._nodes:
+            node: SmartboxNode | None = self._nodes.get((node_type, addr), None)
+            if node.status != node_status:
+                node.update_status(node_status)
+                async_dispatcher_send(
+                    self._hass, f"{DOMAIN}_{node.node_id}_status", node_status
+                )
         else:
             _LOGGER.error(
-                "Received status update for unknown node %s %s",
-                node_type,
-                addr,
+                "Received status update for unknown node %s %s", node_type, addr
             )
 
     def _node_setup_update(
         self, node_type: str, addr: int, node_setup: SetupDict
     ) -> None:
         _LOGGER.debug("Node setup update: %s", node_setup)
-        node = self._nodes.get((node_type, addr), None)
-        if node is not None and node.setup != node_setup:
-            node.update_setup(node_setup)
-            async_dispatcher_send(
-                self._hass, f"{DOMAIN}_{node.node_id}_setup", node_setup
-            )
+        if (node_type, addr) in self._nodes:
+            node: SmartboxNode | None = self._nodes.get((node_type, addr), None)
+            if node.setup != node_setup:
+                node.update_setup(node_setup)
+                async_dispatcher_send(
+                    self._hass, f"{DOMAIN}_{node.node_id}_setup", node_setup
+                )
         else:
             _LOGGER.error(
                 "Received setup update for unknown node %s %s", node_type, addr
