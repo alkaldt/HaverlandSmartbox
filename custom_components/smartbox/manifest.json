@@ -1,7 +1,7 @@
 {
   "domain": "smartbox",
   "name": "Smartbox",
-  "after_dependencies": ["recorder"],
+  "after_dependencies": ["energy", "recorder"],
   "codeowners": ["@ajtudela", "@Delmael"],
   "config_flow": true,
   "dependencies": [],
