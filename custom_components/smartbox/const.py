@@ -9,6 +9,7 @@ from smartbox.session import _DEFAULT_BACKOFF_FACTOR, _DEFAULT_RETRY_ATTEMPTS
 DOMAIN = "smartbox"
 
 CONF_API_NAME = "api_name"
+CONF_AUTO_ADD_ENERGY_DEVICES = "auto_add_energy_devices"
 CONF_DISPLAY_ENTITY_PICTURES = "resailer_entity"
 CONF_PASSWORD = "password"
 CONF_USERNAME = "username"

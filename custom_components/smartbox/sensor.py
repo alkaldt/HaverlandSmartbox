@@ -7,6 +7,11 @@ from typing import Any
 from unittest.mock import MagicMock
 
 from dateutil import tz
+from homeassistant.components.energy.data import (
+    DeviceConsumption,
+    EnergyPreferences,
+    async_get_manager,
+)
 from homeassistant.components.recorder import DOMAIN as RECORDER_DOMAIN
 from homeassistant.components.recorder.models.statistics import (
     StatisticData,
@@ -32,6 +37,7 @@ from homeassistant.helpers.event import async_track_time_interval
 
 from .const import (
     CONF_HISTORY_CONSUMPTION,
+    CONF_AUTO_ADD_ENERGY_DEVICES,
     DOMAIN,
     SMARTBOX_NODES,
     HistoryConsumptionStatus,
@@ -260,6 +266,29 @@ class TotalConsumptionSensor(SmartboxSensorBase):
         # 1 day when _handle_coordinator_update is triggered for the first time.
         await self.update_statistics()
         await super().async_added_to_hass()
+        if self.config_entry.options.get(CONF_AUTO_ADD_ENERGY_DEVICES, False) is True:
+            energy_manager = await async_get_manager(self.hass)
+            if (
+                next(
+                    (
+                        d
+                        for d in energy_manager.data["device_consumption"]
+                        if d["stat_consumption"] == self.entity_id
+                    ),
+                    None,
+                )
+                is None
+            ):
+                _LOGGER.debug(
+                    "Adding the device %s to energy dashboard", self.entity_id
+                )
+                await energy_manager.async_update(
+                    EnergyPreferences(
+                        device_consumption=[
+                            DeviceConsumption(stat_consumption=self.entity_id)
+                        ]
+                    )
+                )
 
         async_track_time_interval(
             self.hass,
