@@ -1,5 +1,6 @@
 import logging
 import time
+from datetime import timedelta
 from unittest.mock import AsyncMock, patch
 
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
@@ -23,6 +24,14 @@ from custom_components.smartbox.const import (
     SmartboxNodeType,
 )
 from custom_components.smartbox.sensor import TotalConsumptionSensor
+from unittest.mock import AsyncMock, patch
+from custom_components.smartbox.const import CONF_AUTO_ADD_ENERGY_DEVICES
+from homeassistant.components.energy.data import (
+    async_get_manager,
+    EnergyPreferences,
+    DeviceConsumption,
+)
+from homeassistant.helpers.event import async_track_time_interval
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -358,3 +367,77 @@ async def test_update_statistics_off(hass, mock_smartbox, config_entry):
         await sensor.update_statistics()
 
         mock_import_statistics.assert_not_called()
+
+
+async def test_energy_dashboard_auto_add_enabled(hass, mock_smartbox, config_entry):
+    mock_node = AsyncMock()
+    sensor = TotalConsumptionSensor(mock_node, config_entry)
+    sensor.hass = hass
+    hass.config_entries.async_update_entry(
+        entry=config_entry,
+        options={CONF_AUTO_ADD_ENERGY_DEVICES: True},
+    )
+
+    with (
+        patch(
+            "custom_components.smartbox.sensor.async_get_manager"
+        ) as mock_async_get_manager,
+        patch("custom_components.smartbox.sensor._LOGGER.debug") as mock_logger_debug,
+    ):
+        mock_energy_manager = AsyncMock()
+        mock_async_get_manager.return_value = mock_energy_manager
+        mock_energy_manager.data = {"device_consumption": []}
+        await sensor.energy_dashboard()
+        mock_async_get_manager.assert_called()
+        mock_logger_debug.assert_called_with(
+            "Adding the device %s to energy dashboard", sensor.entity_id
+        )
+        mock_energy_manager.async_update.assert_called_with(
+            EnergyPreferences(
+                device_consumption=[
+                    DeviceConsumption(stat_consumption=sensor.entity_id)
+                ]
+            )
+        )
+
+
+async def test_energy_dashboard_auto_add_disabled(hass, mock_smartbox, config_entry):
+    mock_node = AsyncMock()
+    sensor = TotalConsumptionSensor(mock_node, config_entry)
+    sensor.hass = hass
+    hass.config_entries.async_update_entry(
+        entry=config_entry,
+        options={CONF_AUTO_ADD_ENERGY_DEVICES: False},
+    )
+
+    with patch(
+        "custom_components.smartbox.sensor.async_get_manager"
+    ) as mock_async_get_manager:
+        await sensor.energy_dashboard()
+        mock_async_get_manager.assert_not_called()
+
+
+async def test_energy_dashboard_device_already_added(hass, mock_smartbox, config_entry):
+    mock_node = AsyncMock()
+    sensor = TotalConsumptionSensor(mock_node, config_entry)
+    sensor.hass = hass
+    hass.config_entries.async_update_entry(
+        entry=config_entry,
+        options={CONF_AUTO_ADD_ENERGY_DEVICES: True},
+    )
+
+    with (
+        patch(
+            "custom_components.smartbox.sensor.async_get_manager"
+        ) as mock_async_get_manager,
+        patch("custom_components.smartbox.sensor._LOGGER.debug") as mock_logger_debug,
+    ):
+        mock_energy_manager = AsyncMock()
+        mock_async_get_manager.return_value = mock_energy_manager
+        mock_energy_manager.data = {
+            "device_consumption": [{"stat_consumption": sensor.entity_id}]
+        }
+        await sensor.energy_dashboard()
+        mock_async_get_manager.assert_called()
+        mock_logger_debug.assert_not_called()
+        mock_energy_manager.async_update.assert_not_called()

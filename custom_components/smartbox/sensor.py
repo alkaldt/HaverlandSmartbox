@@ -265,7 +265,18 @@ class TotalConsumptionSensor(SmartboxSensorBase):
         # perform initial statistics import when sensor is added, otherwise it would take
         # 1 day when _handle_coordinator_update is triggered for the first time.
         await self.update_statistics()
+        await self.energy_dashboard()
         await super().async_added_to_hass()
+
+        async_track_time_interval(
+            self.hass,
+            self.update_statistics,
+            timedelta(hours=24),
+            name=f"Update statistics - {self.name}",
+            cancel_on_shutdown=True,
+        )
+
+    async def energy_dashboard(self) -> None:
         if self.config_entry.options.get(CONF_AUTO_ADD_ENERGY_DEVICES, False) is True:
             energy_manager = await async_get_manager(self.hass)
             if (
@@ -289,14 +300,6 @@ class TotalConsumptionSensor(SmartboxSensorBase):
                         ]
                     )
                 )
-
-        async_track_time_interval(
-            self.hass,
-            self.update_statistics,
-            timedelta(hours=24),
-            name=f"Update statistics - {self.name}",
-            cancel_on_shutdown=True,
-        )
 
     async def update_statistics(self, *args, **kwargs) -> None:
         """Update statistics from samples."""
