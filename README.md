@@ -139,6 +139,15 @@ file a [Github issue] with any problems.
 > [!NOTE]
 > The initial version of this integration was made by [graham33](https://github.com/graham33) but it was not maintained.
 
+# Support
+Ajtudela [![Buy a coffee to ajtudela][buymeacoffee-shield]][buymeacoffee-ajtudela]
+
+Delmael [![Buy a coffee to delmael][buymeacoffee-shield]][buymeacoffee-delmael]
+
+[buymeacoffee-ajtudela]: https://www.buymeacoffee.com/ajtudela
+[buymeacoffee-delmael]: https://www.buymeacoffee.com/delmael
+
+[buymeacoffee-shield]: https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png
 [custom repository]: https://hacs.xyz/docs/faq/custom_repositories
 [Github issue]: https://github.com/ajtudela/hass-smartbox/issues
 [Resailer Github issue]: https://github.com/ajtudela/smartbox/issues/new?template=new-resailer.md
