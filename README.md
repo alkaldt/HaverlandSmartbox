@@ -12,7 +12,7 @@ Home Assistant integration for Haverland (and other brands) heating smartboxes.
 1. Add this repository to your custom repositories
 1. Search for and install "Smartbox" in HACS.
 1. Restart Home Assistant.
-1. In the Home Assistant UI go to "Configuration" -> "Integrations" click "+" and search for "Smartbox"
+
 
 ### Manually Copy Files
 
@@ -22,7 +22,7 @@ Home Assistant integration for Haverland (and other brands) heating smartboxes.
 1. Download _all_ the files from the `custom_components/smartbox/` directory (folder) in this repository.
 1. Place the files you downloaded in the new directory (folder) you created.
 1. Restart Home Assistant
-1. In the Home Assistant UI go to "Configuration" -> "Integrations" click "+" and search for "Smartbox"
+
 
 ### Finally
 
@@ -38,13 +38,13 @@ You will need the following items of information:
 If there is an issue during the process or authentication, the errors will be displayed.
 
 ### Additional Options
-You can also specify the following options (although they have reasonable defaults):
+You can also specify the following options (although they have reasonable defaults)
 
 #### Consumption history options
 We are currently getting the [consumption](#consumption) of device throuw the API and we inject it in statistics and TotalConsumption sensor
-* start : we will get the last 3 years of consumption and set the option to auto.
-* auto : every hour, we get the last 24 hours.
-* off : stop the automatic collect. We will still update the sensor every hour.
+* `start` : we will get the last 3 years of consumption and set the option to auto.
+* `auto` : every hour, we get the last 24 hours.
+* `off` : stop the automatic collect. We will still update the sensor every hour.
 
 #### Resailer logo
 By default, each sensor has in own icon depends on the type of the sensor.
@@ -103,12 +103,15 @@ So it let the energy dashboard working with the current and back history.
 > [!TIP]
 > If you want to reset all the data, you have to set the [option](#consumption-history-options) to `start`.
 
-## Known errors
-### Negative consumption
+## FAQ
+#### There is negative consumption in the energy dashboard
 There might be a huge negative consumption in your energy dashboard. The consumption [history](#history) should deal with it. But sometimes it didn't work.
 You have two options:
 * Settings the [option](#consumption-history-options) to `start` : it will force load all data.
 * Go to [![Open your Home Assistant instance and show your statistics developer tools.](https://my.home-assistant.io/badges/developer_statistics.svg)](https://my.home-assistant.io/redirect/developer_statistics/), select the total consumption entity, outliers and patch the negative value with 0.
+
+#### My Reseailer is not present in the list
+If you can't see you resailer which is using a smartbox you have to do an [Resailer Github issue].
 
 ## Debugging
 
@@ -132,16 +135,13 @@ sharing excerpts from logs
 See the [Home Assistant logger docs] for how to view the actual logs. Please
 file a [Github issue] with any problems.
 
-## TODO
-* Graceful cleanup/shutdown of update task
-* use a coordinator to update data (and use the websocket to propagate data)
-
 
 > [!NOTE]
 > The initial version of this integration was made by [graham33](https://github.com/graham33) but it was not maintained.
 
 [custom repository]: https://hacs.xyz/docs/faq/custom_repositories
 [Github issue]: https://github.com/ajtudela/hass-smartbox/issues
+[Resailer Github issue]: https://github.com/ajtudela/smartbox/issues/new?template=new-resailer.md
 [Home Assistant integration docs]: https://developers.home-assistant.io/docs/creating_integration_file_structure/#where-home-assistant-looks-for-integrations
 [Home Assistant logger docs]: https://www.home-assistant.io/integrations/logger/#viewing-logs
 [Home Assistant secrets management]: https://www.home-assistant.io/docs/configuration/secrets/
