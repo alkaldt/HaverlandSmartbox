@@ -1,6 +1,5 @@
 import logging
 import time
-from datetime import timedelta
 from unittest.mock import AsyncMock, patch
 
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
@@ -24,14 +23,11 @@ from custom_components.smartbox.const import (
     SmartboxNodeType,
 )
 from custom_components.smartbox.sensor import TotalConsumptionSensor
-from unittest.mock import AsyncMock, patch
 from custom_components.smartbox.const import CONF_AUTO_ADD_ENERGY_DEVICES
 from homeassistant.components.energy.data import (
-    async_get_manager,
     EnergyPreferences,
     DeviceConsumption,
 )
-from homeassistant.helpers.event import async_track_time_interval
 
 _LOGGER = logging.getLogger(__name__)
 

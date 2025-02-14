@@ -6,7 +6,6 @@ from typing import Any
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant.config_entries import (
-    ConfigEntry,
     ConfigFlow,
     ConfigFlowResult,
     FlowResult,
@@ -28,6 +27,7 @@ from smartbox import AvailableResailers
 from . import (
     APIUnavailableError,
     InvalidAuthError,
+    SmartboxConfigEntry,
     SmartboxError,
     create_smartbox_session_from_entry,
 )
@@ -184,7 +184,7 @@ class ConfigFlow(ConfigFlow, domain=DOMAIN):
     @staticmethod
     @callback
     def async_get_options_flow(
-        config_entry: ConfigEntry,
+        config_entry: SmartboxConfigEntry,
     ) -> OptionsFlow:
         """Create the options flow."""
         return OptionsFlowHandler(config_entry=config_entry)
@@ -193,7 +193,7 @@ class ConfigFlow(ConfigFlow, domain=DOMAIN):
 class OptionsFlowHandler(OptionsFlow):
     """Options flow."""
 
-    def __init__(self, config_entry: ConfigEntry) -> None:
+    def __init__(self, config_entry: SmartboxConfigEntry) -> None:
         """Initialisation of class."""
         self.config_entry_options = config_entry.options
 

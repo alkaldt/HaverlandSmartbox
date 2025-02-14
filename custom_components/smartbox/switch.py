@@ -3,12 +3,11 @@
 import logging
 
 from homeassistant.components.switch import SwitchEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN, SMARTBOX_DEVICES, SMARTBOX_NODES
+from . import SmartboxConfigEntry
 from .entity import SmartBoxDeviceEntity, SmartBoxNodeEntity
 from .model import true_radiant_available, window_mode_available
 
@@ -17,18 +16,18 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: SmartboxConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:  # pylint: disable=unused-argument
     """Set up platform."""
     _LOGGER.debug("Setting up Smartbox switch platform")
 
     switch_entities: list[SwitchEntity] = []
-    for device in hass.data[DOMAIN][SMARTBOX_DEVICES]:
+    for device in entry.runtime_data.devices:
         _LOGGER.debug("Creating away switch for device %s", device.name)
         switch_entities.append(AwaySwitch(device, entry))
 
-    for node in hass.data[DOMAIN][SMARTBOX_NODES]:
+    for node in entry.runtime_data.nodes:
         if window_mode_available(node):
             _LOGGER.debug("Creating window_mode switch for node %s", node.name)
             switch_entities.append(WindowModeSwitch(node, entry))

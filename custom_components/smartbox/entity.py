@@ -2,13 +2,14 @@
 
 from typing import Any
 
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity import DeviceInfo, Entity
 
 from custom_components.smartbox.const import CONF_DISPLAY_ENTITY_PICTURES, DOMAIN
 from custom_components.smartbox.model import SmartboxDevice, SmartboxNode
+
+from . import SmartboxConfigEntry
 
 
 class DefaultSmartBoxEntity(Entity):
@@ -18,7 +19,7 @@ class DefaultSmartBoxEntity(Entity):
     _attr_key: str
     _attr_websocket_event: str
 
-    def __init__(self, entry: ConfigEntry) -> None:
+    def __init__(self, entry: SmartboxConfigEntry) -> None:
         """Initialize the default Device Entity."""
         self._device_id = self._node.node_id
         self._attr_has_entity_name = True
@@ -57,7 +58,7 @@ class DefaultSmartBoxEntity(Entity):
 class SmartBoxDeviceEntity(DefaultSmartBoxEntity):
     """BaseClass for SmartBoxDeviceEntity."""
 
-    def __init__(self, device: SmartboxDevice, entry: ConfigEntry) -> None:
+    def __init__(self, device: SmartboxDevice, entry: SmartboxConfigEntry) -> None:
         """Initialize the Device Entity."""
         self._node = list(device.get_nodes())[0]
         self._device = device
@@ -75,7 +76,7 @@ class SmartBoxDeviceEntity(DefaultSmartBoxEntity):
 class SmartBoxNodeEntity(DefaultSmartBoxEntity):
     """BaseClass for SmartBoxNodeEntity."""
 
-    def __init__(self, node: SmartboxNode, entry: ConfigEntry) -> None:
+    def __init__(self, node: SmartboxNode, entry: SmartboxConfigEntry) -> None:
         """Initialize the Node Entity."""
         self._node = node
         super().__init__(entry=entry)

@@ -23,7 +23,6 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorStateClass,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_LOCKED,
     PERCENTAGE,
@@ -35,11 +34,10 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_time_interval
 
+from . import SmartboxConfigEntry
 from .const import (
-    CONF_HISTORY_CONSUMPTION,
     CONF_AUTO_ADD_ENERGY_DEVICES,
-    DOMAIN,
-    SMARTBOX_NODES,
+    CONF_HISTORY_CONSUMPTION,
     HistoryConsumptionStatus,
     SmartboxNodeType,
 )
@@ -50,7 +48,9 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant,
+    entry: SmartboxConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up platform."""
     _LOGGER.debug("Setting up Smartbox sensor platform")
@@ -58,7 +58,7 @@ async def async_setup_entry(
     async_add_entities(
         [
             TemperatureSensor(node, entry)
-            for node in hass.data[DOMAIN][SMARTBOX_NODES]
+            for node in entry.runtime_data.nodes
             if is_heater_node(node)
         ],
         True,
@@ -67,7 +67,7 @@ async def async_setup_entry(
     async_add_entities(
         [
             PowerSensor(node, entry)
-            for node in hass.data[DOMAIN][SMARTBOX_NODES]
+            for node in entry.runtime_data.nodes
             if is_heater_node(node) and node.node_type != SmartboxNodeType.HTR_MOD
         ],
         True,
@@ -78,7 +78,7 @@ async def async_setup_entry(
     async_add_entities(
         [
             DutyCycleSensor(node, entry)
-            for node in hass.data[DOMAIN][SMARTBOX_NODES]
+            for node in entry.runtime_data.nodes
             if node.node_type == SmartboxNodeType.HTR
         ],
         True,
@@ -86,7 +86,7 @@ async def async_setup_entry(
     async_add_entities(
         [
             EnergySensor(node, entry)
-            for node in hass.data[DOMAIN][SMARTBOX_NODES]
+            for node in entry.runtime_data.nodes
             if node.node_type == SmartboxNodeType.HTR
         ],
         True,
@@ -94,7 +94,7 @@ async def async_setup_entry(
     async_add_entities(
         [
             TotalConsumptionSensor(node, entry)
-            for node in hass.data[DOMAIN][SMARTBOX_NODES]
+            for node in entry.runtime_data.nodes
             if node.node_type == SmartboxNodeType.HTR
         ],
         True,
@@ -104,7 +104,7 @@ async def async_setup_entry(
     async_add_entities(
         [
             ChargeLevelSensor(node, entry)
-            for node in hass.data[DOMAIN][SMARTBOX_NODES]
+            for node in entry.runtime_data.nodes
             if is_heater_node(node) and node.node_type == SmartboxNodeType.ACM
         ],
         True,
@@ -117,7 +117,7 @@ class SmartboxSensorBase(SmartBoxNodeEntity, SensorEntity):
     """Base class for Smartbox sensor."""
 
     def __init__(
-        self, node: SmartboxNode | MagicMock, entry: ConfigEntry, **kwargs: Any
+        self, node: SmartboxNode | MagicMock, entry: SmartboxConfigEntry, **kwargs: Any
     ) -> None:
         """Initialize the Climate Entity."""
         super().__init__(node=node, entry=entry, **kwargs)
@@ -280,7 +280,8 @@ class TotalConsumptionSensor(SmartboxSensorBase):
         if self.config_entry.options.get(CONF_AUTO_ADD_ENERGY_DEVICES, False) is True:
             energy_manager = await async_get_manager(self.hass)
             if (
-                next(
+                energy_manager.data is not None
+                and next(
                     (
                         d
                         for d in energy_manager.data["device_consumption"]
@@ -293,6 +294,7 @@ class TotalConsumptionSensor(SmartboxSensorBase):
                 _LOGGER.debug(
                     "Adding the device %s to energy dashboard", self.entity_id
                 )
+                # TODO ici il faut overide
                 await energy_manager.async_update(
                     EnergyPreferences(
                         device_consumption=[

@@ -1,6 +1,7 @@
 """The Smartbox integration."""
 
 import logging
+from dataclasses import dataclass
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
@@ -11,15 +12,13 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from smartbox import AsyncSmartboxSession
 from smartbox.error import APIUnavailableError, InvalidAuthError, SmartboxError
 
+
 from .const import (
     CONF_API_NAME,
     CONF_PASSWORD,
     CONF_USERNAME,
-    DOMAIN,
-    SMARTBOX_DEVICES,
-    SMARTBOX_NODES,
 )
-from .model import get_devices, is_supported_node
+from .model import get_devices, is_supported_node, SmartboxDevice, SmartboxNode
 
 __version__ = "2.1.0"
 
@@ -32,9 +31,20 @@ PLATFORMS: list[Platform] = [
     Platform.SWITCH,
 ]
 
+type SmartboxConfigEntry = ConfigEntry[SmartboxData]
+
+
+@dataclass
+class SmartboxData:
+    """Runtime data for the Smartbox class."""
+
+    client: AsyncSmartboxSession
+    devices: list[SmartboxDevice]
+    nodes: list[SmartboxNode]
+
 
 async def create_smartbox_session_from_entry(
-    hass: HomeAssistant, entry: ConfigEntry | dict[str, Any] | None = None
+    hass: HomeAssistant, entry: SmartboxConfigEntry | dict[str, Any] | None = None
 ) -> AsyncSmartboxSession:
     """Create a Session class from smartbox."""
     data = {}
@@ -62,22 +72,22 @@ async def create_smartbox_session_from_entry(
         return session
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: SmartboxConfigEntry) -> bool:
     """Set up Smartbox from a config entry."""
     try:
-        session = await create_smartbox_session_from_entry(hass, entry)
+        entry.runtime_data = SmartboxData(
+            client=(await create_smartbox_session_from_entry(hass, entry)),
+            devices=[],
+            nodes=[],
+        )
     except Exception as ex:
         raise ConfigEntryAuthFailed from ex
 
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][SMARTBOX_DEVICES] = []
-    hass.data[DOMAIN][SMARTBOX_NODES] = []
-
-    devices = await get_devices(session=session, hass=hass)
+    devices = await get_devices(session=entry.runtime_data.client, hass=hass)
     for device in devices:
         _LOGGER.info("Setting up configured device %s", device.dev_id)
-        hass.data[DOMAIN][SMARTBOX_DEVICES].append(device)
-    for device in hass.data[DOMAIN][SMARTBOX_DEVICES]:
+        entry.runtime_data.devices.append(device)
+    for device in entry.runtime_data.devices:
         nodes = device.get_nodes()
         _LOGGER.debug("Configuring nodes for device %s %s", device.dev_id, nodes)
         for node in nodes:
@@ -86,17 +96,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     'Nodes of type "%s" are not yet supported; no entities will be created. Please file an issue on GitHub',
                     node.node_type,
                 )
-        hass.data[DOMAIN][SMARTBOX_NODES].extend(nodes)
+        entry.runtime_data.nodes.extend(nodes)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(update_listener))
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: SmartboxConfigEntry) -> bool:
     """Unload a config entry."""
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 
-async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
+async def update_listener(hass: HomeAssistant, entry: SmartboxConfigEntry) -> None:
     """Reload entity from config entry."""
     await hass.config_entries.async_reload(entry.entry_id)

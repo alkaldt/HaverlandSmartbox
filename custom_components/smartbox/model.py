@@ -27,7 +27,7 @@ from .const import (
     PRESET_SCHEDULE,
     PRESET_SELF_LEARN,
 )
-from .types import FactoryOptionsDict, SamplesDict, SetupDict, StatusDict
+from .types import FactoryOptionsDict, SamplesDict, SetupDict, StatusDict, Device, Node
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -37,7 +37,7 @@ class SmartboxDevice:
 
     def __init__(
         self,
-        device: dict[str, Any],
+        device: Device,
         session: AsyncSmartboxSession | MagicMock,
         hass: HomeAssistant,
     ) -> None:
@@ -53,7 +53,7 @@ class SmartboxDevice:
     async def initialise_nodes(self) -> None:
         """Initilaise nodes."""
         # Would do in __init__, but needs to be a coroutine
-        session_nodes = await self._session.get_nodes(self.dev_id)
+        session_nodes: list[Node] = await self._session.get_nodes(self.dev_id)
 
         for node_info in session_nodes:
             status: StatusDict = await self._session.get_node_status(
@@ -109,7 +109,7 @@ class SmartboxDevice:
         _LOGGER.debug("Node status update: %s", node_status)
         if (node_type, addr) in self._nodes:
             node: SmartboxNode | None = self._nodes.get((node_type, addr), None)
-            if node.status != node_status:
+            if node is not None and node.status != node_status:
                 node.update_status(node_status)
                 async_dispatcher_send(
                     self._hass, f"{DOMAIN}_{node.node_id}_status", node_status
@@ -125,7 +125,7 @@ class SmartboxDevice:
         _LOGGER.debug("Node setup update: %s", node_setup)
         if (node_type, addr) in self._nodes:
             node: SmartboxNode | None = self._nodes.get((node_type, addr), None)
-            if node.setup != node_setup:
+            if node is not None and node.setup != node_setup:
                 node.update_setup(node_setup)
                 async_dispatcher_send(
                     self._hass, f"{DOMAIN}_{node.node_id}_setup", node_setup
@@ -198,7 +198,7 @@ class SmartboxNode:
     def __init__(
         self,
         device: SmartboxDevice | MagicMock,
-        node_info: dict[str, Any],
+        node_info: Node,
         session: AsyncSmartboxSession | MagicMock,
         status: StatusDict,
         setup: SetupDict,
@@ -213,7 +213,7 @@ class SmartboxNode:
         self._samples = samples
 
     @property
-    def node_info(self) -> dict[str, Any]:
+    def node_info(self) -> Node:
         """Return the node info."""
         return self._node_info
 

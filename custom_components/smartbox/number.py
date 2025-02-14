@@ -3,12 +3,11 @@
 import logging
 
 from homeassistant.components.number import NumberEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory, UnitOfPower
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN, SMARTBOX_DEVICES
+from . import SmartboxConfigEntry
 from .entity import SmartBoxDeviceEntity
 
 _LOGGER = logging.getLogger(__name__)
@@ -16,13 +15,15 @@ _MAX_POWER_LIMIT = 9999
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant,
+    entry: SmartboxConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up platform."""
     _LOGGER.debug("Setting up Smartbox number platform")
 
     async_add_entities(
-        [PowerLimit(device, entry) for device in hass.data[DOMAIN][SMARTBOX_DEVICES]],
+        [PowerLimit(device, entry) for device in entry.runtime_data.devices],
         True,
     )
     _LOGGER.debug("Finished setting up Smartbox number platform")

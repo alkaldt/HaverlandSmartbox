@@ -20,12 +20,11 @@ from homeassistant.const import ATTR_LOCKED, ATTR_TEMPERATURE, UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from . import SmartboxConfigEntry
 from .const import (
-    DOMAIN,
     PRESET_FROST,
     PRESET_SCHEDULE,
     PRESET_SELF_LEARN,
-    SMARTBOX_NODES,
     SmartboxNodeType,
 )
 from .entity import SmartBoxNodeEntity
@@ -46,7 +45,9 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant,
+    entry: SmartboxConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up platform."""
     _LOGGER.info("Setting up Smartbox climate platform")
@@ -54,7 +55,7 @@ async def async_setup_entry(
     async_add_entities(
         [
             SmartboxHeater(node, entry)
-            for node in hass.data[DOMAIN][SMARTBOX_NODES]
+            for node in entry.runtime_data.nodes
             if is_heater_node(node)
         ],
         True,
