@@ -87,6 +87,7 @@ async def test_smartbox_device_init(hass, mock_smartbox):
         autospec=True,
     ) as smartbox_node_ctor_mock:
         device = SmartboxDevice(mock_device, mock_smartbox.session, hass)
+        assert device.device == mock_device
         assert device.dev_id == dev_id
         await device.initialise_nodes()
         mock_smartbox.session.get_nodes.assert_called_with(dev_id)
