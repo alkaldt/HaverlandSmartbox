@@ -136,6 +136,11 @@ class SmartboxDevice:
             )
 
     @property
+    def device(self):
+        """Return the device."""
+        return self._device
+
+    @property
     def home(self):
         """Return home of the device."""
         return self._device["home"]
