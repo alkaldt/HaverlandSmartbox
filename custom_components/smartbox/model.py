@@ -136,12 +136,12 @@ class SmartboxDevice:
             )
 
     @property
-    def device(self):
+    def device(self) -> Device:
         """Return the device."""
         return self._device
 
     @property
-    def home(self):
+    def home(self) -> dict[str, Any]:
         """Return home of the device."""
         return self._device["home"]
 
@@ -150,7 +150,7 @@ class SmartboxDevice:
         """Return the device id."""
         return self._device["dev_id"]
 
-    def get_nodes(self):
+    def get_nodes(self) -> list[Node]:
         """Return all nodes."""
         for item in self._nodes:
             _LOGGER.debug("Get_nodes: %s", item)
@@ -181,7 +181,7 @@ class SmartboxDevice:
         """Is the device in away mode."""
         return self._away
 
-    async def set_away_status(self, away: bool):
+    async def set_away_status(self, away: bool) -> None:
         """Set the away status."""
         await self._session.set_device_away_status(self.dev_id, {"away": away})
         self._away = away
@@ -272,21 +272,21 @@ class SmartboxNode:
         return self._status
 
     @property
-    def away(self):
+    def away(self) -> bool:
         """Is away mode."""
         return self._device.away
 
     @property
-    def device(self):
+    def device(self) -> Device:
         """Return the device of the node."""
         return self._device
 
     @property
-    def session(self):
+    def session(self) -> AsyncSmartboxSession:
         """Return the smartbox session."""
         return self._session
 
-    async def update_device_away_status(self, away: bool):
+    async def update_device_away_status(self, away: bool) -> None:
         """Update device away status."""
         await self._device.set_away_status(away)
 
@@ -320,7 +320,7 @@ class SmartboxNode:
             )
         return self._setup["true_radiant_enabled"]
 
-    async def set_true_radiant(self, true_radiant: bool):
+    async def set_true_radiant(self, true_radiant: bool) -> None:
         """Set true radiant."""
         await self._session.set_node_setup(
             self._device.dev_id, self._node_info, {"true_radiant_enabled": true_radiant}
@@ -413,7 +413,7 @@ async def create_smartbox_device(
     return _device
 
 
-def _check_status_key(key: str, node_type: str, status: dict[str, Any]):
+def _check_status_key(key: str, node_type: str, status: dict[str, Any]) -> None:
     if key not in status:
         raise KeyError(
             f"'{key}' not found in {node_type} - please report to {GITHUB_ISSUES_URL}. "

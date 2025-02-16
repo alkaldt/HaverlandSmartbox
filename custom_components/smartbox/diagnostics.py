@@ -28,13 +28,13 @@ async def async_get_config_entry_diagnostics(
             "devices": [d.device for d in config_entry.runtime_data.devices],
         },
     }
-    diagnostics_data["devices"] = [
+    diagnostics_data["hass_devices"] = [
         e.dict_repr
         for e in dr.async_entries_for_config_entry(
             dr.async_get(hass), config_entry.entry_id
         )
     ]
-    diagnostics_data["entities"] = [
+    diagnostics_data["hass_entities"] = [
         e.as_partial_dict
         for e in er.async_entries_for_config_entry(
             er.async_get(hass), config_entry.entry_id
