@@ -92,11 +92,7 @@ async def async_setup_entry(
         True,
     )
     async_add_entities(
-        [
-            TotalConsumptionSensor(node, entry)
-            for node in entry.runtime_data.nodes
-            if node.node_type == SmartboxNodeType.HTR
-        ],
+        [TotalConsumptionSensor(node, entry) for node in entry.runtime_data.nodes],
         True,
     )
 

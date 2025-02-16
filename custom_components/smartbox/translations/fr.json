@@ -1,5 +1,11 @@
 {
   "title": "Smartbox",
+  "system_health": {
+    "info": {
+      "api_health_check": "Statut du serveur de l'API.",
+      "can_reach_web_resailer": "Accès au portail web de votre fournisseurs."
+    }
+  },
   "config": {
     "step": {
       "user": {

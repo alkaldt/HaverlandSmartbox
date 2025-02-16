@@ -1,5 +1,11 @@
 {
   "title": "smartbox",
+  "system_health": {
+    "info": {
+      "api_health_check": "Status of the API server.",
+      "can_reach_web_resailer": "Reach the resailer portal."
+    }
+  },
   "config": {
     "step": {
       "user": {

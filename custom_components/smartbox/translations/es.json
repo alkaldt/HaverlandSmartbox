@@ -1,5 +1,11 @@
 {
   "title": "smartbox",
+  "system_health": {
+    "info": {
+      "api_health_check": "Estado del servidor API.",
+      "can_reach_web_resailer": "Accede al portal web de tus revendedor."
+    }
+  },
   "config": {
     "step": {
       "user": {
