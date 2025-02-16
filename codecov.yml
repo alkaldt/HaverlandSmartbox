@@ -13,3 +13,4 @@ comment:
   hide_project_coverage: false
 ignore:
   - "custom_components/smartbox/diagnostics.py"
+  - "custom_components/smartbox/system_health.py"
