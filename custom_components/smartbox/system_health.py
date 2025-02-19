@@ -1,8 +1,10 @@
 """Provide info to system health."""
 
+from typing import Any
+
 from homeassistant.components import system_health
 from homeassistant.core import HomeAssistant, callback
-from typing import Any
+
 from . import SmartboxConfigEntry
 from .const import DOMAIN
 
@@ -10,8 +12,9 @@ from .const import DOMAIN
 async def system_health_info(hass: HomeAssistant) -> dict[str, Any]:
     """Get info for the info page."""
     config_entry: SmartboxConfigEntry = hass.config_entries.async_entries(DOMAIN)[0]
-
+    api_version = await config_entry.runtime_data.client.api_version()
     return {
+        "api_version": f"{api_version['major']}.{api_version['minor']}.{api_version['subminor']}.{api_version['commit']}",
         "api_health_check": (await config_entry.runtime_data.client.health_check())[
             "message"
         ],

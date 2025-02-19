@@ -8,7 +8,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import SmartboxConfigEntry
-from .entity import SmartBoxDeviceEntity, SmartBoxNodeEntity
+from .entity import SmartBoxNodeEntity
 from .model import true_radiant_available, window_mode_available
 
 _LOGGER = logging.getLogger(__name__)
@@ -23,9 +23,9 @@ async def async_setup_entry(
     _LOGGER.debug("Setting up Smartbox switch platform")
 
     switch_entities: list[SwitchEntity] = []
-    for device in entry.runtime_data.devices:
-        _LOGGER.debug("Creating away switch for device %s", device.name)
-        switch_entities.append(AwaySwitch(device, entry))
+    # for device in entry.runtime_data.devices:
+    #     _LOGGER.debug("Creating away switch for device %s", device.name)
+    #     switch_entities.append(AwaySwitch(device, entry))
 
     for node in entry.runtime_data.nodes:
         if window_mode_available(node):
@@ -38,13 +38,15 @@ async def async_setup_entry(
             switch_entities.append(TrueRadiantSwitch(node, entry))
         else:
             _LOGGER.info("True radiant not available for node %s", node.name)
+        _LOGGER.debug("Creating away switch for node %s", node.name)
+        switch_entities.append(AwaySwitch(node, entry))
 
     async_add_entities(switch_entities, True)
 
     _LOGGER.debug("Finished setting up Smartbox switch platform")
 
 
-class AwaySwitch(SmartBoxDeviceEntity, SwitchEntity):
+class AwaySwitch(SmartBoxNodeEntity, SwitchEntity):
     """Smartbox device away switch."""
 
     _attr_key = "away_status"
@@ -52,16 +54,16 @@ class AwaySwitch(SmartBoxDeviceEntity, SwitchEntity):
 
     async def async_turn_on(self, **kwargs):  # pylint: disable=unused-argument
         """Turn on the switch."""
-        return await self._device.set_away_status(True)
+        return await self._node.device.set_away_status(True)
 
     async def async_turn_off(self, **kwargs):  # pylint: disable=unused-argument
         """Turn off the switch."""
-        return await self._device.set_away_status(False)
+        return await self._node.device.set_away_status(False)
 
     @property
     def is_on(self):
         """Return true if the switch is on."""
-        return self._device.away
+        return self._node.device.away
 
 
 class WindowModeSwitch(SmartBoxNodeEntity, SwitchEntity):

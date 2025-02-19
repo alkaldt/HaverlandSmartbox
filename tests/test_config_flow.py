@@ -17,7 +17,7 @@ from custom_components.smartbox import (
     InvalidAuthError,
     SmartboxError,
 )
-from custom_components.smartbox.config_flow import ConfigFlow
+from custom_components.smartbox.config_flow import SmartboxConfigFlow
 
 
 async def test_show_form(hass: HomeAssistant) -> None:
@@ -102,7 +102,7 @@ async def test_step_reauth(hass: HomeAssistant, mock_smartbox, resailer) -> None
 
 async def test_async_step_user_show_form(hass: HomeAssistant) -> None:
     """Test that the form is served with no input."""
-    flow = ConfigFlow()
+    flow = SmartboxConfigFlow()
     flow.hass = hass
     result = await flow.async_step_user(user_input=None)
     assert result["type"] == FlowResultType.FORM
@@ -112,7 +112,7 @@ async def test_async_step_user_show_form(hass: HomeAssistant) -> None:
 
 async def test_async_step_user_cannot_connect(hass: HomeAssistant) -> None:
     """Test handling cannot connect error."""
-    flow = ConfigFlow()
+    flow = SmartboxConfigFlow()
     flow.hass = hass
     with patch(
         "custom_components.smartbox.config_flow.create_smartbox_session_from_entry",
@@ -126,7 +126,7 @@ async def test_async_step_user_cannot_connect(hass: HomeAssistant) -> None:
 
 async def test_async_step_user_invalid_auth(hass: HomeAssistant) -> None:
     """Test handling invalid auth error."""
-    flow = ConfigFlow()
+    flow = SmartboxConfigFlow()
     flow.hass = hass
     with patch(
         "custom_components.smartbox.config_flow.create_smartbox_session_from_entry",
@@ -140,7 +140,7 @@ async def test_async_step_user_invalid_auth(hass: HomeAssistant) -> None:
 
 async def test_async_step_user_unknown_error(hass: HomeAssistant) -> None:
     """Test handling unknown error."""
-    flow = ConfigFlow()
+    flow = SmartboxConfigFlow()
     flow.hass = hass
     with patch(
         "custom_components.smartbox.config_flow.create_smartbox_session_from_entry",
@@ -154,7 +154,7 @@ async def test_async_step_user_unknown_error(hass: HomeAssistant) -> None:
 
 async def test_async_step_reauth_confirm_show_form(hass: HomeAssistant) -> None:
     """Test that the reauth confirm form is served with no input."""
-    flow = ConfigFlow()
+    flow = SmartboxConfigFlow()
     flow.hass = hass
     flow.current_user_inputs = MOCK_SMARTBOX_CONFIG[DOMAIN]
     result = await flow.async_step_reauth_confirm(user_input=None)
@@ -165,7 +165,7 @@ async def test_async_step_reauth_confirm_show_form(hass: HomeAssistant) -> None:
 
 async def test_async_step_reauth_confirm_invalid_auth(hass: HomeAssistant) -> None:
     """Test handling invalid auth error during reauth confirm."""
-    flow = ConfigFlow()
+    flow = SmartboxConfigFlow()
     flow.hass = hass
     flow.current_user_inputs = MOCK_SMARTBOX_CONFIG[DOMAIN]
     with patch(
@@ -185,7 +185,7 @@ async def test_async_step_reauth_confirm_invalid_auth(hass: HomeAssistant) -> No
 
 async def test_async_step_reauth_confirm_unknown_error(hass: HomeAssistant) -> None:
     """Test handling unknown error during reauth confirm."""
-    flow = ConfigFlow()
+    flow = SmartboxConfigFlow()
     flow.hass = hass
     flow.current_user_inputs = MOCK_SMARTBOX_CONFIG[DOMAIN]
     with patch(
@@ -205,7 +205,7 @@ async def test_async_step_reauth_confirm_unknown_error(hass: HomeAssistant) -> N
 
 async def test_async_step_reauth_confirm_api_unavailable(hass: HomeAssistant) -> None:
     """Test handling api unavailable error during reauth confirm."""
-    flow = ConfigFlow()
+    flow = SmartboxConfigFlow()
     flow.hass = hass
     flow.current_user_inputs = MOCK_SMARTBOX_CONFIG[DOMAIN]
     with patch(

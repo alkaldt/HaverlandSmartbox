@@ -40,9 +40,11 @@ from .const import (
     CONF_SESSION_RETRY_ATTEMPTS,
     CONF_SOCKET_BACKOFF_FACTOR,
     CONF_SOCKET_RECONNECT_ATTEMPTS,
+    CONF_TIMEDELTA_POWER,
     CONF_USERNAME,
     DEFAULT_SESSION_RETRY_ATTEMPTS,
     DEFAULT_SOCKET_BACKOFF_FACTOR,
+    DEFAULT_TIMEDELTA_POWER,
     DOMAIN,
     HistoryConsumptionStatus,
 )
@@ -68,6 +70,9 @@ OPTIONS_DATA_SCHEMA = {
         )
     ),
     vol.Required(CONF_DISPLAY_ENTITY_PICTURES, default=False): BooleanSelector(),
+    vol.Required(
+        CONF_TIMEDELTA_POWER, default=DEFAULT_TIMEDELTA_POWER
+    ): cv.positive_int,
     vol.Required(
         CONF_SESSION_RETRY_ATTEMPTS,
         default=DEFAULT_SESSION_RETRY_ATTEMPTS,
@@ -97,7 +102,7 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
 )
 
 
-class ConfigFlow(ConfigFlow, domain=DOMAIN):
+class SmartboxConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for test."""
 
     VERSION = 1

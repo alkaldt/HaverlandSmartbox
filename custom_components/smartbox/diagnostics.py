@@ -7,8 +7,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 
-from .const import CONF_PASSWORD, CONF_USERNAME
 from . import SmartboxConfigEntry
+from .const import CONF_PASSWORD, CONF_USERNAME
 
 TO_REDACT = [CONF_PASSWORD, CONF_USERNAME, "title", "unique_id"]
 

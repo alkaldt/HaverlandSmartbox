@@ -21,12 +21,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import SmartboxConfigEntry
-from .const import (
-    PRESET_FROST,
-    PRESET_SCHEDULE,
-    PRESET_SELF_LEARN,
-    SmartboxNodeType,
-)
+from .const import PRESET_FROST, PRESET_SCHEDULE, PRESET_SELF_LEARN, SmartboxNodeType
 from .entity import SmartBoxNodeEntity
 from .model import (
     SmartboxNode,
@@ -210,12 +205,12 @@ class SmartboxHeater(SmartBoxNodeEntity, ClimateEntity):
         """Return True if roller and hub is available."""
         return self._available
 
-    async def async_update(self) -> None:
-        """Get the latest data."""
-        new_status = await self._node.async_update(self.hass)
-        if new_status["sync_status"] == "ok":
-            # update our status
-            self._status = new_status
-            self._available = True
-        else:
-            self._available = False
+    # async def async_update(self) -> None:
+    #     """Get the latest data."""
+    #     new_status = await self._node.async_update(self.hass)
+    #     if new_status["sync_status"] == "ok":
+    #         # update our status
+    #         self._status = new_status
+    #         self._available = True
+    #     else:
+    #         self._available = False

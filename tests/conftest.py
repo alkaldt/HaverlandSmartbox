@@ -9,6 +9,7 @@ from const import (
     DOMAIN,
     MOCK_SMARTBOX_CONFIG,
     MOCK_SMARTBOX_DEVICE_INFO,
+    MOCK_SMARTBOX_DEVICE_POWER,
     MOCK_SMARTBOX_HOME_INFO,
     MOCK_SMARTBOX_NODE_AWAY,
     MOCK_SMARTBOX_NODE_INFO,
@@ -67,6 +68,7 @@ def mock_smartbox(request):
         MOCK_SMARTBOX_NODE_INFO,
         deepcopy(MOCK_SMARTBOX_NODE_SETUP),
         MOCK_SMARTBOX_NODE_AWAY,
+        MOCK_SMARTBOX_DEVICE_POWER,
         _get_node_status(request.param),
     )
 
@@ -92,6 +94,7 @@ def mock_smartbox_unavailable(request):
         MOCK_SMARTBOX_NODE_INFO,
         deepcopy(MOCK_SMARTBOX_NODE_SETUP),
         MOCK_SMARTBOX_NODE_AWAY,
+        MOCK_SMARTBOX_DEVICE_POWER,
         _get_node_status(request.param),
         False,
     )

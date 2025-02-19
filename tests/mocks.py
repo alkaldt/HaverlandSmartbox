@@ -10,7 +10,7 @@ from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 from homeassistant.helpers import entity_registry
 from smartbox.resailer import SmartboxResailer
 
-from custom_components.smartbox.const import DOMAIN, SmartboxNodeType
+from custom_components.smartbox.const import DOMAIN, HEATER_NODE_TYPES, SmartboxNodeType
 from custom_components.smartbox.types import SetupDict, StatusDict
 from tests.const import CONF_DEVICE_IDS
 
@@ -145,6 +145,7 @@ class MockSmartbox(object):
         mock_node_info,
         mock_node_setup: Dict[str, Dict[int, SetupDict]],
         mock_node_away: Dict[str, str],
+        mock_device_power: Dict[str, Dict[int, StatusDict]],
         mock_node_status: Dict[str, Dict[int, StatusDict]],
         start_available=True,
     ):
@@ -160,6 +161,7 @@ class MockSmartbox(object):
         self._session_node_setup = deepcopy(self._socket_node_setup)
         self._socket_node_status = deepcopy(mock_node_status)
         self._mock_node_away = mock_node_away
+        self._mock_device_power = mock_device_power
         if not start_available:
             for dev in self._devices:
                 for node_info in self._node_info[dev["dev_id"]]:
@@ -214,6 +216,13 @@ class MockSmartbox(object):
 
         mock_session.get_node_setup = get_node_setup
         mock_session.get_setup = get_node_setup
+
+        async def get_device_power_limit(dev_id, node=None):
+            if node is not None:
+                return self._session_node_setup[dev_id][node["addr"]]["power"]
+            return self._mock_device_power[dev_id]
+
+        mock_session.get_device_power_limit = get_device_power_limit
 
         async def get_device_away_status(dev_id):
             return self._mock_node_away[dev_id]
@@ -362,3 +371,7 @@ def active_or_charging_update(node_type: str, active: bool) -> StatusDict:
         if node_type == SmartboxNodeType.ACM
         else {"active": active}
     )
+
+
+def is_heater_node(node):
+    return node["type"] in HEATER_NODE_TYPES

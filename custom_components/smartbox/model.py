@@ -27,7 +27,7 @@ from .const import (
     PRESET_SCHEDULE,
     PRESET_SELF_LEARN,
 )
-from .types import FactoryOptionsDict, SamplesDict, SetupDict, StatusDict, Device, Node
+from .types import Device, FactoryOptionsDict, Node, SamplesDict, SetupDict, StatusDict
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -44,21 +44,37 @@ class SmartboxDevice:
         """Initialise a smartbox device."""
         self._device = device
         self._session = session
-        self._away = False
+        self._away: bool = False
         self._power_limit: int = 0
         self._nodes = {}
         self._watchdog_task: asyncio.Task | None = None
         self._hass = hass
+        self._connected_status: bool | None = None
 
     async def initialise_nodes(self) -> None:
         """Initilaise nodes."""
         # Would do in __init__, but needs to be a coroutine
-        session_nodes: list[Node] = await self._session.get_nodes(self.dev_id)
+        self._connected_status = (
+            await self._session.get_device_connected(self.dev_id)
+        )["connected"]
+        session_nodes: list[dict[str, Any]] = await self._session.get_nodes(self.dev_id)
 
         for node_info in session_nodes:
-            status: StatusDict = await self._session.get_node_status(
-                self.dev_id, node_info
-            )
+            if node_info["type"] != SmartboxNodeType.PMO:
+                status: StatusDict = await self._session.get_node_status(
+                    self.dev_id, node_info
+                )
+            else:
+                status: StatusDict = {
+                    "sync_status": "ok",
+                    "locked": False,
+                    "power": await self._session.get_device_power_limit(
+                        self.dev_id, node_info
+                    ),
+                }
+                self._power_limit = await self._session.get_device_power_limit(
+                    self.dev_id
+                )
             setup: SetupDict = await self._session.get_node_setup(
                 self.dev_id, node_info
             )
@@ -68,9 +84,9 @@ class SmartboxDevice:
                 int(time.time() - (3600 * 3)),
                 int(time.time()),
             )
-            self._away = (await self._session.get_device_away_status(self.dev_id))[
-                "away"
-            ]
+            self._away: bool = (
+                await self._session.get_device_away_status(self.dev_id)
+            )["away"]
             node = SmartboxNode(self, node_info, self._session, status, setup, samples)
 
             self._nodes[(node.node_type, node.addr)] = node
@@ -79,13 +95,21 @@ class SmartboxDevice:
             self._session,
             self.dev_id,
         )
+        update_manager.subscribe_to_device_connected(self._connected)
         update_manager.subscribe_to_device_away_status(self._away_status_update)
+        update_manager.subscribe_to_node_setup(self._node_setup_update)
         update_manager.subscribe_to_device_power_limit(self._power_limit_update)
         update_manager.subscribe_to_node_status(self._node_status_update)
-        update_manager.subscribe_to_node_setup(self._node_setup_update)
 
         _LOGGER.debug("Starting UpdateManager task for device %s", self.dev_id)
         self._watchdog_task = asyncio.create_task(update_manager.run())
+
+    def _connected(self, connected: bool) -> None:
+        _LOGGER.debug("Connected connected update: %s", connected)
+        self._connected_status = connected
+        async_dispatcher_send(
+            self._hass, f"{DOMAIN}_{self.dev_id}_connected", self._away
+        )
 
     def _away_status_update(self, away_status: dict[str, bool]) -> None:
         _LOGGER.debug("Away status update: %s", away_status)
@@ -106,8 +130,10 @@ class SmartboxDevice:
     def _node_status_update(
         self, node_type: str, addr: int, node_status: StatusDict
     ) -> None:
+        if node_type == SmartboxNodeType.PMO:
+            return
         _LOGGER.debug("Node status update: %s", node_status)
-        if (node_type, addr) in self._nodes:
+        if node_status is not None and (node_type, addr) in self._nodes:
             node: SmartboxNode | None = self._nodes.get((node_type, addr), None)
             if node is not None and node.status != node_status:
                 node.update_status(node_status)
@@ -141,6 +167,11 @@ class SmartboxDevice:
         return self._device
 
     @property
+    def connected(self) -> bool | None:
+        """Return the device."""
+        return self._connected_status
+
+    @property
     def home(self) -> dict[str, Any]:
         """Return home of the device."""
         return self._device["home"]
@@ -150,7 +181,7 @@ class SmartboxDevice:
         """Return the device id."""
         return self._device["dev_id"]
 
-    def get_nodes(self) -> list[Node]:
+    def get_nodes(self) -> list["SmartboxNode"]:
         """Return all nodes."""
         for item in self._nodes:
             _LOGGER.debug("Get_nodes: %s", item)
@@ -277,7 +308,7 @@ class SmartboxNode:
         return self._device.away
 
     @property
-    def device(self) -> Device:
+    def device(self) -> SmartboxDevice:
         """Return the device of the node."""
         return self._device
 
@@ -333,6 +364,13 @@ class SmartboxNode:
             status["charging"]
             if self.node_type == SmartboxNodeType.ACM
             else status["active"]
+        )
+
+    async def update_power(self) -> None:
+        """Update power."""
+        self._status["power"] = await self._session.get_device_power_limit(
+            self.device.dev_id,
+            self._node_info,
         )
 
     async def update_samples(self) -> None:
@@ -391,7 +429,7 @@ async def get_devices(
 ) -> list[SmartboxDevice]:
     """Get the devices."""
     homes: list[dict[str, Any]] = await session.get_homes()
-    devices: list[SmartboxDevice] = list()
+    devices: list[SmartboxDevice] = []
     for home in homes:
         _home = home.copy()
         del _home["devs"]

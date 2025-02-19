@@ -22,7 +22,7 @@ from custom_components.smartbox.const import DOMAIN
 async def test_away_status(hass, mock_smartbox, config_entry):
     assert await hass.config_entries.async_setup(config_entry.entry_id)
     await hass.async_block_till_done()
-    assert len(hass.states.async_entity_ids(SWITCH_DOMAIN)) == 12
+    assert len(hass.states.async_entity_ids(SWITCH_DOMAIN)) == 16
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
 
@@ -91,7 +91,7 @@ async def test_away_status(hass, mock_smartbox, config_entry):
 async def test_basic_window_mode(hass, mock_smartbox, config_entry, caplog):
     assert await hass.config_entries.async_setup(config_entry.entry_id)
     await hass.async_block_till_done()
-    assert len(hass.states.async_entity_ids(SWITCH_DOMAIN)) == 12
+    assert len(hass.states.async_entity_ids(SWITCH_DOMAIN)) == 16
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
 
@@ -180,7 +180,7 @@ async def test_basic_window_mode(hass, mock_smartbox, config_entry, caplog):
 async def test_basic_true_radiant(hass, mock_smartbox, config_entry, caplog):
     assert await hass.config_entries.async_setup(config_entry.entry_id)
     await hass.async_block_till_done()
-    assert len(hass.states.async_entity_ids(SWITCH_DOMAIN)) == 12
+    assert len(hass.states.async_entity_ids(SWITCH_DOMAIN)) == 16
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
 

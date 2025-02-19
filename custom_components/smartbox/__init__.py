@@ -7,24 +7,20 @@ from typing import Any
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from smartbox import AsyncSmartboxSession
 from smartbox.error import APIUnavailableError, InvalidAuthError, SmartboxError
 
-
-from .const import (
-    CONF_API_NAME,
-    CONF_PASSWORD,
-    CONF_USERNAME,
-)
-from .model import get_devices, is_supported_node, SmartboxDevice, SmartboxNode
+from .const import CONF_API_NAME, CONF_PASSWORD, CONF_USERNAME
+from .model import SmartboxDevice, SmartboxNode, get_devices
 
 __version__ = "2.1.0"
 
 _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS: list[Platform] = [
+    Platform.BINARY_SENSOR,
     Platform.CLIMATE,
     Platform.NUMBER,
     Platform.SENSOR,
@@ -51,7 +47,7 @@ async def create_smartbox_session_from_entry(
     if isinstance(entry, dict):
         data = entry
     elif isinstance(entry, ConfigEntry):
-        data = entry.data
+        data = dict(entry.data)
     try:
         websession = async_get_clientsession(hass)
         session = AsyncSmartboxSession(
@@ -80,8 +76,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: SmartboxConfigEntry) -> 
             devices=[],
             nodes=[],
         )
-    except Exception as ex:
+    except InvalidAuthError as ex:
         raise ConfigEntryAuthFailed from ex
+    except (SmartboxError, APIUnavailableError) as ex:
+        raise ConfigEntryNotReady from ex
 
     devices = await get_devices(session=entry.runtime_data.client, hass=hass)
     for device in devices:
@@ -90,12 +88,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: SmartboxConfigEntry) -> 
     for device in entry.runtime_data.devices:
         nodes = device.get_nodes()
         _LOGGER.debug("Configuring nodes for device %s %s", device.dev_id, nodes)
-        for node in nodes:
-            if not is_supported_node(node):
-                _LOGGER.error(
-                    'Nodes of type "%s" are not yet supported; no entities will be created. Please file an issue on GitHub',
-                    node.node_type,
-                )
         entry.runtime_data.nodes.extend(nodes)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(update_listener))

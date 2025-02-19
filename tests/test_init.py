@@ -1,7 +1,7 @@
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 
 from custom_components.smartbox import (
     APIUnavailableError,
@@ -17,9 +17,15 @@ from custom_components.smartbox import (
 async def test_async_setup_entry_auth_failed(hass, config_entry):
     with patch(
         "custom_components.smartbox.create_smartbox_session_from_entry",
-        side_effect=Exception,
+        side_effect=InvalidAuthError,
     ):
         with pytest.raises(ConfigEntryAuthFailed):
+            await async_setup_entry(hass, config_entry)
+    with patch(
+        "custom_components.smartbox.create_smartbox_session_from_entry",
+        side_effect=SmartboxError,
+    ):
+        with pytest.raises(ConfigEntryNotReady):
             await async_setup_entry(hass, config_entry)
 
 

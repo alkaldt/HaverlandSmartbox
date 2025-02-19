@@ -9,7 +9,6 @@ from smartbox.session import _DEFAULT_BACKOFF_FACTOR, _DEFAULT_RETRY_ATTEMPTS
 DOMAIN = "smartbox"
 
 CONF_API_NAME = "api_name"
-CONF_AUTO_ADD_ENERGY_DEVICES = "auto_add_energy_devices"
 CONF_DISPLAY_ENTITY_PICTURES = "resailer_entity"
 CONF_PASSWORD = "password"
 CONF_USERNAME = "username"
@@ -17,11 +16,13 @@ CONF_SESSION_RETRY_ATTEMPTS = "session_retry_attempts"
 CONF_SESSION_BACKOFF_FACTOR = "session_backoff_factor"
 CONF_SOCKET_RECONNECT_ATTEMPTS = "socket_reconnect_attempts"
 CONF_SOCKET_BACKOFF_FACTOR = "socket_backoff_factor"
+CONF_TIMEDELTA_POWER = "timedelta_update_power"
 
 DEFAULT_SESSION_RETRY_ATTEMPTS = _DEFAULT_RETRY_ATTEMPTS
 DEFAULT_SESSION_BACKOFF_FACTOR = _DEFAULT_BACKOFF_FACTOR
 DEFAULT_SOCKET_RECONNECT_ATTEMPTS = 3
 DEFAULT_SOCKET_BACKOFF_FACTOR = 0.1
+DEFAULT_TIMEDELTA_POWER = 60
 
 GITHUB_ISSUES_URL = "https://github.com/ajtudela/hass-smartbox/issues"
 

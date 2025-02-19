@@ -23,7 +23,11 @@ async def async_setup_entry(
     _LOGGER.debug("Setting up Smartbox number platform")
 
     async_add_entities(
-        [PowerLimit(device, entry) for device in entry.runtime_data.devices],
+        [
+            PowerLimit(device, entry)
+            for device in entry.runtime_data.devices
+            if device.power_limit != 0
+        ],
         True,
     )
     _LOGGER.debug("Finished setting up Smartbox number platform")

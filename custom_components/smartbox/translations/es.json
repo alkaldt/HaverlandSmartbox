@@ -2,8 +2,9 @@
   "title": "smartbox",
   "system_health": {
     "info": {
-      "api_health_check": "Estado del servidor API.",
-      "can_reach_web_resailer": "Accede al portal web de tus revendedor."
+      "api_health_check": "Estado del servidor API",
+      "can_reach_web_resailer": "Accede al portal web de tus revendedor",
+      "api_version": "Versión API"
     }
   },
   "config": {
@@ -48,6 +49,7 @@
         "data": {
           "history_consumption": "Historial de consumo",
           "resailer_entity": "Entidad del revendedor",
+          "timedelta_update_power": "Delta para actualizar entidad de potencia (en seg)",
           "session_retry_attempts": "Intentos de reintento de sesión",
           "session_backoff_factor": "Factor de retardo de sesión",
           "socket_reconnect_attempts": "Intentos de reconexión del socket",
@@ -55,6 +57,7 @@
         },
         "data_description": {
           "history_consumption": "Modo de recuperación del historial de consumo. Auto: fuerza los datos. Inicio: inicialización. Apagado: no hay recuperación de datos (cuidado, algunos valores pueden ser aberrantes).",
+          "timedelta_update_power": "Delta entre intentos de actualizar la entidad de energía para pmo",
           "session_retry_attempts": "Cuántas veces reintentar las operaciones REST de la sesión",
           "session_backoff_factor": "Cuánto tiempo de espera entre reintentos REST",
           "socket_reconnect_attempts": "Cuántas veces intentar reconectar el socket.io",
