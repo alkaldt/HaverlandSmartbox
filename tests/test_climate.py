@@ -26,6 +26,8 @@ from homeassistant.const import (
     ATTR_TEMPERATURE,
     ENTITY_MATCH_ALL,
     STATE_UNAVAILABLE,
+    SERVICE_TURN_OFF,
+    SERVICE_TURN_ON,
 )
 from mocks import (
     active_or_charging_update,
@@ -37,6 +39,7 @@ from mocks import (
     is_heater_node,
 )
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+
 from test_utils import assert_no_log_errors, convert_temp, round_temp
 
 from custom_components.smartbox.climate import get_hvac_mode
@@ -777,14 +780,19 @@ async def test_turn_on(hass, mock_smartbox, config_entry):
             await hass.helpers.entity_component.async_update_entity(entity_id)
             state = hass.states.get(entity_id)
             assert state.state == HVACMode.OFF
-
+            # await async_turn_off
+            await hass.services.async_call(
+                CLIMATE_DOMAIN,
+                SERVICE_TURN_ON,
+                {ATTR_ENTITY_ID: entity_id},
+                blocking=True,
+            )
             await hass.services.async_call(
                 CLIMATE_DOMAIN,
                 SERVICE_SET_HVAC_MODE,
                 {ATTR_HVAC_MODE: HVACMode.AUTO, ATTR_ENTITY_ID: entity_id},
                 blocking=True,
             )
-
             await hass.helpers.entity_component.async_update_entity(entity_id)
             state = hass.states.get(entity_id)
             assert state.state == HVACMode.AUTO
@@ -821,7 +829,12 @@ async def test_turn_off(hass, mock_smartbox, config_entry):
             await hass.helpers.entity_component.async_update_entity(entity_id)
             state = hass.states.get(entity_id)
             assert state.state == HVACMode.AUTO
-
+            await hass.services.async_call(
+                CLIMATE_DOMAIN,
+                SERVICE_TURN_OFF,
+                {ATTR_ENTITY_ID: entity_id},
+                blocking=True,
+            )
             await hass.services.async_call(
                 CLIMATE_DOMAIN,
                 SERVICE_SET_HVAC_MODE,

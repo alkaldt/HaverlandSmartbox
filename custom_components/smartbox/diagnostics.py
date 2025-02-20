@@ -1,11 +1,10 @@
-"""Diagnostics for Smartbox Integration"""
+"""Diagnostics for Smartbox Integration."""
 
 from typing import Any
 
 from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import device_registry as dr, entity_registry as er
 
 from . import SmartboxConfigEntry
 from .const import CONF_PASSWORD, CONF_USERNAME
