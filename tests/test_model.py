@@ -89,6 +89,7 @@ async def test_smartbox_device_init(hass, mock_smartbox):
         device = SmartboxDevice(mock_device, mock_smartbox.session, hass)
         assert device.device == mock_device
         assert device.dev_id == dev_id
+        assert device.name == mock_device["name"]
         await device.initialise_nodes()
         mock_smartbox.session.get_nodes.assert_called_with(dev_id)
 
@@ -152,8 +153,8 @@ async def test_smartbox_device_dev_data_updates(hass):
         assert device.power_limit == 1045
 
 
-async def test_smartbox_device_node_status_update(hass, caplog):
-    """Independently test node status updates usually called by UpdateManager"""
+async def test_smartbox_device_connected_updates(hass):
+    """Independently test device data updates usually done by UpdateManager"""
     dev_id = "device_1"
     mock_session = MagicMock()
     mock_node_1 = MagicMock()
@@ -169,6 +170,32 @@ async def test_smartbox_device_node_status_update(hass, caplog):
             (SmartboxNodeType.ACM, 2): mock_node_2,
         }
 
+        device._connected(True)
+        assert device.connected
+
+        device._connected(False)
+        assert not device.connected
+
+
+async def test_smartbox_device_node_status_update(hass, caplog):
+    """Independently test node status updates usually called by UpdateManager"""
+    dev_id = "device_1"
+    mock_session = MagicMock()
+    mock_node_1 = MagicMock()
+    mock_node_2 = MagicMock()
+    mock_node_3 = MagicMock()
+    # Simulate initialise_nodes with mock data, make sure nobody calls the real one
+    with patch(
+        "custom_components.smartbox.model.SmartboxDevice.initialise_nodes",
+        new_callable=NonCallableMock,
+    ):
+        device = SmartboxDevice(MOCK_SMARTBOX_DEVICE_INFO[dev_id], mock_session, hass)
+        device._nodes = {
+            (SmartboxNodeType.HTR, 1): mock_node_1,
+            (SmartboxNodeType.ACM, 2): mock_node_2,
+            (SmartboxNodeType.PMO, 3): mock_node_3,
+        }
+
         mock_status = {"foo": "bar"}
         device._node_status_update(SmartboxNodeType.HTR, 1, mock_status)
         mock_node_1.update_status.assert_called_with(mock_status)
@@ -179,6 +206,13 @@ async def test_smartbox_device_node_status_update(hass, caplog):
         device._node_status_update(SmartboxNodeType.ACM, 2, mock_status)
         mock_node_2.update_status.assert_called_with(mock_status)
         mock_node_1.update_status.assert_not_called()
+
+        mock_node_1.reset_mock()
+        mock_node_2.reset_mock()
+        device._node_status_update(SmartboxNodeType.PMO, 3, mock_status)
+        mock_node_3.update_status.assert_not_called()
+        mock_node_1.update_status.assert_not_called()
+        mock_node_2.update_status.assert_not_called()
 
         # test unknown node
         mock_node_1.reset_mock()
@@ -687,3 +721,27 @@ async def test_update_samples(hass):
     ]
     await node.update_samples()
     assert node._samples == [{"counter": 200}, {"counter": 300}]
+
+
+async def test_update_power(hass):
+    dev_id = "test_device_id_1"
+    mock_device = AsyncMock()
+    mock_device.dev_id = dev_id
+    mock_device.away = False
+    node_addr = 3
+    node_type = SmartboxNodeType.HTR
+    node_name = "Bathroom Heater"
+    node_info = {"addr": node_addr, "name": node_name, "type": node_type}
+    mock_session = AsyncMock()
+    initial_status = {"mtemp": "21.4", "stemp": "22.5", "power": 4500}
+    initial_setup = {"true_radiant_enabled": False, "window_mode_enabled": False}
+    node_sample = {"samples": [{"t": 1735686000, "temp": "11.3", "counter": 247426}]}
+
+    node = SmartboxNode(
+        mock_device, node_info, mock_session, initial_status, initial_setup, node_sample
+    )
+    assert node.status["power"] == 4500
+    # Test case where get_samples returns less than 2 samples
+    mock_session.get_device_power_limit.return_value = 100
+    await node.update_power()
+    assert node.status["power"] == 100

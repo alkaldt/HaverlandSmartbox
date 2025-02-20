@@ -204,13 +204,3 @@ class SmartboxHeater(SmartBoxNodeEntity, ClimateEntity):
     def available(self) -> bool:
         """Return True if roller and hub is available."""
         return self._available
-
-    # async def async_update(self) -> None:
-    #     """Get the latest data."""
-    #     new_status = await self._node.async_update(self.hass)
-    #     if new_status["sync_status"] == "ok":
-    #         # update our status
-    #         self._status = new_status
-    #         self._available = True
-    #     else:
-    #         self._available = False

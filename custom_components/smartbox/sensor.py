@@ -1,12 +1,13 @@
 """Support for Smartbox sensor entities."""
 
+from datetime import datetime, timedelta
 import logging
 import time
-from datetime import datetime, timedelta
 from typing import Any
 from unittest.mock import MagicMock
 
 from dateutil import tz
+
 from homeassistant.components.recorder import DOMAIN as RECORDER_DOMAIN
 from homeassistant.components.recorder.models.statistics import (
     StatisticData,
@@ -26,7 +27,6 @@ from homeassistant.const import (
     UnitOfPower,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_time_interval
 
@@ -35,7 +35,6 @@ from .const import (
     CONF_HISTORY_CONSUMPTION,
     CONF_TIMEDELTA_POWER,
     DEFAULT_TIMEDELTA_POWER,
-    DOMAIN,
     HistoryConsumptionStatus,
     SmartboxNodeType,
 )
@@ -181,11 +180,7 @@ class PowerSensor(SmartboxSensorBase):
         """Get the latest data."""
         if self._node.node_type == SmartboxNodeType.PMO:
             await self._node.update_power()
-            async_dispatcher_send(
-                self.hass,
-                f"{DOMAIN}_{self._node.node_id}_status",
-                self._status,
-            )
+            self.async_write_ha_state()
 
     @property
     def native_value(self) -> float:

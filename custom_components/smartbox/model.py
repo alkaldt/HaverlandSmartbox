@@ -6,6 +6,8 @@ import time
 from typing import Any, cast
 from unittest.mock import MagicMock
 
+from smartbox import AsyncSmartboxSession, SmartboxNodeType, UpdateManager
+
 from homeassistant.components.climate import (
     PRESET_ACTIVITY,
     PRESET_AWAY,
@@ -17,7 +19,6 @@ from homeassistant.components.climate import (
 from homeassistant.const import UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.dispatcher import async_dispatcher_send
-from smartbox import AsyncSmartboxSession, SmartboxNodeType, UpdateManager
 
 from .const import (
     DOMAIN,
@@ -108,7 +109,7 @@ class SmartboxDevice:
         _LOGGER.debug("Connected connected update: %s", connected)
         self._connected_status = connected
         async_dispatcher_send(
-            self._hass, f"{DOMAIN}_{self.dev_id}_connected", self._away
+            self._hass, f"{DOMAIN}_{self.dev_id}_connected", self._connected_status
         )
 
     def _away_status_update(self, away_status: dict[str, bool]) -> None:
@@ -520,10 +521,8 @@ def set_temperature_args(
 def get_hvac_mode(node_type: str, status: dict[str, Any]) -> HVACMode | None:
     """Get the mode of HVAC."""
     _check_status_key("mode", node_type, status)
-    if (
-        status["mode"] == "off"
-        or node_type == SmartboxNodeType.HTR_MOD
-        and not status["on"]
+    if status["mode"] == "off" or (
+        node_type == SmartboxNodeType.HTR_MOD and not status["on"]
     ):
         return HVACMode.OFF
     if status["mode"] == "manual":

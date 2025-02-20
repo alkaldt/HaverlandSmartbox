@@ -1,16 +1,17 @@
 """The Smartbox integration."""
 
-import logging
 from dataclasses import dataclass
+import logging
 from typing import Any
+
+from smartbox import AsyncSmartboxSession
+from smartbox.error import APIUnavailableError, InvalidAuthError, SmartboxError
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from smartbox import AsyncSmartboxSession
-from smartbox.error import APIUnavailableError, InvalidAuthError, SmartboxError
 
 from .const import CONF_API_NAME, CONF_PASSWORD, CONF_USERNAME
 from .model import SmartboxDevice, SmartboxNode, get_devices
