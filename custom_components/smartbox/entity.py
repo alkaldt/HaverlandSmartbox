@@ -62,7 +62,7 @@ class SmartBoxDeviceEntity(DefaultSmartBoxEntity):
 
     def __init__(self, device: SmartboxDevice, entry: SmartboxConfigEntry) -> None:
         """Initialize the Device Entity."""
-        self._node = list(device.get_nodes())[0]
+        self._node = next(iter(device.get_nodes()))
         self._device = device
         super().__init__(entry=entry)
 

@@ -18,7 +18,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,
+    _: HomeAssistant,
     entry: SmartboxConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
@@ -27,7 +27,7 @@ async def async_setup_entry(
 
     async_add_entities(
         [Connected(node, entry) for node in entry.runtime_data.nodes],
-        True,
+        update_before_add=True,
     )
     async_add_entities(
         [
@@ -35,7 +35,7 @@ async def async_setup_entry(
             for node in entry.runtime_data.nodes
             if is_heater_node(node)
         ],
-        True,
+        update_before_add=True,
     )
     _LOGGER.debug("Finished setting up Smartbox binary sensor platform")
 

@@ -1,0 +1,120 @@
+[project]
+name = "hass-smartbox"
+version = "2.1.1"
+description = "Home Assistant integration for Smartbox."
+readme = "README.md"
+requires-python = ">=3.13"
+authors = [
+  { name="Alberto Tudela", email="ajtudela@gmail.com" },
+  { name="Delmael", email="delmael@outlook.com" },
+  { name="graham33", email="graham@grahambennett.org" },
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "License :: OSI Approved :: MIT License",
+]
+license = {file = "LICENSE"}
+dependencies = [
+    "homeassistant==2025.2.0",
+    "smartbox",
+]
+[tool.uv.sources]
+smartbox = { git = "https://github.com/Delmael/smartbox.git" }
+
+[dependency-groups]
+dev = [
+    "coverage>=7.6.8",
+    "homeassistant>=2025.1.0",
+    "homeassistant-stubs>=2025.1.0",
+    "pytest>=8.3.4",
+    "pytest-aiohttp>=1.0.5",
+    "pytest-cov>=6.0.0",
+    "pytest-homeassistant-custom-component==0.13.210",
+    "pytest-mock>=3.14.0",
+    "pytest-sugar>=1.0.0",
+    "tox>=4.24.1",
+    "ruff>=0.9.4",
+    "types-python-dateutil>=2.9.0.20241206",
+    "mypy>=1.14.1",
+
+]
+
+[project.urls]
+Homepage = "https://github.com/ajtudela/hass-smartbox"
+Issues = "https://github.com/ajtudela/hass-smartbox/issues"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+
+[tool.mypy]
+warn_unused_configs = true
+
+[tool.ruff]
+target-version = "py313"
+fix = true
+line-length = 90
+
+
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    "E501", # line too long
+    "D203",
+    "D213",
+    "RUF006",
+    "FBT001",
+    "FBT002",
+    "PLR0913",
+    "A005",
+    "COM812"
+]
+
+[tool.ruff.lint.flake8-pytest-style]
+fixture-parentheses = false
+mark-parentheses = false
+
+[tool.ruff.lint.isort]
+force-sort-within-sections = true
+combine-as-imports = true
+split-on-trailing-comma = false
+
+[tool.ruff.lint.mccabe]
+max-complexity = 25
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = [
+    "D10",
+    "S105",
+    "S101",
+    "ANN201",
+    "ANN001",
+    "N802",
+    "ANN202",
+    "PTH123",
+    "ASYNC230",
+    "PT012",
+    "DTZ001",
+    "ANN003",
+    "ANN002",
+    "A001",
+    "ARG001",
+    "ANN204",
+    "SLF001",
+    "S106",
+    "PLR2004",
+    "B018",
+    "PLR0912",
+    "PT011",
+]
+
+[tool.tox]
+env_list = ["3.13"]
+
+[tool.tox.env_run_base]
+description = "Run test under {base_python}"
+dependency_groups = ["dev"]
+commands = [["python", "-m", "pytest", "--cov=custom_components.smartbox", "--cov-append", "--cov-report=term", "--cov-report=xml", "--junitxml=junit.xml"]]
+

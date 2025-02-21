@@ -1,7 +1,7 @@
 from unittest.mock import AsyncMock, patch
 
-import pytest
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
+import pytest
 
 from custom_components.smartbox import (
     APIUnavailableError,
@@ -15,18 +15,22 @@ from custom_components.smartbox import (
 
 @pytest.mark.asyncio
 async def test_async_setup_entry_auth_failed(hass, config_entry):
-    with patch(
-        "custom_components.smartbox.create_smartbox_session_from_entry",
-        side_effect=InvalidAuthError,
+    with (
+        patch(
+            "custom_components.smartbox.create_smartbox_session_from_entry",
+            side_effect=InvalidAuthError,
+        ),
+        pytest.raises(ConfigEntryAuthFailed),
     ):
-        with pytest.raises(ConfigEntryAuthFailed):
-            await async_setup_entry(hass, config_entry)
-    with patch(
-        "custom_components.smartbox.create_smartbox_session_from_entry",
-        side_effect=SmartboxError,
+        await async_setup_entry(hass, config_entry)
+    with (
+        patch(
+            "custom_components.smartbox.create_smartbox_session_from_entry",
+            side_effect=SmartboxError,
+        ),
+        pytest.raises(ConfigEntryNotReady),
     ):
-        with pytest.raises(ConfigEntryNotReady):
-            await async_setup_entry(hass, config_entry)
+        await async_setup_entry(hass, config_entry)
 
 
 @pytest.mark.asyncio
@@ -39,7 +43,8 @@ async def test_create_smartbox_session_from_entry_success(
             return_value=AsyncMock(),
         ),
         patch(
-            "custom_components.smartbox.AsyncSmartboxSession", return_value=mock_session
+            "custom_components.smartbox.AsyncSmartboxSession",
+            return_value=mock_session,
         ),
     ):
         session = await create_smartbox_session_from_entry(hass, config_entry)
@@ -59,9 +64,9 @@ async def test_create_smartbox_session_from_entry_api_unavailable(hass, config_e
             "custom_components.smartbox.AsyncSmartboxSession",
             side_effect=APIUnavailableError,
         ),
+        pytest.raises(APIUnavailableError),
     ):
-        with pytest.raises(APIUnavailableError):
-            await create_smartbox_session_from_entry(hass, config_entry)
+        await create_smartbox_session_from_entry(hass, config_entry)
 
 
 @pytest.mark.asyncio
@@ -75,9 +80,9 @@ async def test_create_smartbox_session_from_entry_invalid_auth(hass, config_entr
             "custom_components.smartbox.AsyncSmartboxSession",
             side_effect=InvalidAuthError,
         ),
+        pytest.raises(InvalidAuthError),
     ):
-        with pytest.raises(InvalidAuthError):
-            await create_smartbox_session_from_entry(hass, config_entry)
+        await create_smartbox_session_from_entry(hass, config_entry)
 
 
 @pytest.mark.asyncio
@@ -88,11 +93,12 @@ async def test_create_smartbox_session_from_entry_smartbox_error(hass, config_en
             return_value=AsyncMock(),
         ),
         patch(
-            "custom_components.smartbox.AsyncSmartboxSession", side_effect=SmartboxError
+            "custom_components.smartbox.AsyncSmartboxSession",
+            side_effect=SmartboxError,
         ),
+        pytest.raises(SmartboxError),
     ):
-        with pytest.raises(SmartboxError):
-            await create_smartbox_session_from_entry(hass, config_entry)
+        await create_smartbox_session_from_entry(hass, config_entry)
 
 
 @pytest.mark.asyncio

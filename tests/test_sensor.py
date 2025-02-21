@@ -3,19 +3,13 @@ import time
 from unittest.mock import AsyncMock, patch
 
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
-from homeassistant.const import ATTR_FRIENDLY_NAME, ATTR_LOCKED, STATE_UNAVAILABLE
-from mocks import (
-    active_or_charging_update,
-    get_entity_id_from_unique_id,
-    get_node_unique_id,
-    get_object_id,
-    get_sensor_entity_id,
-    get_sensor_entity_name,
-    is_heater_node,
+from homeassistant.const import (
+    ATTR_FRIENDLY_NAME,
+    ATTR_LOCKED,
+    STATE_UNAVAILABLE,
 )
-from pytest import approx
+import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
-from test_utils import convert_temp, round_temp
 
 from custom_components.smartbox.const import (
     CONF_HISTORY_CONSUMPTION,
@@ -24,6 +18,17 @@ from custom_components.smartbox.const import (
     SmartboxNodeType,
 )
 from custom_components.smartbox.sensor import TotalConsumptionSensor
+
+from .mocks import (
+    active_or_charging_update,
+    get_entity_id_from_unique_id,
+    get_node_unique_id,
+    get_object_id,
+    get_sensor_entity_id,
+    get_sensor_entity_name,
+    is_heater_node,
+)
+from .test_utils import convert_temp, round_temp
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -60,8 +65,7 @@ async def test_basic_temp(hass, mock_smartbox, config_entry):
             )
             assert state.name == f"{mock_node['name']} Temperature"
             assert (
-                state.attributes[ATTR_FRIENDLY_NAME]
-                == f"{mock_node['name']} Temperature"
+                state.attributes[ATTR_FRIENDLY_NAME] == f"{mock_node['name']} Temperature"
             )
             unique_id = get_node_unique_id(mock_device, mock_node, "temperature")
             assert entity_id == get_entity_id_from_unique_id(
@@ -136,7 +140,7 @@ async def test_basic_power(hass, mock_smartbox, config_entry):
             mock_smartbox.generate_socket_status_update(
                 mock_device,
                 mock_node,
-                active_or_charging_update(mock_node["type"], True),
+                active_or_charging_update(node_type=mock_node["type"], active=True),
             )
             await hass.helpers.entity_component.async_update_entity(entity_id)
             state = hass.states.get(entity_id)
@@ -144,13 +148,13 @@ async def test_basic_power(hass, mock_smartbox, config_entry):
                 mock_device["dev_id"], mock_node
             )
             assert state.attributes[ATTR_LOCKED] == mock_node_status["locked"]
-            assert float(state.state) == approx(float(mock_node_status["power"]))
+            assert float(state.state) == pytest.approx(float(mock_node_status["power"]))
 
             # make sure it's inactive/not charging
             mock_smartbox.generate_socket_status_update(
                 mock_device,
                 mock_node,
-                active_or_charging_update(mock_node["type"], False),
+                active_or_charging_update(node_type=mock_node["type"], active=False),
             )
             await hass.helpers.entity_component.async_update_entity(entity_id)
             state = hass.states.get(entity_id)
@@ -201,7 +205,7 @@ async def test_unavailable(hass, mock_smartbox_unavailable):
                 if mock_node["type"] == SmartboxNodeType.HTR_MOD
                 else ["temperature", "power"]
             )
-            for sensor_type in sensor_types:
+            for _sensor_type in sensor_types:
                 entity_id = get_sensor_entity_id(mock_node, "temperature")
 
                 state = hass.states.get(entity_id)
@@ -247,7 +251,7 @@ async def test_basic_charge_level(hass, mock_smartbox, config_entry):
             mock_smartbox.generate_socket_status_update(
                 mock_device,
                 mock_node,
-                active_or_charging_update(mock_node["type"], True),
+                active_or_charging_update(node_type=mock_node["type"], active=True),
             )
             await hass.helpers.entity_component.async_update_entity(entity_id)
             state = hass.states.get(entity_id)
@@ -255,7 +259,9 @@ async def test_basic_charge_level(hass, mock_smartbox, config_entry):
                 mock_device["dev_id"], mock_node
             )
             assert state.attributes[ATTR_LOCKED] == mock_node_status["locked"]
-            assert int(state.state) == approx(int(mock_node_status["charge_level"]))
+            assert int(state.state) == pytest.approx(
+                int(mock_node_status["charge_level"])
+            )
 
             # Update charge level via socket
             mock_smartbox.generate_socket_status_update(

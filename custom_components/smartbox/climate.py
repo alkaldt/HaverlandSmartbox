@@ -40,7 +40,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,
+    _: HomeAssistant,
     entry: SmartboxConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
@@ -53,7 +53,7 @@ async def async_setup_entry(
             for node in entry.runtime_data.nodes
             if is_heater_node(node)
         ],
-        True,
+        update_before_add=True,
     )
     _LOGGER.debug("Finished setting up Smartbox climate platform")
 
@@ -113,7 +113,7 @@ class SmartboxHeater(SmartBoxNodeEntity, ClimateEntity):
         """Return the target temperature."""
         return get_target_temperature(self._node.node_type, self._status)
 
-    async def async_set_temperature(self, **kwargs):
+    async def async_set_temperature(self, **kwargs: Any) -> None:  # noqa: ANN401
         """Set new target temperature."""
         temp = kwargs.get(ATTR_TEMPERATURE)
         if temp is not None:
@@ -124,9 +124,7 @@ class SmartboxHeater(SmartBoxNodeEntity, ClimateEntity):
     def hvac_action(self) -> HVACAction | None:
         """Return current operation ie. heat or idle."""
         return (
-            HVACAction.HEATING
-            if self._node.is_heating(self._status)
-            else HVACAction.IDLE
+            HVACAction.HEATING if self._node.is_heating(self._status) else HVACAction.IDLE
         )
 
     @property
@@ -139,7 +137,7 @@ class SmartboxHeater(SmartBoxNodeEntity, ClimateEntity):
         """Return the list of available operation modes."""
         return [HVACMode.HEAT, HVACMode.AUTO, HVACMode.OFF]
 
-    async def async_set_hvac_mode(self, hvac_mode):
+    async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         """Set operation mode."""
         _LOGGER.debug("Setting HVAC mode to %s", hvac_mode)
         status_args = set_hvac_mode_args(self._node.node_type, self._status, hvac_mode)
@@ -179,19 +177,18 @@ class SmartboxHeater(SmartBoxNodeEntity, ClimateEntity):
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set the mode."""
         if preset_mode == PRESET_AWAY:
-            await self._node.update_device_away_status(True)
+            await self._node.update_device_away_status(away=True)
             return
         if self._node.away:
-            await self._node.update_device_away_status(False)
+            await self._node.update_device_away_status(away=False)
         if self._node.node_type == SmartboxNodeType.HTR_MOD:
             status_update = set_preset_mode_status_update(
                 self._node.node_type, self._status, preset_mode
             )
             await self._node.set_status(**status_update)
         elif preset_mode != PRESET_HOME:
-            raise ValueError(
-                f"Unsupported preset_mode {preset_mode} for {self._node.node_type} node"
-            )
+            msg = f"Unsupported preset_mode {preset_mode} for {self._node.node_type} node"
+            raise ValueError(msg)
 
     @property
     def extra_state_attributes(self) -> dict[str, bool]:

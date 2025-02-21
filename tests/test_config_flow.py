@@ -1,12 +1,5 @@
 from unittest.mock import patch
 
-from const import (
-    CONF_PASSWORD,
-    CONF_USERNAME,
-    DOMAIN,
-    MOCK_SESSION_CONFIG,
-    MOCK_SMARTBOX_CONFIG,
-)
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
@@ -18,6 +11,14 @@ from custom_components.smartbox import (
     SmartboxError,
 )
 from custom_components.smartbox.config_flow import SmartboxConfigFlow
+
+from .const import (
+    CONF_PASSWORD,
+    CONF_USERNAME,
+    DOMAIN,
+    MOCK_SESSION_CONFIG,
+    MOCK_SMARTBOX_CONFIG,
+)
 
 
 async def test_show_form(hass: HomeAssistant) -> None:
@@ -33,7 +34,6 @@ async def test_integration_already_exists(
     hass: HomeAssistant, mock_smartbox, resailer
 ) -> None:
     """Test we only allow a single config flow."""
-
     await hass.config_entries.flow.async_init(
         DOMAIN,
         context={"source": config_entries.SOURCE_USER},
@@ -163,7 +163,9 @@ async def test_async_step_reauth_confirm_show_form(hass: HomeAssistant) -> None:
     assert result["errors"] == {}
 
 
-async def test_async_step_reauth_confirm_invalid_auth(hass: HomeAssistant) -> None:
+async def test_async_step_reauth_confirm_invalid_auth(
+    hass: HomeAssistant,
+) -> None:
     """Test handling invalid auth error during reauth confirm."""
     flow = SmartboxConfigFlow()
     flow.hass = hass
@@ -183,7 +185,9 @@ async def test_async_step_reauth_confirm_invalid_auth(hass: HomeAssistant) -> No
     assert flow.context["title_placeholders"]["error"] == "Invalid auth"
 
 
-async def test_async_step_reauth_confirm_unknown_error(hass: HomeAssistant) -> None:
+async def test_async_step_reauth_confirm_unknown_error(
+    hass: HomeAssistant,
+) -> None:
     """Test handling unknown error during reauth confirm."""
     flow = SmartboxConfigFlow()
     flow.hass = hass
@@ -203,7 +207,9 @@ async def test_async_step_reauth_confirm_unknown_error(hass: HomeAssistant) -> N
     assert flow.context["title_placeholders"]["error"] == "Unknown error"
 
 
-async def test_async_step_reauth_confirm_api_unavailable(hass: HomeAssistant) -> None:
+async def test_async_step_reauth_confirm_api_unavailable(
+    hass: HomeAssistant,
+) -> None:
     """Test handling api unavailable error during reauth confirm."""
     flow = SmartboxConfigFlow()
     flow.hass = hass

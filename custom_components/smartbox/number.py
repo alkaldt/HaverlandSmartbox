@@ -15,7 +15,7 @@ _MAX_POWER_LIMIT = 9999
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,
+    _: HomeAssistant,
     entry: SmartboxConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
@@ -28,7 +28,7 @@ async def async_setup_entry(
             for device in entry.runtime_data.devices
             if device.power_limit != 0
         ],
-        True,
+        update_before_add=True,
     )
     _LOGGER.debug("Finished setting up Smartbox number platform")
 

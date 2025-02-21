@@ -22,8 +22,7 @@ def round_temp(hass, temp: float) -> float:
     # integers) vs Celsius (tenths)
     if hass.config.units.temperature_unit == UnitOfTemperature.CELSIUS:
         return round(temp, 1)
-    else:
-        return round(temp)
+    return round(temp)
 
 
 def assert_log_message(
@@ -34,14 +33,12 @@ def assert_log_message(
 
     assert any(
         # Ignoring typing due to https://github.com/python/mypy/issues/12682
-        filter(_find_message, caplog.get_records(phase))  # type: ignore
+        filter(_find_message, caplog.get_records(phase))
     )
 
 
 def assert_no_log_errors(caplog, phase="call") -> None:
     errors = [
-        record
-        for record in caplog.get_records("call")
-        if record.levelno >= logging.ERROR
+        record for record in caplog.get_records("call") if record.levelno >= logging.ERROR
     ]
     assert not errors

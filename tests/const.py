@@ -1,13 +1,15 @@
-from typing import Any, Dict, List
+"""Const file for testing."""
+
+from typing import Any
+
+from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 
 from custom_components.smartbox.const import (
     CONF_API_NAME,
-    CONF_PASSWORD,
     CONF_SESSION_BACKOFF_FACTOR,
     CONF_SESSION_RETRY_ATTEMPTS,
     CONF_SOCKET_BACKOFF_FACTOR,
     CONF_SOCKET_RECONNECT_ATTEMPTS,
-    CONF_USERNAME,
     DOMAIN,
     SmartboxNodeType,
 )
@@ -55,7 +57,7 @@ MOCK_SMARTBOX_HOME_INFO = [
         "id": "home_1",
         "name": "Home 1",
         "owner": True,
-        "devs": [item for item in MOCK_SMARTBOX_DEVICE_INFO.values()],
+        "devs": list(MOCK_SMARTBOX_DEVICE_INFO.values()),
     },
 ]
 
@@ -130,7 +132,7 @@ MOCK_SMARTBOX_NODE_INFO = {
     ],
 }
 
-MOCK_SMARTBOX_NODE_SETUP: Dict[str, List[Dict[str, Any]]] = {
+MOCK_SMARTBOX_NODE_SETUP: dict[str, list[dict[str, Any]]] = {
     "device_1": [
         {
             "factory_options": {
@@ -148,7 +150,12 @@ MOCK_SMARTBOX_NODE_SETUP: Dict[str, List[Dict[str, Any]]] = {
         },
     ],
     "device_2": [
-        {"circuit_type": 0, "power_limit": 1500, "reverse": False, "power": 1500},
+        {
+            "circuit_type": 0,
+            "power_limit": 1500,
+            "reverse": False,
+            "power": 1500,
+        },
         {
             "factory_options": {
                 "true_radiant_available": True,
@@ -187,17 +194,17 @@ MOCK_SMARTBOX_NODE_SETUP: Dict[str, List[Dict[str, Any]]] = {
     ],
 }
 
-MOCK_SMARTBOX_NODE_AWAY: Dict[str, List[Dict[str, Any]]] = {
+MOCK_SMARTBOX_NODE_AWAY: dict[str, list[dict[str, Any]]] = {
     "device_1": {"enabled": True, "away": True, "forced": True},
     "device_2": {"enabled": False, "away": False, "forced": False},
 }
 
-MOCK_SMARTBOX_DEVICE_POWER: Dict[str, List[Dict[str, Any]]] = {
+MOCK_SMARTBOX_DEVICE_POWER: dict[str, list[dict[str, Any]]] = {
     "device_1": 1500,
     "device_2": 1000,
 }
 
-MOCK_SMARTBOX_NODE_STATUS: Dict[str, List[Dict[str, Any]]] = {
+MOCK_SMARTBOX_NODE_STATUS: dict[str, list[dict[str, Any]]] = {
     "device_1": [
         {
             "ice_temp": "5.0",

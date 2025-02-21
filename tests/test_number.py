@@ -1,16 +1,16 @@
-from homeassistant.components.number import ATTR_VALUE
-from homeassistant.components.number import DOMAIN as NUMBER_DOMAIN
+from homeassistant.components.number import ATTR_VALUE, DOMAIN as NUMBER_DOMAIN
 from homeassistant.components.number.const import SERVICE_SET_VALUE
 from homeassistant.const import ATTR_ENTITY_ID, ATTR_FRIENDLY_NAME
-from mocks import (
+
+from custom_components.smartbox.const import DOMAIN
+
+from .mocks import (
     get_entity_id_from_unique_id,
     get_node_unique_id,
     get_object_id,
     get_power_limit_number_entity_id,
     get_power_limit_number_entity_name,
 )
-
-from custom_components.smartbox.const import DOMAIN
 
 
 async def test_power_limit(hass, mock_smartbox, config_entry):
@@ -21,7 +21,6 @@ async def test_power_limit(hass, mock_smartbox, config_entry):
     assert len(entries) == 1
 
     assert DOMAIN in hass.config.components
-    # mock_device = (await mock_smartbox.session.get_devices())[1]
     for mock_device in await mock_smartbox.session.get_devices():
         mock_node = (await mock_smartbox.session.get_nodes(mock_device["dev_id"]))[0]
         if mock_node["type"] == "pmo":
@@ -31,13 +30,10 @@ async def test_power_limit(hass, mock_smartbox, config_entry):
             assert state.object_id.startswith(
                 get_object_id(get_power_limit_number_entity_name(mock_node))
             )
-            assert state.entity_id.startswith(
-                get_power_limit_number_entity_id(mock_node)
-            )
+            assert state.entity_id.startswith(get_power_limit_number_entity_id(mock_node))
             assert state.name == f"{mock_node['name']} Power Limit"
             assert (
-                state.attributes[ATTR_FRIENDLY_NAME]
-                == f"{mock_node['name']} Power Limit"
+                state.attributes[ATTR_FRIENDLY_NAME] == f"{mock_node['name']} Power Limit"
             )
             unique_id = get_node_unique_id(mock_device, mock_node, "power_limit")
             assert entity_id == get_entity_id_from_unique_id(

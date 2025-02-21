@@ -2,8 +2,6 @@ import logging
 import time
 from unittest.mock import AsyncMock, MagicMock, NonCallableMock, patch
 
-import pytest
-from const import MOCK_SMARTBOX_DEVICE_INFO
 from homeassistant.components.climate import (
     PRESET_ACTIVITY,
     PRESET_AWAY,
@@ -13,8 +11,7 @@ from homeassistant.components.climate import (
     HVACMode,
     UnitOfTemperature,
 )
-from mocks import mock_device, mock_node
-from test_utils import assert_log_message
+import pytest
 
 from custom_components.smartbox.const import (
     PRESET_FROST,
@@ -37,6 +34,10 @@ from custom_components.smartbox.model import (
     set_preset_mode_status_update,
     set_temperature_args,
 )
+
+from .const import MOCK_SMARTBOX_DEVICE_INFO
+from .mocks import mock_device, mock_node
+from .test_utils import assert_log_message
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -125,7 +126,7 @@ async def test_smartbox_device_init(hass, mock_smartbox):
 
 
 async def test_smartbox_device_dev_data_updates(hass):
-    """Independently test device data updates usually done by UpdateManager"""
+    """Independently test device data updates usually done by UpdateManager."""
     dev_id = "device_1"
     mock_session = MagicMock()
     mock_node_1 = MagicMock()
@@ -154,7 +155,7 @@ async def test_smartbox_device_dev_data_updates(hass):
 
 
 async def test_smartbox_device_connected_updates(hass):
-    """Independently test device data updates usually done by UpdateManager"""
+    """Independently test device data updates usually done by UpdateManager."""
     dev_id = "device_1"
     mock_session = MagicMock()
     mock_node_1 = MagicMock()
@@ -170,15 +171,15 @@ async def test_smartbox_device_connected_updates(hass):
             (SmartboxNodeType.ACM, 2): mock_node_2,
         }
 
-        device._connected(True)
+        device._connected(connected=True)
         assert device.connected
 
-        device._connected(False)
+        device._connected(connected=False)
         assert not device.connected
 
 
 async def test_smartbox_device_node_status_update(hass, caplog):
-    """Independently test node status updates usually called by UpdateManager"""
+    """Independently test node status updates usually called by UpdateManager."""
     dev_id = "device_1"
     mock_session = MagicMock()
     mock_node_1 = MagicMock()
@@ -229,7 +230,7 @@ async def test_smartbox_device_node_status_update(hass, caplog):
 
 
 async def test_smartbox_device_node_setup_update(hass, caplog):
-    """Independently test node setup updates usually called by UpdateManager"""
+    """Independently test node setup updates usually called by UpdateManager."""
     dev_id = "device_1"
     mock_session = MagicMock()
     mock_node_1 = MagicMock()
@@ -282,10 +283,18 @@ async def test_smartbox_node(hass):
     node_sample = {"t": 1735686000, "temp": "11.3", "counter": 247426}
     mock_session = AsyncMock()
     initial_status = {"mtemp": "21.4", "stemp": "22.5"}
-    initial_setup = {"true_radiant_enabled": False, "window_mode_enabled": False}
+    initial_setup = {
+        "true_radiant_enabled": False,
+        "window_mode_enabled": False,
+    }
 
     node = SmartboxNode(
-        mock_device, node_info, mock_session, initial_status, initial_setup, node_sample
+        mock_device,
+        node_info,
+        mock_session,
+        initial_status,
+        initial_setup,
+        node_sample,
     )
     assert node.node_id == f"{dev_id}_{node_addr}"
     assert node.name == node_name
@@ -507,9 +516,7 @@ def test_set_temperature_args():
 def test_get_hvac_mode():
     assert get_hvac_mode(SmartboxNodeType.HTR, {"mode": "off"}) == HVACMode.OFF
     assert get_hvac_mode(SmartboxNodeType.ACM, {"mode": "auto"}) == HVACMode.AUTO
-    assert (
-        get_hvac_mode(SmartboxNodeType.HTR, {"mode": "modified_auto"}) == HVACMode.AUTO
-    )
+    assert get_hvac_mode(SmartboxNodeType.HTR, {"mode": "modified_auto"}) == HVACMode.AUTO
     assert get_hvac_mode(SmartboxNodeType.ACM, {"mode": "manual"}) == HVACMode.HEAT
     with pytest.raises(ValueError):
         get_hvac_mode(SmartboxNodeType.HTR, {"mode": "blah"})
@@ -554,9 +561,7 @@ def test_get_hvac_mode():
 
 def test_set_hvac_mode_args():
     assert set_hvac_mode_args(SmartboxNodeType.HTR, {}, HVACMode.OFF) == {"mode": "off"}
-    assert set_hvac_mode_args(SmartboxNodeType.ACM, {}, HVACMode.AUTO) == {
-        "mode": "auto"
-    }
+    assert set_hvac_mode_args(SmartboxNodeType.ACM, {}, HVACMode.AUTO) == {"mode": "auto"}
     assert set_hvac_mode_args(SmartboxNodeType.HTR, {}, HVACMode.HEAT) == {
         "mode": "manual"
     }
@@ -621,9 +626,11 @@ def test_set_preset_mode_status_update():
         "mode": "manual",
         "selected_temp": "eco",
     }
-    assert set_preset_mode_status_update(
-        SmartboxNodeType.HTR_MOD, {}, PRESET_FROST
-    ) == {"on": True, "mode": "manual", "selected_temp": "ice"}
+    assert set_preset_mode_status_update(SmartboxNodeType.HTR_MOD, {}, PRESET_FROST) == {
+        "on": True,
+        "mode": "manual",
+        "selected_temp": "ice",
+    }
 
     with pytest.raises(ValueError):
         set_preset_mode_status_update(SmartboxNodeType.HTR, {}, PRESET_SCHEDULE)
@@ -653,16 +660,14 @@ def test_get_htr_mod_preset_mode():
         == PRESET_COMFORT
     )
     assert (
-        _get_htr_mod_preset_mode(SmartboxNodeType.HTR_MOD, "manual", "eco")
-        == PRESET_ECO
+        _get_htr_mod_preset_mode(SmartboxNodeType.HTR_MOD, "manual", "eco") == PRESET_ECO
     )
     assert (
         _get_htr_mod_preset_mode(SmartboxNodeType.HTR_MOD, "manual", "ice")
         == PRESET_FROST
     )
     assert (
-        _get_htr_mod_preset_mode(SmartboxNodeType.HTR_MOD, "auto", "")
-        == PRESET_SCHEDULE
+        _get_htr_mod_preset_mode(SmartboxNodeType.HTR_MOD, "auto", "") == PRESET_SCHEDULE
     )
     assert (
         _get_htr_mod_preset_mode(SmartboxNodeType.HTR_MOD, "presence", "")
@@ -696,11 +701,19 @@ async def test_update_samples(hass):
     node_info = {"addr": node_addr, "name": node_name, "type": node_type}
     mock_session = AsyncMock()
     initial_status = {"mtemp": "21.4", "stemp": "22.5"}
-    initial_setup = {"true_radiant_enabled": False, "window_mode_enabled": False}
+    initial_setup = {
+        "true_radiant_enabled": False,
+        "window_mode_enabled": False,
+    }
     node_sample = {"samples": [{"t": 1735686000, "temp": "11.3", "counter": 247426}]}
 
     node = SmartboxNode(
-        mock_device, node_info, mock_session, initial_status, initial_setup, node_sample
+        mock_device,
+        node_info,
+        mock_session,
+        initial_status,
+        initial_setup,
+        node_sample,
     )
     assert node.total_energy == 247426
     # Test case where get_samples returns less than 2 samples
@@ -709,7 +722,10 @@ async def test_update_samples(hass):
     assert node._samples == node_sample
 
     # Test case where get_samples returns 2 or more samples
-    mock_session.get_node_samples.return_value = [{"counter": 100}, {"counter": 200}]
+    mock_session.get_node_samples.return_value = [
+        {"counter": 100},
+        {"counter": 200},
+    ]
     await node.update_samples()
     assert node._samples == [{"counter": 100}, {"counter": 200}]
 
@@ -734,11 +750,19 @@ async def test_update_power(hass):
     node_info = {"addr": node_addr, "name": node_name, "type": node_type}
     mock_session = AsyncMock()
     initial_status = {"mtemp": "21.4", "stemp": "22.5", "power": 4500}
-    initial_setup = {"true_radiant_enabled": False, "window_mode_enabled": False}
+    initial_setup = {
+        "true_radiant_enabled": False,
+        "window_mode_enabled": False,
+    }
     node_sample = {"samples": [{"t": 1735686000, "temp": "11.3", "counter": 247426}]}
 
     node = SmartboxNode(
-        mock_device, node_info, mock_session, initial_status, initial_setup, node_sample
+        mock_device,
+        node_info,
+        mock_session,
+        initial_status,
+        initial_setup,
+        node_sample,
     )
     assert node.status["power"] == 4500
     # Test case where get_samples returns less than 2 samples

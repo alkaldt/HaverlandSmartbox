@@ -1,9 +1,15 @@
 import logging
 
-from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
-from homeassistant.components.switch import SERVICE_TURN_OFF, SERVICE_TURN_ON
+from homeassistant.components.switch import (
+    DOMAIN as SWITCH_DOMAIN,
+    SERVICE_TURN_OFF,
+    SERVICE_TURN_ON,
+)
 from homeassistant.const import ATTR_ENTITY_ID, ATTR_FRIENDLY_NAME
-from mocks import (
+
+from custom_components.smartbox.const import DOMAIN
+
+from .mocks import (
     get_away_status_switch_entity_id,
     get_away_status_switch_entity_name,
     get_entity_id_from_unique_id,
@@ -14,9 +20,7 @@ from mocks import (
     get_window_mode_switch_entity_id,
     get_window_mode_switch_entity_name,
 )
-from test_utils import assert_log_message
-
-from custom_components.smartbox.const import DOMAIN
+from .test_utils import assert_log_message
 
 
 async def test_away_status(hass, mock_smartbox, config_entry):
@@ -39,9 +43,7 @@ async def test_away_status(hass, mock_smartbox, config_entry):
         )
         assert state.entity_id.startswith(get_away_status_switch_entity_id(mock_node))
         assert state.name == f"{mock_node['name']} Away Status"
-        assert (
-            state.attributes[ATTR_FRIENDLY_NAME] == f"{mock_node['name']} Away Status"
-        )
+        assert state.attributes[ATTR_FRIENDLY_NAME] == f"{mock_node['name']} Away Status"
         unique_id = get_node_unique_id(mock_device, mock_node, "away_status")
         assert entity_id == get_entity_id_from_unique_id(hass, SWITCH_DOMAIN, unique_id)
 
@@ -125,8 +127,7 @@ async def test_basic_window_mode(hass, mock_smartbox, config_entry, caplog):
             )
             assert state.name == f"{mock_node['name']} Window Mode"
             assert (
-                state.attributes[ATTR_FRIENDLY_NAME]
-                == f"{mock_node['name']} Window Mode"
+                state.attributes[ATTR_FRIENDLY_NAME] == f"{mock_node['name']} Window Mode"
             )
             unique_id = get_node_unique_id(mock_device, mock_node, "window_mode")
             assert entity_id == get_entity_id_from_unique_id(
@@ -225,9 +226,7 @@ async def test_basic_true_radiant(hass, mock_smartbox, config_entry, caplog):
 
             # Check true_radiant is correct
             assert (
-                state.state == "on"
-                if mock_node_setup["true_radiant_enabled"]
-                else "off"
+                state.state == "on" if mock_node_setup["true_radiant_enabled"] else "off"
             )
 
             # Turn on true_radiant via socket

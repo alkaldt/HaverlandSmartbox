@@ -4,19 +4,18 @@ from dataclasses import dataclass
 import logging
 from typing import Any
 
-from smartbox import AsyncSmartboxSession
-from smartbox.error import APIUnavailableError, InvalidAuthError, SmartboxError
-
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import Platform
+from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from smartbox import AsyncSmartboxSession
+from smartbox.error import APIUnavailableError, InvalidAuthError, SmartboxError
 
-from .const import CONF_API_NAME, CONF_PASSWORD, CONF_USERNAME
+from .const import CONF_API_NAME
 from .model import SmartboxDevice, SmartboxNode, get_devices
 
-__version__ = "2.1.0"
+__version__ = "2.1.1"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -41,7 +40,8 @@ class SmartboxData:
 
 
 async def create_smartbox_session_from_entry(
-    hass: HomeAssistant, entry: SmartboxConfigEntry | dict[str, Any] | None = None
+    hass: HomeAssistant,
+    entry: SmartboxConfigEntry | dict[str, Any] | None = None,
 ) -> AsyncSmartboxSession:
     """Create a Session class from smartbox."""
     data = {}
@@ -97,6 +97,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: SmartboxConfigEntry) -> 
 
 async def async_unload_entry(hass: HomeAssistant, entry: SmartboxConfigEntry) -> bool:
     """Unload a config entry."""
+    for device in entry.runtime_data.devices:
+        await device.update_manager.cancel()
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 

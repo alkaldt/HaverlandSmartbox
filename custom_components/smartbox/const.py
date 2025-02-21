@@ -10,8 +10,6 @@ DOMAIN = "smartbox"
 
 CONF_API_NAME = "api_name"
 CONF_DISPLAY_ENTITY_PICTURES = "resailer_entity"
-CONF_PASSWORD = "password"
-CONF_USERNAME = "username"
 CONF_SESSION_RETRY_ATTEMPTS = "session_retry_attempts"
 CONF_SESSION_BACKOFF_FACTOR = "session_backoff_factor"
 CONF_SOCKET_RECONNECT_ATTEMPTS = "socket_reconnect_attempts"

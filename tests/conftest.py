@@ -1,10 +1,14 @@
 from collections.abc import Generator
 from copy import deepcopy
-from typing import Any, Dict
+from typing import Any
 from unittest.mock import AsyncMock, patch
 
+from homeassistant.core import HomeAssistant
 import pytest
-from const import (
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+from smartbox.resailer import SmartboxResailer
+
+from .const import (
     CONF_USERNAME,
     DOMAIN,
     MOCK_SMARTBOX_CONFIG,
@@ -16,11 +20,8 @@ from const import (
     MOCK_SMARTBOX_NODE_SETUP,
     MOCK_SMARTBOX_NODE_STATUS,
 )
-from homeassistant.core import HomeAssistant
-from mocks import MockSmartbox
-from pytest_homeassistant_custom_component.common import MockConfigEntry
-from smartbox.resailer import SmartboxResailer
-from test_utils import simple_celsius_to_fahrenheit
+from .mocks import MockSmartbox
+from .test_utils import simple_celsius_to_fahrenheit
 
 pytest_plugins = "pytest_homeassistant_custom_component"
 
@@ -28,7 +29,10 @@ pytest_plugins = "pytest_homeassistant_custom_component"
 # This fixture enables loading custom integrations in all tests.
 # Remove to enable selective use of this fixture
 @pytest.fixture(name="auto_enable_custom_integrations", autouse=True)
-def auto_enable_custom_integrations(hass: Any, enable_custom_integrations: Any) -> None:  # noqa: F811
+def auto_enable_custom_integrations(
+    hass: Any,  # noqa: ANN401
+    enable_custom_integrations: Any,  # noqa: ANN401
+) -> None:
     """Enable custom integrations defined in the test dir."""
 
 
@@ -45,12 +49,18 @@ def skip_notifications_fixture():
         yield
 
 
-def _get_node_status(units: str) -> Dict[str, Any]:
+def _get_node_status(units: str) -> dict[str, Any]:
     data = deepcopy(MOCK_SMARTBOX_NODE_STATUS)
     if units == "F":
         for dev_id in data:
             for i, _ in enumerate(data[dev_id]):
-                for key in ["mtemp", "stemp", "comfort_temp", "eco_offset", "ice_temp"]:
+                for key in [
+                    "mtemp",
+                    "stemp",
+                    "comfort_temp",
+                    "eco_offset",
+                    "ice_temp",
+                ]:
                     if key in data[dev_id][i]:
                         temp_c = float(MOCK_SMARTBOX_NODE_STATUS[dev_id][i][key])
                         temp_f: float = simple_celsius_to_fahrenheit(temp_c)
@@ -62,54 +72,58 @@ def _get_node_status(units: str) -> Dict[str, Any]:
 @pytest.fixture(params=["C", "F"])
 def mock_smartbox(request):
     mock_smartbox = MockSmartbox(
-        MOCK_SMARTBOX_CONFIG,
-        MOCK_SMARTBOX_HOME_INFO,
-        MOCK_SMARTBOX_DEVICE_INFO,
-        MOCK_SMARTBOX_NODE_INFO,
-        deepcopy(MOCK_SMARTBOX_NODE_SETUP),
-        MOCK_SMARTBOX_NODE_AWAY,
-        MOCK_SMARTBOX_DEVICE_POWER,
-        _get_node_status(request.param),
+        mock_config=MOCK_SMARTBOX_CONFIG,
+        mock_home_info=MOCK_SMARTBOX_HOME_INFO,
+        mock_device_info=MOCK_SMARTBOX_DEVICE_INFO,
+        mock_node_info=MOCK_SMARTBOX_NODE_INFO,
+        mock_node_setup=deepcopy(MOCK_SMARTBOX_NODE_SETUP),
+        mock_node_away=MOCK_SMARTBOX_NODE_AWAY,
+        mock_device_power=MOCK_SMARTBOX_DEVICE_POWER,
+        mock_node_status=_get_node_status(request.param),
     )
 
-    with patch(
-        "custom_components.smartbox.AsyncSmartboxSession",
-        autospec=True,
-        side_effect=mock_smartbox.get_mock_session,
-    ):
-        with patch(
+    with (
+        patch(
+            "custom_components.smartbox.AsyncSmartboxSession",
+            autospec=True,
+            side_effect=mock_smartbox.get_mock_session,
+        ),
+        patch(
             "smartbox.update_manager.SocketSession",
             autospec=True,
             side_effect=mock_smartbox.get_mock_socket,
-        ):
-            yield mock_smartbox
+        ),
+    ):
+        yield mock_smartbox
 
 
 @pytest.fixture(params=["C", "F"])
 def mock_smartbox_unavailable(request):
     mock_smartbox = MockSmartbox(
-        MOCK_SMARTBOX_CONFIG,
-        MOCK_SMARTBOX_HOME_INFO,
-        MOCK_SMARTBOX_DEVICE_INFO,
-        MOCK_SMARTBOX_NODE_INFO,
-        deepcopy(MOCK_SMARTBOX_NODE_SETUP),
-        MOCK_SMARTBOX_NODE_AWAY,
-        MOCK_SMARTBOX_DEVICE_POWER,
-        _get_node_status(request.param),
-        False,
+        mock_config=MOCK_SMARTBOX_CONFIG,
+        mock_home_info=MOCK_SMARTBOX_HOME_INFO,
+        mock_device_info=MOCK_SMARTBOX_DEVICE_INFO,
+        mock_node_info=MOCK_SMARTBOX_NODE_INFO,
+        mock_node_setup=deepcopy(MOCK_SMARTBOX_NODE_SETUP),
+        mock_node_away=MOCK_SMARTBOX_NODE_AWAY,
+        mock_device_power=MOCK_SMARTBOX_DEVICE_POWER,
+        mock_node_status=_get_node_status(request.param),
+        start_available=False,
     )
 
-    with patch(
-        "custom_components.smartbox.AsyncSmartboxSession",
-        autospec=True,
-        side_effect=mock_smartbox.get_mock_session,
-    ):
-        with patch(
+    with (
+        patch(
+            "custom_components.smartbox.AsyncSmartboxSession",
+            autospec=True,
+            side_effect=mock_smartbox.get_mock_session,
+        ),
+        patch(
             "smartbox.update_manager.SocketSession",
             autospec=True,
             side_effect=mock_smartbox.get_mock_socket,
-        ):
-            yield mock_smartbox
+        ),
+    ):
+        yield mock_smartbox
 
 
 @pytest.fixture
@@ -166,7 +180,7 @@ def mock_devices():
 
 @pytest.fixture
 def resailer(mocker):
-    mock = mocker.patch(
+    return mocker.patch(
         "smartbox.resailer.AvailableResailers.resailers",
         new_callable=mocker.PropertyMock,
         return_value={
@@ -179,5 +193,3 @@ def resailer(mocker):
             )
         },
     )
-
-    yield mock

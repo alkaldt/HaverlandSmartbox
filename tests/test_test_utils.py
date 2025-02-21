@@ -1,4 +1,4 @@
-from test_utils import simple_celsius_to_fahrenheit
+from .test_utils import simple_celsius_to_fahrenheit
 
 
 def test_simple_celsius_to_fahrenheit():

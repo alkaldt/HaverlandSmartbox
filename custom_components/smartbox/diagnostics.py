@@ -3,11 +3,11 @@
 from typing import Any
 
 from homeassistant.components.diagnostics import async_redact_data
+from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr, entity_registry as er
 
 from . import SmartboxConfigEntry
-from .const import CONF_PASSWORD, CONF_USERNAME
 
 TO_REDACT = [CONF_PASSWORD, CONF_USERNAME, "title", "unique_id"]
 
