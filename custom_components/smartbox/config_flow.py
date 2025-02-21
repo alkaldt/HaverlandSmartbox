@@ -31,13 +31,7 @@ from .const import (
     CONF_API_NAME,
     CONF_DISPLAY_ENTITY_PICTURES,
     CONF_HISTORY_CONSUMPTION,
-    CONF_SESSION_BACKOFF_FACTOR,
-    CONF_SESSION_RETRY_ATTEMPTS,
-    CONF_SOCKET_BACKOFF_FACTOR,
-    CONF_SOCKET_RECONNECT_ATTEMPTS,
     CONF_TIMEDELTA_POWER,
-    DEFAULT_SESSION_RETRY_ATTEMPTS,
-    DEFAULT_SOCKET_BACKOFF_FACTOR,
     DEFAULT_TIMEDELTA_POWER,
     DOMAIN,
     HistoryConsumptionStatus,
@@ -65,16 +59,6 @@ OPTIONS_DATA_SCHEMA = {
     ),
     vol.Required(CONF_DISPLAY_ENTITY_PICTURES, default=False): BooleanSelector(),
     vol.Required(CONF_TIMEDELTA_POWER, default=DEFAULT_TIMEDELTA_POWER): cv.positive_int,
-    vol.Required(
-        CONF_SESSION_RETRY_ATTEMPTS,
-        default=DEFAULT_SESSION_RETRY_ATTEMPTS,
-    ): cv.positive_int,
-    vol.Required(
-        CONF_SESSION_BACKOFF_FACTOR,
-        default=DEFAULT_SOCKET_BACKOFF_FACTOR,
-    ): cv.small_float,
-    vol.Required(CONF_SOCKET_RECONNECT_ATTEMPTS, default=3): cv.positive_int,
-    vol.Required(CONF_SOCKET_BACKOFF_FACTOR, default=0.1): cv.small_float,
 }
 
 

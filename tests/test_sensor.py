@@ -3,11 +3,7 @@ import time
 from unittest.mock import AsyncMock, patch
 
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
-from homeassistant.const import (
-    ATTR_FRIENDLY_NAME,
-    ATTR_LOCKED,
-    STATE_UNAVAILABLE,
-)
+from homeassistant.const import ATTR_FRIENDLY_NAME, ATTR_LOCKED, STATE_UNAVAILABLE
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 

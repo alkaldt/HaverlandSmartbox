@@ -7,12 +7,10 @@
         "data": {
           "api_name": "[%key:common::config_flow::data::api_name%]",
           "username": "[%key:common::config_flow::data::username%]",
-          "password": "[%key:common::config_flow::data::password%]",
-          "basic_auth_creds": "[%key:common::config_flow::data::basic_auth_creds%]"
+          "password": "[%key:common::config_flow::data::password%]"
         },
         "data_description": {
-          "api_name": "[%key:common::config_flow::data_description::api_name%]",
-          "basic_auth_creds": "[%key:common::config_flow::data_description::basic_auth_creds%]"
+          "api_name": "[%key:common::config_flow::data_description::api_name%]"
         }
       },
       "reauth_confirm": {
@@ -42,19 +40,11 @@
         "data": {
           "history_consumption": "[%key:common::options::data::history_consumption%]",
           "resailer_entity": "[%key:common::options::data::resailer_entity%]",
-          "timedelta_update_power": "[%key:common::options::data::timedelta_update_power%]",
-          "session_retry_attempts": "[%key:common::options::data::session_retry_attempts%]",
-          "session_backoff_factor": "[%key:common::options::data::session_backoff_factor%]",
-          "socket_reconnect_attempts": "[%key:common::options::data::socket_reconnect_attempts%]",
-          "socket_backoff_factor": "[%key:common::options::data::socket_backoff_factor%]"
+          "timedelta_update_power": "[%key:common::options::data::timedelta_update_power%]"
         },
         "data_description": {
           "history_consumption": "[%key:common::options::data_description::history_consumption%]",
-          "timedelta_update_power": "[%key:common::options::data_description::timedelta_update_power%]",
-          "session_retry_attempts": "[%key:common::options::data_description::session_retry_attempts%]",
-          "session_backoff_factor": "[%key:common::options::data_description::session_backoff_factor%]",
-          "socket_reconnect_attempts": "[%key:common::options::data_description::socket_reconnect_attempts%]",
-          "socket_backoff_factor": "[%key:common::options::data_description::socket_backoff_factor%]"
+          "timedelta_update_power": "[%key:common::options::data_description::timedelta_update_power%]"
         }
       }
     }

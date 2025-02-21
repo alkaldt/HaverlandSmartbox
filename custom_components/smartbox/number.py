@@ -38,6 +38,7 @@ class PowerLimit(SmartBoxDeviceEntity, NumberEntity):
 
     _attr_key = "power_limit"
     _attr_websocket_event = "power_limit"
+    _websocket_event = "power_limit"
     native_max_value: float = _MAX_POWER_LIMIT
     _attr_entity_category = EntityCategory.CONFIG
     native_unit_of_measurement = UnitOfPower.WATT
@@ -50,3 +51,4 @@ class PowerLimit(SmartBoxDeviceEntity, NumberEntity):
     async def async_set_native_value(self, value: float) -> None:
         """Update the current value."""
         await self._device.set_power_limit(int(value))
+        self.async_write_ha_state()

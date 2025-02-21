@@ -64,13 +64,13 @@ class SmartboxHeater(SmartBoxNodeEntity, ClimateEntity):
     _attr_key = "thermostat"
     _attr_name = None
     _attr_websocket_event = "status"
+    _attr_should_poll = True
 
     def __init__(self, node: MagicMock | SmartboxNode, entry: ConfigEntry) -> None:
         """Initialize the sensor."""
         _LOGGER.debug("Setting up Smartbox climate platerqgsdform")
         super().__init__(node=node, entry=entry)
         self._status: dict[str, Any] = {}
-        self._available = False  # unavailable until we get an update
         self._enable_turn_on_off_backwards_compatibility = False
         self._supported_features = (
             ClimateEntityFeature.TARGET_TEMPERATURE

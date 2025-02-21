@@ -50,11 +50,13 @@ class AwaySwitch(SmartBoxNodeEntity, SwitchEntity):
 
     async def async_turn_on(self, **kwargs) -> None:  # noqa: ANN003, ARG002
         """Turn on the switch."""
-        return await self._node.device.set_away_status(True)
+        await self._node.device.set_away_status(away=True)
+        self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs) -> None:  # noqa: ANN003, ARG002
         """Turn off the switch."""
-        return await self._node.device.set_away_status(False)
+        await self._node.device.set_away_status(away=False)
+        self.async_write_ha_state()
 
     @property
     def is_on(self) -> bool:

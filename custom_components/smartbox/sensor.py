@@ -283,13 +283,9 @@ class TotalConsumptionSensor(SmartboxSensorBase):
         statistics: list[StatisticData] = []
         for entry in samples_data:
             counter = float(entry["counter"])
-            start = datetime.fromtimestamp(entry["t"], tz.tzlocal()) - timedelta(
-                hours=1
-            )
+            start = datetime.fromtimestamp(entry["t"], tz.tzlocal()) - timedelta(hours=1)
             if start.minute == 0:
-                statistics.append(
-                    StatisticData(start=start, sum=counter, state=counter)
-                )
+                statistics.append(StatisticData(start=start, sum=counter, state=counter))
 
         metadata: StatisticMetaData = StatisticMetaData(
             has_mean=False,

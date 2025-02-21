@@ -840,7 +840,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "homeassistant", specifier = "==2025.2.0" },
-    { name = "smartbox", git = "https://github.com/Delmael/smartbox.git" },
+    { name = "smartbox", specifier = ">=2.1.3,<2.2.0" },
 ]
 
 [package.metadata.requires-dev]
@@ -1941,7 +1941,7 @@ wheels = [
 [[package]]
 name = "smartbox"
 version = "2.1.3"
-source = { git = "https://github.com/Delmael/smartbox.git#e6a81a5768f0450f3f2a8ddb746f438ecc908994" }
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
     { name = "asyncclick" },
@@ -1950,6 +1950,10 @@ dependencies = [
     { name = "python-socketio" },
     { name = "requests" },
     { name = "websocket-client" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/e0/63/c125518810e2745d1bdaf5a6d58ac58f175f7608d91d4e0dc82ced1b583b/smartbox-2.1.3.tar.gz", hash = "sha256:23080541acbdf0041418941a4d50e76dfd3f1cd0c5d8b3b688c0e10abc8ef921", size = 72942 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b6/01/edd2966d687bd53e7b6ce7d2ce5853bf8560205d3486737f058384169edd/smartbox-2.1.3-py3-none-any.whl", hash = "sha256:88e406fe82f7e6c9167ffc183f8c1c298f1d5a758a1b0d94a26fa089066d6ca1", size = 18741 },
 ]
 
 [[package]]

@@ -14,11 +14,7 @@
         "data": {
           "api_name": "Name of the vendor.",
           "username": "Username",
-          "password": "Password",
-          "basic_auth_creds": "Basic Authentication Credential"
-        },
-        "data_description": {
-          "basic_auth_creds": "This is an HTTP Basic Auth credential used to do initial authentication with the server. Use the base64 encoded string directly"
+          "password": "Password"
         }
       },
       "reauth_confirm": {
@@ -48,19 +44,11 @@
         "data": {
           "history_consumption": "Consumption history",
           "timedelta_update_power": "Delta for update power entity (in sec)",
-          "resailer_entity": "Resailer logo for entities",
-          "session_retry_attempts": "Session retry attempts",
-          "session_backoff_factor": "Session backoff factor",
-          "socket_reconnect_attempts": "Socket reconnect attempts",
-          "socket_backoff_factor": "Socket backoff factor"
+          "resailer_entity": "Resailer logo for entities"
         },
         "data_description": {
           "history_consumption": "Consumption history recovery mode. Auto: forces the data. Start: initialization. Off: no data recovery (be careful, some values ​​may be aberrant).",
-          "timedelta_update_power": "Delta between to attempts to update the power entity for pmo",
-          "session_retry_attempts": "How many times to retry session REST operations",
-          "session_backoff_factor": "How much to backoff between REST retries",
-          "socket_reconnect_attempts": "How many times to try reconnecting the socket.io socket",
-          "socket_backoff_factor": "How much to backoff between initial socket connect attempts"
+          "timedelta_update_power": "Delta between to attempts to update the power entity for pmo"
         }
       }
     }

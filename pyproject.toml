@@ -17,10 +17,8 @@ classifiers = [
 license = {file = "LICENSE"}
 dependencies = [
     "homeassistant==2025.2.0",
-    "smartbox",
+    "smartbox>=2.1.3,<2.2.0",
 ]
-[tool.uv.sources]
-smartbox = { git = "https://github.com/Delmael/smartbox.git" }
 
 [dependency-groups]
 dev = [

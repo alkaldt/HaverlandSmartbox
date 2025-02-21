@@ -51,7 +51,7 @@ class DefaultSmartBoxEntity(Entity):
         )
 
     @callback
-    def _async_update(self, data: Any) -> None:
+    def _async_update(self, data: Any) -> None:  # noqa: ANN401
         """Update the state."""
         self._attr_state = data
         self.async_write_ha_state()

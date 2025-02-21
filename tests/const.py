@@ -4,15 +4,7 @@ from typing import Any
 
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 
-from custom_components.smartbox.const import (
-    CONF_API_NAME,
-    CONF_SESSION_BACKOFF_FACTOR,
-    CONF_SESSION_RETRY_ATTEMPTS,
-    CONF_SOCKET_BACKOFF_FACTOR,
-    CONF_SOCKET_RECONNECT_ATTEMPTS,
-    DOMAIN,
-    SmartboxNodeType,
-)
+from custom_components.smartbox.const import CONF_API_NAME, DOMAIN, SmartboxNodeType
 
 CONF_DEVICE_IDS = "device_ids"
 
@@ -25,14 +17,7 @@ MOCK_SMARTBOX_CONFIG = {
     }
 }
 
-MOCK_SESSION_CONFIG = {
-    DOMAIN: {
-        CONF_SESSION_RETRY_ATTEMPTS: 7,
-        CONF_SESSION_BACKOFF_FACTOR: 0.4,
-        CONF_SOCKET_RECONNECT_ATTEMPTS: 6,
-        CONF_SOCKET_BACKOFF_FACTOR: 0.5,
-    }
-}
+MOCK_SESSION_CONFIG = {DOMAIN: {}}
 
 
 MOCK_SMARTBOX_DEVICE_INFO = {

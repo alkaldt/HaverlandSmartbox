@@ -114,11 +114,13 @@ class SmartboxDevice:
 
     def _away_status_update(self, away_status: dict[str, bool]) -> None:
         _LOGGER.debug("Away status update: %s", away_status)
+
         if self._away != away_status["away"]:
             self._away = away_status["away"]
-            async_dispatcher_send(
-                self._hass, f"{DOMAIN}_{self.dev_id}_away_status", self._away
-            )
+            for node in self._nodes.values():
+                async_dispatcher_send(
+                    self._hass, f"{DOMAIN}_{node.node_id}_away_status", self._away
+                )
 
     def _power_limit_update(self, power_limit: int) -> None:
         _LOGGER.debug("power_limit update: %s", power_limit)
@@ -214,7 +216,7 @@ class SmartboxDevice:
     async def set_away_status(self, away: bool) -> None:
         """Set the away status."""
         await self._session.set_device_away_status(self.dev_id, {"away": away})
-        self._away = away
+        self._away_status_update(away_status={"away": away})
 
     @property
     def power_limit(self) -> int:

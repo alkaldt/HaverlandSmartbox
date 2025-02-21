@@ -14,11 +14,7 @@
         "data": {
           "api_name": "Nom de votre fournisseur",
           "username": "Nom d'utilisateur",
-          "password": "Mot de passe",
-          "basic_auth_creds": "Entête d'authentification"
-        },
-        "data_description": {
-          "basic_auth_creds": "Il s'agit d'un entête HTTP Basic Auth utilisé pour effectuer l'authentification initiale auprès du serveur."
+          "password": "Mot de passe"
         }
       },
       "reauth_confirm": {
@@ -48,19 +44,11 @@
         "data": {
           "history_consumption": "Historique de consommation",
           "resailer_entity": "Logo du revendeur pour les entités",
-          "timedelta_update_power": "Délai de récupération des données de puissance (in sec)",
-          "session_retry_attempts": "Nombre de tentatives d'opérations REST",
-          "session_backoff_factor": "Intervalle entre chaque tentatives REST",
-          "socket_reconnect_attempts": "Nombre de tentative de connexion aux sockets",
-          "socket_backoff_factor": "Intervalle entre chaque tentative sockets"
+          "timedelta_update_power": "Délai de récupération des données de puissance (in sec)"
         },
         "data_description": {
           "history_consumption": "Mode de récupération de l'historique de consommation. Auto: force les données. Start: initialisation. Off: aucune récupération des données (attention, certaines valeurs peuvent être abérantes).",
-          "timedelta_update_power": "Temps entre deux récupération de la puissance de l'entité",
-          "session_retry_attempts": "Nombre de tentatives d'opérations REST.",
-          "session_backoff_factor": "Intervalle entre chaque tentatives REST",
-          "socket_reconnect_attempts": "Nombre de tentative de connexion aux sockets",
-          "socket_backoff_factor": "Intervalle entre chaque tentative sockets"
+          "timedelta_update_power": "Temps entre deux récupération de la puissance de l'entité"
         }
       }
     }
