@@ -51,7 +51,10 @@ class SmartboxDevice:
         self._watchdog_task: asyncio.Task | None = None
         self._hass = hass
         self._connected_status: bool | None = None
-        self.update_manager: UpdateManager | None = None
+        self.update_manager: UpdateManager = UpdateManager(
+            self._session,
+            self.dev_id,
+        )
 
     async def initialise_nodes(self) -> None:
         """Initilaise nodes."""
@@ -90,10 +93,6 @@ class SmartboxDevice:
 
             self._nodes[(node.node_type, node.addr)] = node
         _LOGGER.debug("Creating SocketSession for device %s", self.dev_id)
-        self.update_manager = UpdateManager(
-            self._session,
-            self.dev_id,
-        )
         self.update_manager.subscribe_to_device_connected(self._connected)
         self.update_manager.subscribe_to_device_away_status(self._away_status_update)
         self.update_manager.subscribe_to_node_setup(self._node_setup_update)

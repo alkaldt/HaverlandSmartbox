@@ -389,6 +389,15 @@ def test_get_target_temperature():
         )
         == 7
     )
+    assert (
+        get_target_temperature(
+            SmartboxNodeType.HTR_MOD,
+            {
+                "selected_temp": "off",
+            },
+        )
+        == 0
+    )
 
     with pytest.raises(KeyError) as exc_info:
         get_target_temperature(
