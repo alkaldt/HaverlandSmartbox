@@ -18,9 +18,9 @@ jobs:
       matrix:
         python-version: [3.13]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v5.3.0
         with:
           python-version: ${{ matrix.python-version }}
       - name: Set up Python ${{ matrix.python-version }}
@@ -40,9 +40,9 @@ jobs:
         python-version: [3.13]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v5.3.0
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -55,12 +55,12 @@ jobs:
           uv sync --all-extras --dev
           tox -e py
       - name: "Upload coverage to Codecov"
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v5.3.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
       - name: Upload test results to Codecov
         if: ${{ !cancelled() }}
-        uses: codecov/test-results-action@v1
+        uses: codecov/test-results-action@v1.0.4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
