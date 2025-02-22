@@ -116,6 +116,18 @@ If you can't see you resailer which is using a smartbox you have to do an [Resai
 
 ## Debugging
 
+### Diagnostics
+
+If there is an error and raise an issue in [Github issue], please attach the diagnostics of the entry :
+* Go on [![Open your Home Assistant instance and show an integration.](https://my.home-assistant.io/badges/integration.svg)](https://my.home-assistant.io/redirect/integration/?domain=smartbox)
+* Click on the three dots of the config entry
+* Download diagnostics
+
+### System health
+
+You can see if all the smartbox component are available here [![Open your Home Assistant instance and show information about your system.](https://my.home-assistant.io/badges/system_health.svg)](https://my.home-assistant.io/redirect/system_health/)
+
+### Logs
 Debug logging can be enabled by increasing the log level for the smartbox custom
 component and the underlying [smartbox] python module in the Home Assistant
 `configuration.yaml`:
