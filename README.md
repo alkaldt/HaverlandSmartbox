@@ -50,15 +50,16 @@ We are currently getting the [consumption](#consumption) of device throuw the AP
 By default, each sensor has in own icon depends on the type of the sensor.
 You can activate this option to display the logo of the resailer instead.
 
-#### Session options 
-```
-  session_retry_attempts: 8 # how many times to retry session REST operations
-  session_backoff_factor: 0.1 # how much to backoff between REST retries
-  socket_reconnect_attempts: 3 # how many times to try reconnecting the socket.io socket
-  socket_backoff_factor: 0.1 # how much to backoff between initial socket connect attempts
-```
+#### Timedelta between update power
+If you have a [Dedicated energy monitor](#dedicated-energy-monitor), we get the current power each 60 seconds by default.
+You can update this time with this option.
+> [!NOTE]
+> Be carefull with this option, reduce the number little by little to see if any instability occurs.
 
 ## Features
+
+### Dedicated energy monitor
+The PMO devices are available including the power limit entity.
 
 ### Heaters Supported Node types
 These are modelled as Home Assistant Climate entities.
@@ -88,7 +89,7 @@ You can't have real time consumption of a device and this consumption is always 
 At every beginning of an hour, during around 15/20 minutes, the API do not provide data for the current hour.
 So we always get a period of two hour to have at least some data, and get the most recent one to not have drop of consumption.
 
-Every hour, we are updating data sensor with the most recent data. You are able to see the consumption directly into the history graph of the sensor.
+Every 15 minutes, we are updating data sensor with the most recent data. You are able to see the consumption directly into the history graph of the sensor.
 
 But to be sure we ensure the right data to the right hour, we also get the last 24 hours and upsert these data into statistics to avoid time difference and some data drop.
 > [!TIP]
