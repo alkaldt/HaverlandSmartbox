@@ -30,6 +30,7 @@ pytest_plugins = "pytest_homeassistant_custom_component"
 # Remove to enable selective use of this fixture
 @pytest.fixture(name="auto_enable_custom_integrations", autouse=True)
 def auto_enable_custom_integrations(
+    recorder_mock,
     hass: Any,  # noqa: ANN401
     enable_custom_integrations: Any,  # noqa: ANN401
 ) -> None:

@@ -107,9 +107,11 @@ async def test_smartbox_device_init(hass, mock_smartbox):
             mock_smartbox.session,
             await mock_smartbox.session.get_node_status(dev_id, mock_nodes[0]),
             await mock_smartbox.session.get_node_setup(dev_id, mock_nodes[0]),
-            await mock_smartbox.session.get_node_samples(
-                dev_id, mock_nodes[0], int(time.time()), int(time.time())
-            ),
+            (
+                await mock_smartbox.session.get_node_samples(
+                    dev_id, mock_nodes[0], int(time.time()), int(time.time())
+                )
+            )["samples"],
         )
         smartbox_node_ctor_mock.assert_any_call(
             device,
@@ -117,9 +119,11 @@ async def test_smartbox_device_init(hass, mock_smartbox):
             mock_smartbox.session,
             await mock_smartbox.session.get_node_status(dev_id, mock_nodes[1]),
             await mock_smartbox.session.get_node_setup(dev_id, mock_nodes[1]),
-            await mock_smartbox.session.get_node_samples(
-                dev_id, mock_nodes[1], int(time.time()), int(time.time())
-            ),
+            (
+                await mock_smartbox.session.get_node_samples(
+                    dev_id, mock_nodes[1], int(time.time()), int(time.time())
+                )
+            )["samples"],
         )
 
         assert mock_smartbox.get_socket(dev_id) is not None
@@ -714,7 +718,10 @@ async def test_update_samples(hass):
         "true_radiant_enabled": False,
         "window_mode_enabled": False,
     }
-    node_sample = {"samples": [{"t": 1735686000, "temp": "11.3", "counter": 247426}]}
+    node_sample = [
+        {"t": 1735685000, "temp": "11.3", "counter": 0},
+        {"t": 1735686000, "temp": "11.3", "counter": 247426},
+    ]
 
     node = SmartboxNode(
         mock_device,
@@ -726,24 +733,28 @@ async def test_update_samples(hass):
     )
     assert node.total_energy == 247426
     # Test case where get_samples returns less than 2 samples
-    mock_session.get_node_samples.return_value = [{"counter": 100}]
+    mock_session.get_node_samples.return_value = {"samples": [{"counter": 100}]}
     await node.update_samples()
     assert node._samples == node_sample
 
     # Test case where get_samples returns 2 or more samples
-    mock_session.get_node_samples.return_value = [
-        {"counter": 100},
-        {"counter": 200},
-    ]
+    mock_session.get_node_samples.return_value = {
+        "samples": [
+            {"counter": 100},
+            {"counter": 200},
+        ]
+    }
     await node.update_samples()
     assert node._samples == [{"counter": 100}, {"counter": 200}]
 
     # Test case where get_samples returns more than 2 samples
-    mock_session.get_node_samples.return_value = [
-        {"counter": 100},
-        {"counter": 200},
-        {"counter": 300},
-    ]
+    mock_session.get_node_samples.return_value = {
+        "samples": [
+            {"counter": 100},
+            {"counter": 200},
+            {"counter": 300},
+        ]
+    }
     await node.update_samples()
     assert node._samples == [{"counter": 200}, {"counter": 300}]
 

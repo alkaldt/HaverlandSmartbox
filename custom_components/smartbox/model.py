@@ -80,12 +80,14 @@ class SmartboxDevice:
                     self.dev_id
                 )
             setup: SetupDict = await self._session.get_node_setup(self.dev_id, node_info)
-            samples: SamplesDict = await self._session.get_node_samples(
-                self.dev_id,
-                node_info,
-                int(time.time() - (3600 * 3)),
-                int(time.time()),
-            )
+            samples: SamplesDict = (
+                await self._session.get_node_samples(
+                    self.dev_id,
+                    node_info,
+                    int(time.time() - (3600 * 3)),
+                    int(time.time()),
+                )
+            )["samples"]
             self._away = (await self._session.get_device_away_status(self.dev_id))["away"]
             node: SmartboxNode = SmartboxNode(
                 self, node_info, self._session, status, setup, samples
@@ -261,7 +263,7 @@ class SmartboxNode:
     @property
     def name(self) -> str:
         """Return the name of the node."""
-        return self._node_info["name"]
+        return self._node_info["name"] if self._node_info["name"] else self.device.name
 
     @property
     def node_type(self) -> str:
@@ -388,21 +390,20 @@ class SmartboxNode:
 
     async def get_samples(self, start_time: int, end_time: int) -> SamplesDict:
         """Update the samples."""
-        return await self._session.get_node_samples(
-            self.device.dev_id,
-            self._node_info,
-            start_time,
-            end_time,
-        )
+        return (
+            await self._session.get_node_samples(
+                self.device.dev_id,
+                self._node_info,
+                start_time,
+                end_time,
+            )
+        )["samples"]
 
     @property
     def total_energy(self) -> float | None:
         """Get the energy used."""
         samples = self._samples
-        if samples is None or "samples" not in samples or not samples["samples"]:
-            return None
-        sample: list[dict[str, int]] = samples["samples"]
-        return sample[-1]["counter"]
+        return samples[-1]["counter"]
 
 
 def is_heater_node(node: SmartboxNode | MagicMock) -> bool:

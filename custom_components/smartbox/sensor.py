@@ -6,12 +6,15 @@ import time
 from unittest.mock import MagicMock
 
 from dateutil import tz
-from homeassistant.components.recorder import DOMAIN as RECORDER_DOMAIN
+from homeassistant.components.recorder import DOMAIN as RECORDER_DOMAIN, get_instance
 from homeassistant.components.recorder.models.statistics import (
     StatisticData,
     StatisticMetaData,
 )
-from homeassistant.components.recorder.statistics import async_import_statistics
+from homeassistant.components.recorder.statistics import (
+    async_import_statistics,
+    get_last_short_term_statistics,
+)
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
@@ -41,6 +44,7 @@ from .entity import SmartBoxNodeEntity
 from .model import SmartboxNode, get_temperature_unit, is_heater_node
 
 _LOGGER = logging.getLogger(__name__)
+SCAN_INTERVAL = timedelta(minutes=1)
 
 
 async def async_setup_entry(
@@ -115,7 +119,7 @@ class SmartboxSensorBase(SmartBoxNodeEntity, SensorEntity):
     def extra_state_attributes(self) -> dict[str, bool]:
         """Return extra states of the sensor."""
         return {
-            ATTR_LOCKED: self._status["locked"],
+            ATTR_LOCKED: self._node.status["locked"],
         }
 
     @property
@@ -226,16 +230,18 @@ class TotalConsumptionSensor(SmartboxSensorBase):
 
     async def async_update(self) -> None:
         """Get the latest data."""
-        await super().async_update()
         await self._node.update_samples()
+        self._attr_state = self._node.total_energy
+        await self._adjust_short_term_statistics()
 
     async def async_added_to_hass(self) -> None:
         """When added to hass."""
         # perform initial statistics import when sensor is added, otherwise it would take
         # 1 day when _handle_coordinator_update is triggered for the first time.
+        self._available = True
         await self.update_statistics()
+        await self._adjust_short_term_statistics()
         await super().async_added_to_hass()
-
         self.async_on_remove(
             async_track_time_interval(
                 self.hass,
@@ -245,6 +251,30 @@ class TotalConsumptionSensor(SmartboxSensorBase):
                 cancel_on_shutdown=True,
             )
         )
+
+    async def _adjust_short_term_statistics(self) -> None:
+        """Adjust the short term statistics for the sensor."""
+        if (
+            last_stat := await get_instance(self.hass).async_add_executor_job(
+                get_last_short_term_statistics,
+                self.hass,
+                1,
+                self.entity_id,
+                True,  # noqa: FBT003
+                {"sum", "state"},
+            )
+        ) and (
+            last_stat[self.entity_id][0]["sum"] != last_stat[self.entity_id][0]["state"]
+        ):
+            get_instance(self.hass).async_adjust_statistics(
+                statistic_id=self.entity_id,
+                start_time=datetime.fromtimestamp(
+                    last_stat[self.entity_id][0]["start"], tz.tzlocal()
+                ),
+                sum_adjustment=last_stat[self.entity_id][0]["state"]
+                - last_stat[self.entity_id][0]["sum"],
+                adjustment_unit=self.native_unit_of_measurement,
+            )
 
     async def update_statistics(self, *args, **kwargs) -> None:  # noqa: ANN002, ANN003, ARG002
         """Update statistics from samples."""
@@ -262,7 +292,7 @@ class TotalConsumptionSensor(SmartboxSensorBase):
                     int(time.time() - (year * 365 * 24 * 60 * 60)),
                     int(time.time() - ((year - 1) * 365 * 24 * 60 * 60 - 3600)),
                 )
-                samples_data.extend(year_sample["samples"])
+                samples_data.extend(year_sample)
             self.hass.config_entries.async_update_entry(
                 entry=self.config_entry,
                 options={
@@ -272,34 +302,27 @@ class TotalConsumptionSensor(SmartboxSensorBase):
             )
         elif history_status == HistoryConsumptionStatus.AUTO:
             # last day
-            samples_data = (
-                await self._node.get_samples(
-                    int(time.time() - (24 * 60 * 50)),
-                    int(time.time() + 3600),
-                )
-            )["samples"]
+            samples_data = await self._node.get_samples(
+                int(time.time() - (24 * 60 * 60)),
+                int(time.time() + 3600),
+            )
 
         samples_data = sorted(samples_data, key=lambda x: x["t"])
         statistics: list[StatisticData] = []
         for entry in samples_data:
             counter = float(entry["counter"])
-            start = datetime.fromtimestamp(entry["t"], tz.tzlocal()) - timedelta(
-                hours=1
-            )
+            start = datetime.fromtimestamp(entry["t"], tz.tzlocal()) - timedelta(hours=1)
             if start.minute == 0:
-                statistics.append(
-                    StatisticData(start=start, sum=counter, state=counter)
-                )
-
-        metadata: StatisticMetaData = StatisticMetaData(
-            has_mean=False,
-            has_sum=True,
-            source=RECORDER_DOMAIN,
-            name=statistic_id,
-            statistic_id=statistic_id,
-            unit_of_measurement=self.native_unit_of_measurement,
-        )
+                statistics.append(StatisticData(start=start, sum=counter, state=counter))
         if statistics and history_status != HistoryConsumptionStatus.OFF:
+            metadata: StatisticMetaData = StatisticMetaData(
+                has_mean=False,
+                has_sum=True,
+                source=RECORDER_DOMAIN,
+                name=statistic_id,
+                statistic_id=statistic_id,
+                unit_of_measurement=self.native_unit_of_measurement,
+            )
             _LOGGER.debug("Insert statistics: %s %s", metadata, statistics)
             async_import_statistics(self.hass, metadata, statistics)
 

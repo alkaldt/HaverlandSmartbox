@@ -68,11 +68,12 @@ class SmartBoxDeviceEntity(DefaultSmartBoxEntity):
 
     async def async_added_to_hass(self) -> None:
         """Register callbacks."""
-        async_dispatcher_connect(
-            self.hass,
-            f"{DOMAIN}_{self._device.dev_id}_{self._attr_websocket_event}",
-            self._async_update,
-        )
+        if self._attr_should_poll is False:
+            async_dispatcher_connect(
+                self.hass,
+                f"{DOMAIN}_{self._device.dev_id}_{self._attr_websocket_event}",
+                self._async_update,
+            )
 
 
 class SmartBoxNodeEntity(DefaultSmartBoxEntity):
@@ -95,8 +96,9 @@ class SmartBoxNodeEntity(DefaultSmartBoxEntity):
 
     async def async_added_to_hass(self) -> None:
         """Register callbacks."""
-        async_dispatcher_connect(
-            self.hass,
-            f"{DOMAIN}_{self._node.node_id}_{self._attr_websocket_event}",
-            self._async_update,
-        )
+        if self._attr_should_poll is False:
+            async_dispatcher_connect(
+                self.hass,
+                f"{DOMAIN}_{self._node.node_id}_{self._attr_websocket_event}",
+                self._async_update,
+            )

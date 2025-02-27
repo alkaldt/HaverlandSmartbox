@@ -184,7 +184,7 @@ async def test_unavailable(hass, mock_smartbox_unavailable):
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
-    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 25
+    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 18
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
 
@@ -288,9 +288,7 @@ async def test_basic_charge_level(hass, mock_smartbox, config_entry):
 
 async def test_update_statistics_start(hass, mock_smartbox, config_entry):
     mock_node = AsyncMock()
-    mock_node.get_samples = AsyncMock(
-        return_value={"samples": [{"t": 1739966400, "counter": 100}]}
-    )
+    mock_node.get_samples.return_value = [{"t": 1739966400, "counter": 100}]
     sensor = TotalConsumptionSensor(mock_node, config_entry)
     sensor.hass = hass
     hass.config_entries.async_update_entry(
@@ -325,9 +323,7 @@ async def test_update_statistics_auto(hass, mock_smartbox, config_entry):
     await hass.async_block_till_done()
 
     mock_node = AsyncMock()
-    mock_node.get_samples = AsyncMock(
-        return_value={"samples": [{"t": 1739966400, "counter": 100}]}
-    )
+    mock_node.get_samples.return_value = [{"t": 1739966400, "counter": 100}]
     sensor = TotalConsumptionSensor(mock_node, config_entry)
     sensor.hass = hass
     hass.config_entries.async_update_entry(
@@ -349,9 +345,7 @@ async def test_update_statistics_auto(hass, mock_smartbox, config_entry):
 
 async def test_update_statistics_off(hass, mock_smartbox, config_entry):
     mock_node = AsyncMock()
-    mock_node.get_samples = AsyncMock(
-        return_value={"samples": [{"t": time.time(), "counter": 100}]}
-    )
+    mock_node.get_samples = AsyncMock(return_value=[{"t": time.time(), "counter": 100}])
     sensor = TotalConsumptionSensor(mock_node, config_entry)
     sensor.hass = hass
     hass.config_entries.async_update_entry(
