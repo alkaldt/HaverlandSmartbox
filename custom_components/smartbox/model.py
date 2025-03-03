@@ -402,8 +402,7 @@ class SmartboxNode:
     @property
     def total_energy(self) -> float | None:
         """Get the energy used."""
-        samples = self._samples
-        return samples[-1]["counter"]
+        return self._samples[-1]["counter"]
 
 
 def is_heater_node(node: SmartboxNode | MagicMock) -> bool:

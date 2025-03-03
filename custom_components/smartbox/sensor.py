@@ -44,7 +44,7 @@ from .entity import SmartBoxNodeEntity
 from .model import SmartboxNode, get_temperature_unit, is_heater_node
 
 _LOGGER = logging.getLogger(__name__)
-SCAN_INTERVAL = timedelta(minutes=1)
+SCAN_INTERVAL = timedelta(minutes=15)
 
 
 async def async_setup_entry(
@@ -311,9 +311,13 @@ class TotalConsumptionSensor(SmartboxSensorBase):
         statistics: list[StatisticData] = []
         for entry in samples_data:
             counter = float(entry["counter"])
-            start = datetime.fromtimestamp(entry["t"], tz.tzlocal()) - timedelta(hours=1)
+            start = datetime.fromtimestamp(entry["t"], tz.tzlocal()) - timedelta(
+                hours=1
+            )
             if start.minute == 0:
-                statistics.append(StatisticData(start=start, sum=counter, state=counter))
+                statistics.append(
+                    StatisticData(start=start, sum=counter, state=counter)
+                )
         if statistics and history_status != HistoryConsumptionStatus.OFF:
             metadata: StatisticMetaData = StatisticMetaData(
                 has_mean=False,
