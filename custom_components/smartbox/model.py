@@ -56,8 +56,15 @@ class SmartboxDevice:
             self.dev_id,
         )
 
-    async def initialise_nodes(self) -> None:
+    @classmethod
+    async def initialise_nodes(
+        cls,
+        device: Device,
+        session: AsyncSmartboxSession | MagicMock,
+        hass: HomeAssistant,
+    ) -> None:
         """Initilaise nodes."""
+        self = cls(device=device, session=session, hass=hass)
         # Would do in __init__, but needs to be a coroutine
         self._connected_status = (await self._session.get_device_connected(self.dev_id))[
             "connected"
@@ -65,32 +72,13 @@ class SmartboxDevice:
         session_nodes: list[Node] = await self._session.get_nodes(self.dev_id)
 
         for node_info in session_nodes:
-            status: StatusDict
-            if node_info["type"] != SmartboxNodeType.PMO:
-                status = await self._session.get_node_status(self.dev_id, node_info)
-            else:
-                status = {
-                    "sync_status": "ok",
-                    "locked": False,
-                    "power": await self._session.get_device_power_limit(
-                        self.dev_id, node_info
-                    ),
-                }
+            if node_info["type"] == SmartboxNodeType.PMO:
                 self._power_limit = await self._session.get_device_power_limit(
                     self.dev_id
                 )
-            setup: SetupDict = await self._session.get_node_setup(self.dev_id, node_info)
-            samples: SamplesDict = (
-                await self._session.get_node_samples(
-                    self.dev_id,
-                    node_info,
-                    int(time.time() - (3600 * 3)),
-                    int(time.time()),
-                )
-            )["samples"]
             self._away = (await self._session.get_device_away_status(self.dev_id))["away"]
-            node: SmartboxNode = SmartboxNode(
-                self, node_info, self._session, status, setup, samples
+            node: SmartboxNode = await SmartboxNode.create(
+                device=self, node_info=node_info, session=self._session
             )
 
             self._nodes[(node.node_type, node.addr)] = node
@@ -103,6 +91,7 @@ class SmartboxDevice:
 
         _LOGGER.debug("Starting UpdateManager task for device %s", self.dev_id)
         self._watchdog_task = asyncio.create_task(self.update_manager.run())
+        return self
 
     def _connected(self, connected: bool) -> None:
         _LOGGER.debug("Connected connected update: %s", connected)
@@ -249,6 +238,33 @@ class SmartboxNode:
         self._status = status
         self._setup = setup
         self._samples = samples
+
+    @classmethod
+    async def create(
+        cls,
+        device: SmartboxDevice | MagicMock,
+        session: AsyncSmartboxSession | MagicMock,
+        node_info: Node,
+    ) -> None:
+        """Create a smartbox node."""
+        if node_info["type"] != SmartboxNodeType.PMO:
+            status: StatusDict = await session.get_node_status(device.dev_id, node_info)
+        else:
+            status: StatusDict = {
+                "sync_status": "ok",
+                "locked": False,
+                "power": await session.get_device_power_limit(device.dev_id, node_info),
+            }
+        setup: SetupDict = await session.get_node_setup(device.dev_id, node_info)
+        samples: SamplesDict = (
+            await session.get_node_samples(
+                device.dev_id,
+                node_info,
+                int(time.time() - (3600 * 3)),
+                int(time.time()),
+            )
+        )["samples"]
+        return cls(device, node_info, session, status, setup, samples)
 
     @property
     def node_info(self) -> Node:
@@ -439,19 +455,10 @@ async def get_devices(
         del _home["devs"]
         for session_device in home["devs"]:
             session_device["home"] = _home
-            devices.append(await create_smartbox_device(session_device, session, hass))
+            devices.append(
+                await SmartboxDevice.initialise_nodes(session_device, session, hass)
+            )
     return devices
-
-
-async def create_smartbox_device(
-    device: dict[str, Any],
-    session: AsyncSmartboxSession | MagicMock,
-    hass: HomeAssistant,
-) -> SmartboxDevice | MagicMock:
-    """Create factory function for smartboxdevices."""
-    _device = SmartboxDevice(device, session, hass)
-    await _device.initialise_nodes()
-    return _device
 
 
 def _check_status_key(key: str, node_type: str, status: dict[str, Any]) -> None:
