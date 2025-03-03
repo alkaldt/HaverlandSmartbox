@@ -701,3 +701,18 @@ async def test_update_power(hass):
     mock_session.get_device_power_limit.return_value = 100
     await node.update_power()
     assert node.status["power"] == 100
+
+
+def test_smartbox_device_property():
+    """Test the device property of SmartboxDevice."""
+    dev_id = "device_1"
+    mock_session = MagicMock()
+    mock_device_info = MOCK_SMARTBOX_DEVICE_INFO[dev_id]
+    # Simulate initialise_nodes with mock data, make sure nobody calls the real one
+    with patch(
+        "custom_components.smartbox.model.SmartboxDevice.initialise_nodes",
+        new_callable=NonCallableMock,
+    ):
+        device = SmartboxDevice(mock_device_info, mock_session, hass=None)
+        assert device.device == mock_device_info
+        assert device.name == MOCK_SMARTBOX_DEVICE_INFO[dev_id]["name"]
