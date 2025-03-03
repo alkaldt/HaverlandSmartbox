@@ -1,5 +1,4 @@
 import logging
-import time
 from unittest.mock import AsyncMock, MagicMock, NonCallableMock, patch
 
 from homeassistant.components.climate import (
@@ -23,7 +22,6 @@ from custom_components.smartbox.model import (
     SmartboxDevice,
     SmartboxNode,
     _get_htr_mod_preset_mode,
-    get_devices,
     get_hvac_mode,
     get_target_temperature,
     get_temperature_unit,
@@ -35,7 +33,7 @@ from custom_components.smartbox.model import (
 )
 
 from .const import MOCK_SMARTBOX_DEVICE_INFO
-from .mocks import mock_device, mock_node
+from .mocks import mock_node
 from .test_utils import assert_log_message
 
 _LOGGER = logging.getLogger(__name__)

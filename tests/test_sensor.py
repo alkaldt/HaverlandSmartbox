@@ -1,7 +1,9 @@
+from datetime import datetime
 import logging
 import time
 from unittest.mock import AsyncMock, patch
 
+from dateutil import tz
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 from homeassistant.const import ATTR_FRIENDLY_NAME, ATTR_LOCKED, STATE_UNAVAILABLE
 import pytest
@@ -25,10 +27,6 @@ from .mocks import (
     is_heater_node,
 )
 from .test_utils import convert_temp, round_temp
-from unittest.mock import patch, AsyncMock
-from datetime import datetime
-from dateutil import tz
-from custom_components.smartbox.sensor import TotalConsumptionSensor
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -15,7 +15,7 @@ from smartbox.error import APIUnavailableError, InvalidAuthError, SmartboxError
 from .const import CONF_API_NAME
 from .model import SmartboxDevice, SmartboxNode, get_devices
 
-__version__ = "2.1.1"
+__version__ = "2.1.2"
 
 _LOGGER = logging.getLogger(__name__)
 
